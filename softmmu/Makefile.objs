@@ -12,4 +12,8 @@ obj-y += datadir.o
 obj-y += qtest.o
 
 obj-y += vl.o
+obj-y += cpu-timers.o
+ifeq ($(call lor,$(CONFIG_SOFTMMU),$(CONFIG_TCG)),y)
+obj-y += icount.o
+endif # CONFIG_SOFTMMU || CONFIG_TCG
 vl.o-cflags := $(GPROF_CFLAGS) $(SDL_CFLAGS)

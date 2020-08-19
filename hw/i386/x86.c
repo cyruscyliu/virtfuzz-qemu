@@ -35,6 +35,7 @@
 #include "sysemu/numa.h"
 #include "sysemu/replay.h"
 #include "sysemu/sysemu.h"
+#include "sysemu/cpu-timers.h"
 #include "trace.h"
 
 #include "hw/i386/x86.h"
