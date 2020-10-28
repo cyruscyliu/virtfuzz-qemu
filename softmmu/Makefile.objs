@@ -7,6 +7,7 @@ obj-y += balloon.o
 obj-y += ioport.o
 obj-y += memory.o
 obj-y += memory_mapping.o
+obj-y += datadir.o
 
 obj-y += qtest.o
 

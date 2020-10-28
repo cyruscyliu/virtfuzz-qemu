@@ -24,6 +24,7 @@
 
 #include "qemu/osdep.h"
 #include "qemu-common.h"
+#include "qemu/datadir.h"
 #include "qemu/units.h"
 #include "hw/boards.h"
 #include "hw/qdev-properties.h"
@@ -116,8 +117,6 @@
 
 #define MAX_VIRTIO_CONSOLES 1
 
-static const char *data_dir[16];
-static int data_dir_idx;
 const char *bios_name = NULL;
 enum vga_retrace_method vga_retrace_method = VGA_RETRACE_DUMB;
 int display_opengl;
@@ -1969,58 +1968,6 @@ static void parse_display(const char *p)
     } else {
         parse_display_qapi(p);
     }
-}
-
-char *qemu_find_file(int type, const char *name)
-{
-    int i;
-    const char *subdir;
-    char *buf;
-
-    /* Try the name as a straight path first */
-    if (access(name, R_OK) == 0) {
-        trace_load_file(name, name);
-        return g_strdup(name);
-    }
-
-    switch (type) {
-    case QEMU_FILE_TYPE_BIOS:
-        subdir = "";
-        break;
-    case QEMU_FILE_TYPE_KEYMAP:
-        subdir = "keymaps/";
-        break;
-    default:
-        abort();
-    }
-
-    for (i = 0; i < data_dir_idx; i++) {
-        buf = g_strdup_printf("%s/%s%s", data_dir[i], subdir, name);
-        if (access(buf, R_OK) == 0) {
-            trace_load_file(name, buf);
-            return buf;
-        }
-        g_free(buf);
-    }
-    return NULL;
-}
-
-void qemu_add_data_dir(const char *path)
-{
-    int i;
-
-    if (path == NULL) {
-        return;
-    }
-    if (data_dir_idx == ARRAY_SIZE(data_dir)) {
-        return;
-    }
-    for (i = 0; i < data_dir_idx; i++) {
-        if (strcmp(data_dir[i], path) == 0) {
-            return; /* duplicate */
-        }
-    }
-    data_dir[data_dir_idx++] = g_strdup(path);
 }
 
 static inline bool nonempty_str(const char *str)
@@ -3941,9 +3888,7 @@ void qemu_init(int argc, char **argv, char **envp)
 
     /* -L help lists the data directories and exits. */
     if (list_data_dirs) {
-        for (i = 0; i < data_dir_idx; i++) {
-            printf("%s\n", data_dir[i]);
-        }
+        qemu_list_data_dirs();
         exit(0);
     }
 
