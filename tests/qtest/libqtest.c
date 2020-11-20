@@ -531,6 +531,7 @@ redo:
         }
     } else {
         g_strfreev(words);
+        words = NULL;
     }
 
     return words;
