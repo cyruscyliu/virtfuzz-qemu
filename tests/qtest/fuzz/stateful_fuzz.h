@@ -1,0 +1,625 @@
+/*
+ * Stateful Virtual-Device Fuzzing Target
+ *
+ * Copyright Red Hat Inc., 2020
+ *
+ * Authors:
+ *  Qiang Liu <qiangliu@zju.edu.cn>
+ *
+ * This work is licensed under the terms of the GNU GPL, version 2 or later.
+ * See the COPYING file in the top-level directory.
+ */
+#include "qemu/osdep.h"
+#include <wordexp.h>
+#include "hw/core/cpu.h"
+#include "tests/qtest/libqos/libqtest.h"
+#include "fuzz.h"
+#include "qos_fuzz.h"
+#include "fork_fuzz.h"
+#include "exec/address-spaces.h"
+#include "string.h"
+#include "exec/memory.h"
+#include "exec/ramblock.h"
+#include "exec/address-spaces.h"
+#include "hw/qdev-core.h"
+#include "hw/pci/pci.h"
+#include "hw/boards.h"
+
+// +-----+-----+-----+
+// +    libfuzzer    +
+// +-----+-----+-----+
+// +      input      + <- core
+// +-----+-----+-----+
+// +event+event+event+ <- core
+// +-----+-----+-----+
+// + inf + inf + inf +
+// +-----+-----+-----+
+// +      qtest      +
+// +-----+-----+-----+
+// +     virtdev     +
+// +-----+-----+-----+
+
+// +-----------------+
+// +      event      +
+// +-----------------+
+#define N_VALID_TYPES 4
+typedef enum {
+    EVENT_TYPE_MMIO_READ = 0,
+    EVENT_TYPE_MMIO_WRITE,
+    EVENT_TYPE_PIO_READ,
+    EVENT_TYPE_PIO_WRITE,
+    EVENT_TYPE_INT,
+    EVENT_TYPE_CLOCK_STEP,
+    // these two events are only used
+    // in the event injection, such that
+    // the mutator does not know them
+    EVENT_TYPE_MEM_READ = 8,
+    EVENT_TYPE_MEM_WRITE,
+    // this event is an extension
+    // and it is never dispatched,
+    // such that the mutator does not
+    // know it either
+    EVENT_TYPE_DATA_POOL = 11,
+} EventType;
+
+const char *EventTypeNames[12] = {
+    "EVENT_TYPE_MMIO_READ", // 0
+    "EVENT_TYPE_MMIO_WRITE", 
+    "EVENT_TYPE_PIO_READ", // 2
+    "EVENT_TYPE_PIO_WRITE",
+    "EVENT_TYPE_INT",
+    "EVENT_TYPE_CLOCK_STEP",
+    "EVNET_NONE", 
+    "EVNET_NONE",
+    "EVENT_TYPE_MEM_READ", // 8 
+    "EVENT_TYPE_MEM_WRITE",
+    "EVENT_NONE",
+    "EVENT_TYPE_DATA_POOL", // 11
+};
+
+typedef struct Event {
+    uint8_t id; /* interface id */
+    uint8_t type; /* event type */
+    uint32_t event_size; /* event size */
+    uint32_t offset; /* event offset in the input */
+    uint64_t addr; /* event data */
+    uint32_t size; /* event data */
+    union {
+        uint64_t val; /* event data */
+        uint64_t pad; /* event data */
+        uint8_t *data;/* event data */
+    };
+    struct Event *next; /* event linker */
+} Event;
+
+// +-----------------+
+// +      input      +
+// +-----------------+
+typedef struct {
+    size_t limit; /* input size */
+    void *buf; /* input data */
+    int index; /* input cursor */
+    Event *events; /* corresponding events */
+    int n_events; /* number of events */
+} Input;
+
+// +-----------------+
+// +    interface    +
+// +-----------------+
+typedef struct {
+    uint64_t addr;
+    uint32_t size;
+} InterfaceMemBlock;
+
+typedef struct {
+    EventType type;
+    InterfaceMemBlock emb;
+    char name[32];
+    uint8_t min_access_size;
+    uint8_t max_access_size;
+} InterfaceDescription;
+
+static uint32_t n_interfaces = 0;
+
+// predefined interfaces one-to-one mapped from
+// the transparent events, these interfaces are
+// also transparent to the fuzzer
+#define INTERFACE_MEM_READ  32
+#define INTERFACE_MEM_WRITE 33
+#define INTERFACE_DATA_POOL 35
+
+// n interface -> 1 event
+// 1 interface -> 1 event
+static InterfaceDescription Id_Description[36] = {
+    [INTERFACE_MEM_READ] = {
+        .type = EVENT_TYPE_MEM_READ,
+        .emb = {.addr = 0xFFFFFFFF, .size = 0xFFFFFFFF},
+        .name = "memread",
+        .min_access_size = 0xFF, .max_access_size = 0xFF,
+    }, [INTERFACE_MEM_WRITE] = {
+        .type = EVENT_TYPE_MEM_WRITE,
+        .emb = {.addr = 0xFFFFFFFF, .size = 0xFFFFFFFF},
+        .name = "memwrite",
+        .min_access_size = 0xFF, .max_access_size = 0xFF,
+    }, [INTERFACE_DATA_POOL] = {
+        .type = EVENT_TYPE_DATA_POOL,
+        .emb = {.addr = 0xFFFFFFFF, .size = 0xFFFFFFFF},
+        .name = "guest_alloc",
+        .min_access_size = 0xFF, .max_access_size = 0xFF,
+    }
+};
+
+// +-----------------+
+// +     inf_ops     +
+// +-----------------+
+static void printf_event_description() {
+    for (int i = 0; i < n_interfaces; i++) {
+        InterfaceDescription ed = Id_Description[i];
+        fprintf(stderr, "  * %s, %s, 0x%lx +0x%x, %d,%d\n",
+                ed.name, EventTypeNames[ed.type],
+                ed.emb.addr, ed.emb.size,
+                ed.min_access_size, ed.max_access_size);
+    }
+}
+
+// +-----------------+
+// +    event_ops    +
+// +-----------------+
+static void printf_event(Event *event) {
+    fprintf(stderr, "  * %d, %s, 0x%lx, 0x%x",
+            event->id, EventTypeNames[event->type],
+            event->addr, event->size);
+    switch(event->type) {
+        case EVENT_TYPE_MMIO_READ:
+        case EVENT_TYPE_PIO_READ:
+        case EVENT_TYPE_MEM_READ:
+        case EVENT_TYPE_MEM_WRITE:
+        case EVENT_TYPE_DATA_POOL:
+            fprintf(stderr, "\n");
+            break;
+        case EVENT_TYPE_MMIO_WRITE:
+        case EVENT_TYPE_PIO_WRITE:
+            fprintf(stderr, ", 0x%lx\n", event->val);
+            break;
+        default:
+            fprintf(stderr, "wrong type of event %d\n", event->type);
+    }
+}
+
+static uint8_t around_event_id(uint8_t id) {
+    if (id == INTERFACE_MEM_READ ||
+            id == INTERFACE_MEM_WRITE ||
+            id == INTERFACE_DATA_POOL)
+        return id;
+    return id % n_interfaces;
+}
+
+static uint64_t around_event_addr(uint8_t id, uint64_t raw_addr) {
+    if (id == INTERFACE_MEM_READ ||
+            id == INTERFACE_MEM_WRITE ||
+            id == INTERFACE_DATA_POOL)
+        return raw_addr;
+    InterfaceDescription ed = Id_Description[id];
+    return (ed.emb.addr + raw_addr % ed.emb.size) & 0xFFFFFFFFFFFFFFFC;
+}
+
+static uint32_t around_event_size(uint8_t id, uint8_t type, uint32_t raw_size) {
+    InterfaceDescription ed;
+    uint8_t diff;
+    switch (type) {
+        case EVENT_TYPE_MMIO_READ:
+        case EVENT_TYPE_MMIO_WRITE:
+        case EVENT_TYPE_PIO_READ:
+        case EVENT_TYPE_PIO_WRITE:
+            ed = Id_Description[id];
+            diff = ed.max_access_size - ed.min_access_size + 1;
+            return pow2floor(((raw_size - ed.min_access_size) % diff) + ed.min_access_size);
+        case EVENT_TYPE_MEM_READ:
+        case EVENT_TYPE_MEM_WRITE:
+        case EVENT_TYPE_DATA_POOL:
+            return raw_size;
+        default:
+            fprintf(stderr, "wrong type of event %d\n", type);
+            return 0;
+    }
+}
+
+static uint8_t around_event_type(uint8_t raw_type) {
+    if (raw_type == EVENT_TYPE_MEM_READ ||
+            raw_type == EVENT_TYPE_MEM_WRITE ||
+            raw_type == EVENT_TYPE_DATA_POOL)
+        return raw_type;
+    return raw_type % N_VALID_TYPES;
+}
+
+static uint32_t serialize(uint8_t *Data, size_t Offset, size_t MaxSize, 
+        uint8_t id, uint64_t addr, uint32_t size, uint8_t *val) {
+    uint8_t type;
+    InterfaceDescription ed = Id_Description[id];
+    type = around_event_type(ed.type);
+    switch (type) {
+        case EVENT_TYPE_MMIO_READ:
+        case EVENT_TYPE_PIO_READ:
+            if (Offset + 13 >= MaxSize)
+                return 0;
+            Data[Offset] = id;
+            memcpy(Data + Offset + 1, (uint8_t *)&addr, 8);
+            memcpy(Data + Offset + 9, (uint8_t *)&size, 4);
+            return 13;
+        case EVENT_TYPE_PIO_WRITE:
+        case EVENT_TYPE_MMIO_WRITE:
+            if (Offset + 21 >= MaxSize)
+                return 0;
+            Data[Offset] = id;
+            memcpy(Data + Offset + 1, (uint8_t *)&addr, 8);
+            memcpy(Data + Offset + 9, (uint8_t *)&size, 4);
+            memcpy(Data + Offset + 13, (uint8_t *)val, 8);
+            return 21;
+        case EVENT_TYPE_MEM_READ:
+        case EVENT_TYPE_MEM_WRITE:
+            if (Offset + 13 + size >= MaxSize)
+                return 0;
+            Data[Offset] = id;
+            memcpy(Data + Offset + 1, (uint8_t *)&addr, 8);
+            memcpy(Data + Offset + 9, (uint8_t *)&size, 4);
+            if (type == EVENT_TYPE_MEM_READ)
+                memset(Data + Offset + 13, 0, size);
+            else
+                memcpy(Data + Offset + 13, (uint8_t *)val, size);
+            return 13 + size;
+        case EVENT_TYPE_DATA_POOL:
+            if (Offset + size >= MaxSize)
+                return 0;
+            Data[Offset] = id;
+            memcpy(Data + Offset + 1, (uint8_t *)&size, 4);
+            memcpy(Data + Offset + 5, (uint8_t *)val, size);
+            return 5 + size;
+        default:
+            fprintf(stderr, "Unsupport Event Type\n");
+            return 0;
+    }
+}
+
+#define DATA_POOL_MAXSIZE 4096
+// Specially, we have to put one EVENT_TYPE_DATA_POOL event
+// at the end of the input and make it a fuzzy data pool.
+static size_t reset_data(uint8_t *Data, size_t MaxSize) {
+    size_t Offset = 0;
+    // EVENT_TYPE_MMIO_READ addr=0 size=4
+    Offset += serialize(Data, Offset, MaxSize, 0, 0x0, 0x4, NULL);
+    // EVENT_TYPE_DATA_POOL size=13 Data=\x00... (13 repeated \x00)
+    Offset += serialize(Data, Offset, MaxSize, INTERFACE_DATA_POOL, 0, 13, Data);
+    return Offset;
+}
+
+typedef struct DataPool {
+    uint8_t Data[4096];
+    size_t Size;
+    uint32_t index;
+} DataPool;
+
+static DataPool data_pool = {
+    .Data = {0},
+    .Size = 0,
+    .index = 0,
+};
+
+static uint32_t get_data_from_pool4(void) { 
+    // make it a circle
+    uint32_t ret = 0;
+    for (int i = 0; i < 4; i++) {
+        ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
+    }
+    data_pool.index += 4;
+    printf("ret=%d\n", ret);
+    return ret; 
+}
+
+static size_t set_data_pool(Event *data_pool_event) {
+    data_pool.index = 0;
+    data_pool.Size = data_pool_event->size;
+    memcpy(data_pool.Data, data_pool_event->data, data_pool_event->size);
+    return data_pool_event->offset;
+}
+
+static void reset_data_pool(void) {
+    memset(data_pool.Data, 0, DATA_POOL_MAXSIZE);
+    data_pool.Size = 0;
+    data_pool.index = 0;
+}
+
+// +-----------------+
+// +    input_ops    +
+// +-----------------+
+static uint32_t get_event_size(Input *input, uint32_t index) {
+    // event->next, event->event_size are used
+    Event *event = input->events;
+    for (int i = 0; i < index; i++) {
+        if (!event->next)
+            break;
+        event = event->next;
+    }
+    return event->event_size;
+}
+
+static uint32_t get_event_offset(Input *input, uint32_t index) {
+    // event->next, event->offset are used
+    Event *event = input->events;
+    for (int i = 0; i < index; i++) {
+        if (!event->next)
+            break;
+        event = event->next;
+    }
+    return event->offset;
+}
+
+static Event *get_event(Input *input, uint32_t index) {
+    Event *event = input->events;
+    for (int i = 0; i != index; i++)
+        event = event->next;
+    return event;
+}
+
+static bool input_check_index(Input* input, int request) {
+    if (input->index + request > input->limit) {
+        return false;
+    }
+    return true;
+}
+
+static void input_next(Input* input, void* buf, size_t size) {
+    // littile-endian
+    memcpy(buf, input->buf + input->index, size);
+    input->index += size;
+}
+
+#define CONSUME_INPUT_NEXT(sz) \
+    static uint##sz##_t input_next_##sz(Input* input) { \
+    uint##sz##_t ch = 0; \
+    input_next(input, &ch, sizeof(ch)); \
+    return ch; \
+}
+
+CONSUME_INPUT_NEXT(8);
+CONSUME_INPUT_NEXT(16);
+CONSUME_INPUT_NEXT(32);
+CONSUME_INPUT_NEXT(64);
+CONSUME_INPUT_NEXT(ptr);
+
+static Input *init_input(const uint8_t *Data, size_t Size) {
+    if (Size < 13)
+        return NULL;
+    Input *input = (Input *)malloc(sizeof(Input));
+    input->limit = Size;
+    input->buf = (void *)malloc(Size);
+    memcpy(input->buf, Data, Size);
+    input->index = 0;
+    input->events = NULL;
+    input->n_events = 0;
+    return input;
+}
+
+static void append_event(Input *input, Event *event) {
+    Event *last_event = input->events;
+    if (!last_event) {
+        input->events = event;
+    } else {
+        while (last_event->next) {
+            last_event = last_event->next;
+        }
+        last_event->next = event;
+    }
+    event->next = NULL;
+    input->n_events++;
+}
+
+static void free_events(Input *input, bool indexer) {
+    Event *events = input->events, *tmp;
+    while ((tmp = events)) {
+        switch (tmp->type) {
+            case EVENT_TYPE_MEM_READ:
+            case EVENT_TYPE_MEM_WRITE:
+            case EVENT_TYPE_DATA_POOL:
+                free(tmp->data);
+        }
+        events = events->next;
+        free(tmp);
+    }
+}
+
+static void free_input(Input *input, bool indexer) {
+    free(input->buf);
+    free_events(input, indexer);
+    free(input);
+}
+
+static uint32_t deserialize(Input *input, bool indexer) {
+    uint8_t id, type;
+    uint64_t addr, val;
+    uint32_t size, DataSize = 0;
+    Event *event = NULL;
+    uint8_t *Data;
+    while (input_check_index(input, 1)) {
+        id = around_event_id(input_next_8(input));
+        InterfaceDescription ed = Id_Description[id];
+        type = around_event_type(ed.type);
+        switch (type) {
+            case EVENT_TYPE_MMIO_READ:
+            case EVENT_TYPE_PIO_READ:
+                //   1B   8B   4B
+                // +----+----+----+
+                // + ID +ADDR+SIZE+
+                // +----+----+----+
+                if (!input_check_index(input, 8 + 4)) {
+                    input->index--;
+                    return DataSize;
+                }
+                addr = input_next_64(input);
+                size = input_next_32(input);
+                event = (Event *)malloc(sizeof(Event));
+                event->id = id;
+                event->type = type;
+                event->addr = around_event_addr(id, addr);
+                event->size = around_event_size(id, type, size);
+                event->pad = 0;
+                event->offset = DataSize;
+                event->event_size = 13;
+                append_event(input, event);
+                DataSize += 13;
+                break;
+            case EVENT_TYPE_PIO_WRITE:
+            case EVENT_TYPE_MMIO_WRITE:
+                //   1B   8B   4B   8B
+                // +----+----+----+----+
+                // + ID +ADDR+SIZE+VALU+
+                // +----+----+----+----+
+                if (!input_check_index(input, 8 + 4 + 8)) {
+                    input->index--;
+                    return DataSize;
+                }
+                addr = input_next_64(input);
+                size = input_next_32(input);
+                val = input_next_64(input);
+                event = (Event *)malloc(sizeof(Event));
+                event->id = id;
+                event->type = type;
+                event->addr = around_event_addr(id, addr);
+                event->size = around_event_size(id, type, size);
+                event->val = val;
+                event->offset = DataSize;
+                event->event_size = 21;
+                append_event(input, event);
+                DataSize += 21;
+                break;
+            case EVENT_TYPE_MEM_READ:
+            case EVENT_TYPE_MEM_WRITE:
+                //   1B   8B   4B   XB
+                // +----+----+----+----+
+                // + ID +ADDR+SIZE+DATA+
+                // +----+----+----+----+
+                if (!input_check_index(input, 8 + 4)) {
+                    input->index--;
+                    return DataSize;
+                }
+                addr = input_next_64(input);
+                size = input_next_32(input);
+                if (!input_check_index(input, size)) {
+                    input->index--;
+                    return DataSize;
+                }
+                Data = (uint8_t *)malloc(size);
+                input_next(input, Data, size);
+                event = (Event *)malloc(sizeof(Event));
+                event->id = id;
+                event->type = type;
+                event->addr = around_event_addr(id, addr);
+                event->size = around_event_size(id, type, size);
+                event->data = Data;
+                event->offset = DataSize;
+                event->event_size = size + 13;
+                append_event(input, event);
+                DataSize += (size + 13);
+                break;
+            case EVENT_TYPE_DATA_POOL:
+                //   1B   4B   XB
+                // +----+----+----+
+                // + ID +SIZE+DATA+
+                // +----+----+----+
+                if (!input_check_index(input, 4)) {
+                    input->index--;
+                    return DataSize;
+                }
+                size = input_next_32(input);
+                if (!input_check_index(input, size)) {
+                    input->index--;
+                    return DataSize;
+                }
+                Data = (uint8_t *)malloc(size);
+                input_next(input, Data, size);
+                event = (Event *)malloc(sizeof(Event));
+                event->id = id;
+                event->type = type;
+                event->addr = 0xFFFFFFFFFFFFFFFF;
+                event->size = around_event_size(id, type, size);
+                event->data = Data;
+                event->offset = DataSize;
+                event->event_size = size + 5;
+                append_event(input, event);
+                DataSize += (size + 5);
+                break;
+            default:
+                fprintf(stderr, "Unsupport Event Type\n");
+        }
+    }
+    return DataSize;
+}
+
+// +-----------------+
+// +  allocator_ops  +
+// +-----------------+
+// P.S. "stateful" is only a mark here.
+static QGuestAllocator *stateful_alloc;
+
+typedef struct ChainedBuffer {
+    uint64_t addr;
+    size_t size;
+    size_t lock_size;
+} ChainedBuffer;
+
+typedef struct StatefulMemoryPool {
+    ChainedBuffer chained_buffers[8];
+    uint8_t count;
+} StatefulMemoryPool;
+
+static StatefulMemoryPool stateful_memory_pool;
+
+static void stateful_memory_pool_init(void) {
+    memset(&stateful_memory_pool, 0, sizeof(StatefulMemoryPool));
+}
+
+static uint64_t stateful_malloc(size_t size, bool chained) {
+    // if (!stateful_alloc)
+     //    stateful_alloc = pc_alloc_init;
+    // QGuestAllocator *alloc = fuzz_qos_alloc;
+    if (!chained)
+        return guest_alloc(NULL, size);
+    if (stateful_memory_pool.count < 8) {
+        ChainedBuffer chained_buffer = 
+            stateful_memory_pool.chained_buffers[stateful_memory_pool.count];
+        uint64_t addr = guest_alloc(NULL, size);
+        chained_buffer.addr = addr;
+        chained_buffer.size = size;
+        return addr;
+    }
+    return 0;
+}
+
+static bool stateful_lock(uint64_t addr, size_t size) {
+    ChainedBuffer *chained_buffer;
+    int i;
+    for (i = 0; i < stateful_memory_pool.count; i++) {
+        chained_buffer = &stateful_memory_pool.chained_buffers[i];
+        if (chained_buffer->addr == addr)
+            break;
+    }
+    if (i == stateful_memory_pool.count)
+        return false;
+    chained_buffer->lock_size = size;
+    return true; 
+}
+
+static uint64_t stateful_require(size_t size) {
+    return 0; 
+}
+
+static bool stateful_commit(uint64_t addr) {
+    return 0;
+}
+
+static bool stateful_free(uint64_t addr) {
+    return false;
+}
+
+static bool stateful_destroy(void) {
+    return false;
+}
