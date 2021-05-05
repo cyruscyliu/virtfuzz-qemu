@@ -311,7 +311,6 @@ static uint32_t get_data_from_pool4(void) {
         ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
     }
     data_pool.index += 4;
-    printf("ret=%d\n", ret);
     return ret; 
 }
 
@@ -554,72 +553,122 @@ static uint32_t deserialize(Input *input, bool indexer) {
     return DataSize;
 }
 
-// +-----------------+
-// +  allocator_ops  +
-// +-----------------+
 // P.S. "stateful" is only a mark here.
 static QGuestAllocator *stateful_alloc;
+
+#define CHAINED_ADDR_UNALLOCATED 0
+#define CHAINED_ADDR_UNCOMMITTED 1
+#define CHAINED_ADDR_COMMITTED   2
+
+typedef struct ChainedAddr {
+    uint64_t addr;
+    size_t size;
+    uint8_t committed;
+} ChainedAddr;
 
 typedef struct ChainedBuffer {
     uint64_t addr;
     size_t size;
     size_t lock_size;
+    size_t dirty_size;
+    ChainedAddr chained_addr;
 } ChainedBuffer;
+
 
 typedef struct StatefulMemoryPool {
     ChainedBuffer chained_buffers[8];
-    uint8_t count;
+    uint8_t valid;
 } StatefulMemoryPool;
 
 static StatefulMemoryPool stateful_memory_pool;
 
 static void stateful_memory_pool_init(void) {
-    memset(&stateful_memory_pool, 0, sizeof(StatefulMemoryPool));
+    StatefulMemoryPool *smp = &stateful_memory_pool;
+    memset(smp, 0, sizeof(StatefulMemoryPool));
+    smp->valid = -1;
+}
+
+static uint64_t (*stateful_guest_alloc)(size_t) = NULL;
+
+static uint64_t __wrap_guest_alloc(size_t size) {
+    if (stateful_guest_alloc)
+        return stateful_guest_alloc(size);
+    else
+        return guest_alloc(stateful_alloc, size);
 }
 
 static uint64_t stateful_malloc(size_t size, bool chained) {
-    // if (!stateful_alloc)
-     //    stateful_alloc = pc_alloc_init;
-    // QGuestAllocator *alloc = fuzz_qos_alloc;
     if (!chained)
-        return guest_alloc(NULL, size);
-    if (stateful_memory_pool.count < 8) {
-        ChainedBuffer chained_buffer = 
-            stateful_memory_pool.chained_buffers[stateful_memory_pool.count];
-        uint64_t addr = guest_alloc(NULL, size);
-        chained_buffer.addr = addr;
-        chained_buffer.size = size;
-        return addr;
-    }
-    return 0;
+        return __wrap_guest_alloc(size);
+
+    StatefulMemoryPool *smp = &stateful_memory_pool;
+    smp->valid = (smp->valid + 1) % 8;
+    ChainedBuffer *chained_buffer = &smp->chained_buffers[smp->valid];
+    uint64_t addr = __wrap_guest_alloc(size);
+    chained_buffer->addr = addr;
+    chained_buffer->size = size;
+    chained_buffer->chained_addr.committed = CHAINED_ADDR_UNALLOCATED;
+    return addr;
 }
 
-static bool stateful_lock(uint64_t addr, size_t size) {
+static ChainedBuffer *get_valid_chained_buffer(uint64_t addr) {
     ChainedBuffer *chained_buffer;
     int i;
-    for (i = 0; i < stateful_memory_pool.count; i++) {
-        chained_buffer = &stateful_memory_pool.chained_buffers[i];
+
+    StatefulMemoryPool *smp = &stateful_memory_pool;
+    for (i = 0; i < smp->valid + 1; i++) {
+        chained_buffer = &smp->chained_buffers[i];
         if (chained_buffer->addr == addr)
             break;
     }
-    if (i == stateful_memory_pool.count)
+    if (i == smp->valid + 1)
+        return NULL;
+    return chained_buffer;
+}
+
+static bool stateful_free(uint64_t addr) {
+    ChainedBuffer *chained_buffer = get_valid_chained_buffer(addr);
+    if (!chained_buffer)
+        return false;
+    memset(chained_buffer, 0, sizeof(ChainedBuffer));
+    return true;
+}
+
+static bool stateful_lock(uint64_t addr, size_t size) {
+    ChainedBuffer *chained_buffer = get_valid_chained_buffer(addr);
+    if (!chained_buffer)
         return false;
     chained_buffer->lock_size = size;
+    if (chained_buffer->dirty_size < size)
+        chained_buffer->dirty_size = size;
     return true; 
 }
 
 static uint64_t stateful_require(size_t size) {
-    return 0; 
+    StatefulMemoryPool *smp = &stateful_memory_pool;
+    ChainedBuffer *chained_buffer = &smp->chained_buffers[smp->valid];
+    switch (chained_buffer->chained_addr.committed) {
+        case CHAINED_ADDR_UNCOMMITTED:
+            return chained_buffer->chained_addr.addr;
+        case CHAINED_ADDR_COMMITTED:
+        case CHAINED_ADDR_UNALLOCATED:
+            if (size + chained_buffer->dirty_size >= chained_buffer->size)
+                return 0;
+            chained_buffer->chained_addr.addr =
+                chained_buffer->addr + chained_buffer->dirty_size;
+            chained_buffer->chained_addr.size = size;
+            chained_buffer->chained_addr.committed = CHAINED_ADDR_UNCOMMITTED;
+            chained_buffer->dirty_size += size;
+            return chained_buffer->chained_addr.addr;
+        default:
+            return 0;
+    }
 }
 
 static bool stateful_commit(uint64_t addr) {
-    return 0;
-}
-
-static bool stateful_free(uint64_t addr) {
-    return false;
-}
-
-static bool stateful_destroy(void) {
-    return false;
+    ChainedBuffer *chained_buffer = get_valid_chained_buffer(addr);
+    if (!chained_buffer)
+        return false;
+    chained_buffer->chained_addr.committed = CHAINED_ADDR_COMMITTED;
+    return true;
 }

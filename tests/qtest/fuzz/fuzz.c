@@ -40,7 +40,7 @@ static FuzzTargetList *fuzz_target_list;
 static FuzzTarget *fuzz_target;
 static QTestState *fuzz_qts;
 
-
+QTestState *get_qtest_state(void) {return fuzz_qts;}
 
 void flush_events(QTestState *s)
 {
