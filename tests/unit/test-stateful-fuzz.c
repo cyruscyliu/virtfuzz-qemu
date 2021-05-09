@@ -10,6 +10,7 @@
  * See the COPYING file in the top-level directory.
  */
 #include "../qtest/fuzz/stateful_fuzz.h"
+#include "../qtest/fuzz/stateful_fuzz_mutators.h"
 
 static void test_events(void) {
     // normal
@@ -140,7 +141,8 @@ static void test_retrieving_fuzzy_data(void) {
     // test data pool access
     Event *data_pool_event = get_event(input, input->n_events - 1);
     g_assert(data_pool_event->id == INTERFACE_DATA_POOL);
-    Offset = set_data_pool(data_pool_event); 
+    set_data_pool(data_pool_event);
+    Offset = data_pool_event->offset;
     g_assert(Offset == 13);
     g_assert(data_pool.Size == 0xD);
     g_assert(*(uint64_t *)data_pool.Data == 0x0000000000000000);
@@ -198,6 +200,45 @@ static void test_allocating_chained_buffers(void) {
     g_assert(chained_addr5 == 0x106000);
 }
 
+static void test_crossoverfragment_mutator(void) {
+    // preprare interface
+    Id_Description[0].type = EVENT_TYPE_MMIO_READ;
+    Id_Description[0].emb.addr = 0xFFFF0000;
+    Id_Description[0].emb.size = 0x100;
+    Id_Description[0].min_access_size = 0x1;
+    Id_Description[0].max_access_size = 0x4;
+    n_interfaces = 1;
+    // make 8 events
+    uint8_t *Data = (uint8_t *)malloc(4096);
+    size_t Offset = 0;
+    for (int i = 0; i < 8; i++) {
+        Offset += serialize(Data, Offset, 4096, INTERFACE_MEM_READ, 0x100000, 8, NULL);
+    }
+    // deserialize
+    Input *input;
+    input = init_input(Data, Offset);
+    g_assert(input);
+    deserialize(input, /*indexer=*/true);
+    g_assert(input->n_events == 8);
+    size_t SizeAfterMutation = Mutate_CrossOverFragments(input, Data, Offset, 4096);
+    free(input);
+    // re-deserialize
+    g_assert(SizeAfterMutation == Offset);
+    input = init_input(Data, Offset);
+    g_assert(input);
+    deserialize(input, /*indexer=*/true);
+    g_assert(input->n_events == 8);
+    Event *event = input->events;
+    for (int i = 0; i < 8; i++) {
+        g_assert(event->id == INTERFACE_MEM_READ);
+        g_assert(event->addr == 0x100000);
+        g_assert(event->size == 8);
+        event = event->next;
+    }
+    free(input);
+    free(Data);
+}
+
 int main(int argc, char **argv) {
     // Unittests for events and interfaces.
     g_test_init(&argc, &argv, NULL);
@@ -206,5 +247,6 @@ int main(int argc, char **argv) {
     g_test_add_func("/statefulfuzz/injectedevents/primitives/de_serialize", test_de_serializing_events);
     g_test_add_func("/statefulfuzz/injectedevents/primitives/retrieve", test_retrieving_fuzzy_data);
     g_test_add_func("/statefulfuzz/injectedevents/primitives/allocate", test_allocating_chained_buffers);
+    g_test_add_func("/statefulfuzz/mutators/crossoverfragments", test_crossoverfragment_mutator);
     return g_test_run();
 }

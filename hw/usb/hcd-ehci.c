@@ -844,6 +844,8 @@ static USBDevice *ehci_find_device(EHCIState *ehci, uint8_t addr)
 }
 
 /* 4.1 host controller initialization */
+void __sanitizer_cov_trace_state(uint8_t a, size_t b) __attribute__((weak));
+void __sanitizer_cov_trace_state(uint8_t a, size_t b) {}
 void ehci_reset(void *opaque)
 {
     EHCIState *s = opaque;
@@ -874,6 +876,7 @@ void ehci_reset(void *opaque)
 
     s->astate = EST_INACTIVE;
     s->pstate = EST_INACTIVE;
+    __sanitizer_cov_trace_state(0x31, EST_INACTIVE);
 
     for(i = 0; i < NB_PORTS; i++) {
         if (s->companion_ports[i]) {

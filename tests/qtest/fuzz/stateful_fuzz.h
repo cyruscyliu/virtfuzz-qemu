@@ -272,7 +272,7 @@ static uint32_t serialize(uint8_t *Data, size_t Offset, size_t MaxSize,
                 memcpy(Data + Offset + 13, (uint8_t *)val, size);
             return 13 + size;
         case EVENT_TYPE_DATA_POOL:
-            if (Offset + size >= MaxSize)
+            if (Offset + 5 + size >= MaxSize)
                 return 0;
             Data[Offset] = id;
             memcpy(Data + Offset + 1, (uint8_t *)&size, 4);
@@ -293,7 +293,6 @@ static size_t reset_data(uint8_t *Data, size_t MaxSize) {
     Offset += serialize(Data, Offset, MaxSize, 0, 0x0, 0x4, NULL);
     // EVENT_TYPE_DATA_POOL size=13 Data=\x00... (13 repeated \x00)
     Offset += serialize(Data, Offset, MaxSize, INTERFACE_DATA_POOL, 0, 13, Data);
-    printf("reset_data\n");
     return Offset;
 }
 
