@@ -65,7 +65,8 @@ mkdir -p "$DEST_DIR/lib/"  # Copy the shared libraries here
 # Build once to get the list of dynamic lib paths, and copy them over
 ../configure --disable-werror --cc="$CC" --cxx="$CXX" --enable-fuzzing \
     --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
-    --extra-cflags="$EXTRA_CFLAGS" --target-list="i386-softmmu"
+    --extra-cflags="$EXTRA_CFLAGS" --target-list="i386-softmmu" \
+    --enable-debug --disable-pie
 
 if ! make "-j$(nproc)" qemu-fuzz-i386; then
     fatal "Build failed. Please specify a compiler with fuzzing support"\
@@ -82,7 +83,7 @@ rm qemu-fuzz-i386
 ../configure --disable-werror --cc="$CC" --cxx="$CXX" --enable-fuzzing \
     --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
     --extra-cflags="$EXTRA_CFLAGS" --extra-ldflags="-Wl,-rpath,\$ORIGIN/lib" \
-    --target-list="i386-softmmu"
+    --target-list="i386-softmmu" --enable-debug --disable-pie
 make "-j$(nproc)" qemu-fuzz-i386 V=1
 
 # Copy over the datadir
@@ -103,8 +104,8 @@ do
     # to be configured. We have some generic-fuzz-{pc-q35, floppy, ...} targets
     # that are thin wrappers around this target that set the required
     # environment variables according to predefined configs.
-    if [ "$target" != "generic-fuzz" ]; then
-        ln  $base_copy \
+    if [ "$target" != "generic-fuzz"  ] && [ "$target" != "stateful-fuzz" ]; then
+        ln -f $base_copy \
             "$DEST_DIR/qemu-fuzz-i386-target-$target"
     fi
 done
