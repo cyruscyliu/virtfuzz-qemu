@@ -9,6 +9,10 @@
  * This work is licensed under the terms of the GNU GPL, version 2 or later.
  * See the COPYING file in the top-level directory.
  */
+
+#ifndef STATEFUL_FUZZ_H
+#define STATEFUL_FUZZ_H
+
 #include "qemu/osdep.h"
 #include <wordexp.h>
 #include "hw/core/cpu.h"
@@ -289,6 +293,7 @@ static size_t reset_data(uint8_t *Data, size_t MaxSize) {
     Offset += serialize(Data, Offset, MaxSize, 0, 0x0, 0x4, NULL);
     // EVENT_TYPE_DATA_POOL size=13 Data=\x00... (13 repeated \x00)
     Offset += serialize(Data, Offset, MaxSize, INTERFACE_DATA_POOL, 0, 13, Data);
+    printf("reset_data\n");
     return Offset;
 }
 
@@ -314,11 +319,10 @@ static uint32_t get_data_from_pool4(void) {
     return ret; 
 }
 
-static size_t set_data_pool(Event *data_pool_event) {
+static void set_data_pool(Event *data_pool_event) {
     data_pool.index = 0;
     data_pool.Size = data_pool_event->size;
     memcpy(data_pool.Data, data_pool_event->data, data_pool_event->size);
-    return data_pool_event->offset;
 }
 
 static void reset_data_pool(void) {
@@ -672,3 +676,4 @@ static bool stateful_commit(uint64_t addr) {
     chained_buffer->chained_addr.committed = CHAINED_ADDR_COMMITTED;
     return true;
 }
+#endif /* STATEFUL_FUZZ_H */

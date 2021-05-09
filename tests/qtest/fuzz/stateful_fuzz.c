@@ -162,7 +162,11 @@ void LLVMFuzzerTraceStateCallback(
     Node *node = &state_machine->nodes[NodeId];
 
     // read Data to Input
-    Input *input = init_input(node->get_data(), node->get_size());
+    uint8_t *Data = node->get_data();
+    size_t Size = node->get_size();
+    Input *input = init_input(Data, Size);
+    // free Data because nobody will free it later
+    free(Data);
     if (!input)
         return;
     // deserialize Data to Events
@@ -344,6 +348,7 @@ static void stateful_fuzz(QTestState *s, const uint8_t *Data, size_t Size) {
     deserialize(input, /*indexer=*/false);
     // fetch data pool
     Event *data_pool_event = get_event(input, input->n_events - 1);
+    g_assert(data_pool_event->id == INTERFACE_DATA_POOL);
     set_data_pool(data_pool_event);
     // if (fork() == 0) {
         /*
@@ -378,7 +383,6 @@ static void stateful_fuzz(QTestState *s, const uint8_t *Data, size_t Size) {
         // flush_events(s);
         // wait(0);
     // }
-    free(data_pool.Data);
     free_input(input, /*indexer=*/false);
 }
 
@@ -600,6 +604,7 @@ static size_t Mutate_ShuffleEvents(Input *input, uint8_t *Data,
     memcpy(tmp, Data, Size);
     uint8_t *dirty = (uint8_t *)malloc(input->n_events);
     memset(dirty, 0, input->n_events);
+    size_t event_size, Offset = 0;
 
     for (int i = 0, j = 0; i < input->n_events; i++) {
         j = rand() % input->n_events;
@@ -608,8 +613,9 @@ static size_t Mutate_ShuffleEvents(Input *input, uint8_t *Data,
             i--;
         } else {
             dirty[j] = 1;
-            memcpy(Data, tmp + get_event_offset(input, j),
-                   get_event_size(input, j));
+            event_size = get_event_size(input, j);
+            memcpy(Data + Offset, tmp + get_event_offset(input, j), event_size);
+            Offset += event_size;
         }
     }
     free(tmp);
@@ -635,7 +641,8 @@ static size_t Mutate_ChangeId(Input *input, uint8_t *Data,
     if (Size >= MaxSize) return 0;
     size_t Idx = (rand() % input->n_events);
     size_t IdxOffset = get_event_offset(input, Idx);
-    return LLVMFuzzerMutate(Data + IdxOffset, 1, 1);
+    LLVMFuzzerMutate(Data + IdxOffset, 1, 1);
+    return Size;
 }
 
 // Size||
@@ -644,7 +651,8 @@ static size_t Mutate_ChangeAddr(Input *input, uint8_t *Data,
     if (Size >= MaxSize) return 0;
     size_t Idx = (rand() % input->n_events);
     size_t IdxOffset = get_event_offset(input, Idx);
-    return LLVMFuzzerMutate(Data + IdxOffset + 1, 8, 8);
+    LLVMFuzzerMutate(Data + IdxOffset + 1, 8, 8);
+    return Size;
 }
 
 // Size||
@@ -653,7 +661,8 @@ static size_t Mutate_ChangeSize(Input *input, uint8_t *Data,
     if (Size >= MaxSize) return 0;
     size_t Idx = (rand() % input->n_events);
     size_t IdxOffset = get_event_offset(input, Idx);
-    return LLVMFuzzerMutate(Data + IdxOffset + 9, 4, 4);
+    LLVMFuzzerMutate(Data + IdxOffset + 9, 4, 4);
+    return Size;
 }
 
 // Size||
@@ -669,13 +678,15 @@ static size_t Mutate_ChangeValue(Input *input, uint8_t *Data,
             return Size;
         case EVENT_TYPE_PIO_WRITE:
         case EVENT_TYPE_MMIO_WRITE:
-            return LLVMFuzzerMutate(Data + IdxOffset + 13, 4, 4);
+            LLVMFuzzerMutate(Data + IdxOffset + 13, 4, 4);
+            return Size;
         default:
             fprintf(stderr, "Unsupport Event Type\n");
+            return Size;
     }
-    return Size;
 }
 
+#define N_MUTATORS 16
 static size_t (* CustomMutators[])(Input *input, uint8_t *Data,
         size_t Size, size_t MaxSize) = {
     Mutate_EraseFragment, // 1
@@ -695,6 +706,26 @@ static size_t (* CustomMutators[])(Input *input, uint8_t *Data,
     Mutate_ChangeAddr,
     Mutate_ChangeSize, // 16
     Mutate_ChangeValue,
+};
+
+const char *CustomMutatorNames[N_MUTATORS] = {
+    "Mutate_EraseFragment",
+    "Mutate_InsertFragment",
+    "Mutate_CopyPartOfFragment",
+    "Mutate_ShuffleFragments",
+    "Mutate_CrossOverFragments",
+    "Mutate_AddFragmentFromManualDictionary",
+    "Mutate_AddFragmentFromPersistentAutoDictionary",
+    "Mutate_EraseEvent",
+    "Mutate_InsertEvent",
+    "Mutate_InsertRepeatedEvent",
+    "Mutate_ShuffleEvents",
+    "Mutate_AddEventFromManualDictionary",
+    "Mutate_AddEventFromPersistentAutoDictionary",
+    // "Mutate_ChangeId",
+    "Mutate_ChangeAddr",
+    "Mutate_ChangeSize",
+    "Mutate_ChangeValue",
 };
 
 size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
@@ -719,7 +750,9 @@ size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
     }
     // Keep the EVENT_TYPE_DATA_POOL
     Event *data_pool_event = get_event(input, input->n_events - 1);
-    size_t DataPoolOffset = set_data_pool(data_pool_event);
+    g_assert(data_pool_event->id == INTERFACE_DATA_POOL);
+    set_data_pool(data_pool_event);
+    size_t DataPoolOffset = data_pool_event->offset;
     size_t NewDataPoolSize = LLVMFuzzerMutate(data_pool.Data, data_pool.Size, DATA_POOL_MAXSIZE);
     if (!NewDataPoolSize) {
         reset_data_pool();
@@ -727,11 +760,19 @@ size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
         return reset_data(Data, MaxSize);
     }
     data_pool.Size = NewDataPoolSize;
+    printf("DataPoolAfterMutation: start=%d size=%d\n", DataPoolOffset, data_pool.Size);
+    // Note that EVENT_TYPE_DATA_POOL should not be aware
+    input->n_events--;
     // Mutate other events
     for (int i = 0; i < 100; i++) {
-        size_t NewSize = CustomMutators[rand() % 17](input, Data, DataPoolOffset, MaxSize);
-        NewSize = serialize(Data, NewSize, MaxSize, INTERFACE_DATA_POOL, 0, data_pool.Size, data_pool.Data);
+        size_t aaaaaaa = rand() % N_MUTATORS;
+        printf("%s\n", CustomMutatorNames[aaaaaaa]);
+        size_t NewSize = CustomMutators[aaaaaaa](input, Data, DataPoolOffset, MaxSize);
+        printf("DataAfterMutation: size=%d\n", NewSize);
         if (NewSize) {
+            NewSize += serialize(Data, NewSize, MaxSize,
+                INTERFACE_DATA_POOL, 0, data_pool.Size, data_pool.Data);
+            printf("mutate new_input_size=%d data_pool_size=%d\n", NewSize, data_pool.Size);
             reset_data_pool();
             free_input(input, /*indexer=*/true);
             return NewSize;
