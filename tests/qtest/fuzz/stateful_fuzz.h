@@ -321,7 +321,19 @@ static uint32_t serialize(uint8_t *Data, size_t Offset, size_t MaxSize,
 static size_t reset_data(uint8_t *Data, size_t MaxSize) {
     size_t Offset = 0;
     // EVENT_TYPE_MMIO_READ addr=0 size=4
-    Offset += serialize(Data, Offset, MaxSize, 0, 0x0, 0x4, NULL);
+    // Offset += serialize(Data, Offset, MaxSize, 0, 0x0, 0x4, NULL);
+    uint64_t portsc_preset = 1 << 8;
+    uint64_t portsc_ped = 1 << 2;
+    uint64_t usbcmd_runstop_or_usbcmd_pse = (1 << 0) | (1 << 4);
+    Offset += SERIALIZE(5, 0x0, 4, portsc_preset);
+    Offset += SERIALIZE(5, 0x0, 4, portsc_ped);
+    Offset += SERIALIZE(3, 0x0, 4, usbcmd_runstop_or_usbcmd_pse);
+    uint64_t clock_step = 0x100;
+    Offset += SERIALIZE(INTERFACE_CLOCK_STEP, 0x0, 0x0, clock_step);
+    // Offset += SERIALIZE(5, 0x0, 4, portsc_preset);
+    // Offset += SERIALIZE(5, 0x0, 4, portsc_ped);
+    // Offset += SERIALIZE(3, 0x0, 4, usbcmd_runstop_or_usbcmd_pse);
+    // Offset += SERIALIZE(INTERFACE_CLOCK_STEP, 0x0, 0x0, clock_step);
     // EVENT_TYPE_DATA_POOL size=13 Data=\x00... (13 repeated \x00)
     Offset += serialize(Data, Offset, MaxSize, INTERFACE_DATA_POOL, 0, 13, Data);
     return Offset;

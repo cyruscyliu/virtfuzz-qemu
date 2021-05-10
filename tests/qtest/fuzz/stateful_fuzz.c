@@ -347,6 +347,7 @@ static void stateful_pre_fuzz(QTestState *s) {
         printf_event_description();
     }
 
+    stateful_alloc = get_stateful_alloc(s);
     counter_shm_init();
 }
 

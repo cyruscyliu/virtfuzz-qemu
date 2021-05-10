@@ -18,6 +18,8 @@
 #include "tests/qtest/libqos/pci-pc.h"
 #include "tests/qtest/libqos/libqtest.h"
 #include "fuzz.h"
+#include "tests/qtest/libqos/qos_external.h"
+#include "tests/qtest/libqos/qgraph_internal.h"
 
 #define DEFAULT_TIMEOUT_US 100000
 #define USEC_IN_SEC 1000000000
@@ -94,6 +96,20 @@ static inline void pci_enum(gpointer pcidev, gpointer bus)
     }
     qpci_device_enable(qdev);
     g_free(qdev);
+}
+
+static QGuestAllocator *get_stateful_alloc(QTestState *qts) {
+    QOSGraphNode *node;
+    QOSGraphObject *obj;
+
+    // TARGET_NAME=i386 -> i386/pc
+    // TARGET_NAME=     -> x86_64/pc
+    node = qos_graph_get_node("i386/pc");
+    g_assert(node->type == QNODE_MACHINE);
+
+    obj = qos_machine_new(node, qts);
+    qos_object_queue_destroy(obj);
+    return obj->get_driver(obj, "memory");
 }
 
 static inline gchar *generic_fuzzer_virtio_9p_args(void){

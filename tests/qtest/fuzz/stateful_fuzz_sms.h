@@ -266,8 +266,8 @@ static uint8_t *get_data_49_41() {
     uint64_t base = stateful_malloc(0x3000, /*chained=*/true);
     stateful_lock(base, 0x2000 >> 1);
     uint64_t entry = stateful_require(0x1000);
-    uint32_t *tmp_523b25c6 = (uint32_t *)malloc(0x2000 >> 1 / 4);
-    for (int i = 0; i < 0x2000 >> 1 / 4; i++)
+    uint32_t *tmp_523b25c6 = (uint32_t *)malloc((0x2000 >> 1));
+    for (int i = 0; i < (0x2000 >> 1) / 4; i++)
         tmp_523b25c6[i] = (uint32_t)entry;
     size_49_41 += serialize(Data, size_49_41, 4096, INTERFACE_MEM_WRITE, base, 0x2000 >> 1, (uint8_t *)&tmp_523b25c6);
     free(tmp_523b25c6);
