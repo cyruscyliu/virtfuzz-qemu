@@ -384,6 +384,7 @@ static void stateful_fuzz(QTestState *s, const uint8_t *Data, size_t Size) {
         // flush_events(s);
         // wait(0);
     // }
+    reset_data_pool();
     free_input(input, /*indexer=*/false);
 }
 
