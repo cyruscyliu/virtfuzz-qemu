@@ -32,21 +32,26 @@ static size_t Mutate_EraseFragment(Input *input, uint8_t *Data,
 
 static size_t insert_event(uint8_t *Data, size_t Size,
         size_t MaxSize, uint8_t type) {
-    switch (type) {
-        case EVENT_TYPE_PIO_READ:
-        case EVENT_TYPE_MMIO_READ:
-            if (Size >= MaxSize) return MaxSize;
-            Data[Size] = type;
-            return Size + 13;
-        case EVENT_TYPE_PIO_WRITE:
-        case EVENT_TYPE_MMIO_WRITE:
-            if (Size >= MaxSize) return MaxSize;
-            Data[Size] = type;
-            return Size + 21;
-        default:
-            fprintf(stderr, "Unsupport Event Type\n");
+    if (Size >= MaxSize) return MaxSize;
+    uint8_t if_id = get_possible_interface(type);
+    if (if_id == INTERFACE_CLOCK_STEP) {
+        Data[Size] = if_id;
+        return Size + 9;
+    } else {
+        switch (type) {
+            case EVENT_TYPE_PIO_READ:
+            case EVENT_TYPE_MMIO_READ:
+                Data[Size] = if_id;
+                return Size + 13;
+            case EVENT_TYPE_PIO_WRITE:
+            case EVENT_TYPE_MMIO_WRITE:
+                Data[Size] = if_id;
+                return Size + 21;
+            default:
+                fprintf(stderr, "Unsupport Event Type (insert_event)\n");
+                return Size;
+        }
     }
-    return Size;
 }
 
 // Insert fragment [e1, e2] -> [e1, e2][e3, e4, e5].
@@ -280,8 +285,21 @@ static size_t Mutate_ChangeAddr(Input *input, uint8_t *Data,
     if (Size >= MaxSize) return 0;
     size_t Idx = (rand() % input->n_events);
     size_t IdxOffset = get_event_offset(input, Idx);
-    LLVMFuzzerMutate(Data + IdxOffset + 1, 8, 8);
-    return Size;
+    uint8_t if_id = around_event_id(Data[IdxOffset]);
+    uint8_t type = Id_Description[if_id].type;
+    switch (type) {
+        case EVENT_TYPE_PIO_READ:
+        case EVENT_TYPE_MMIO_READ:
+        case EVENT_TYPE_PIO_WRITE:
+        case EVENT_TYPE_MMIO_WRITE:
+            LLVMFuzzerMutate(Data + IdxOffset + 1, 8, 8);
+            return Size;
+        case EVENT_TYPE_CLOCK_STEP:
+            return Size;
+        default:
+            fprintf(stderr, "Unsupport Event Type (Mutate_ChangeAddr)\n");
+            return Size;
+    }
 }
 
 // Size||
@@ -290,8 +308,21 @@ static size_t Mutate_ChangeSize(Input *input, uint8_t *Data,
     if (Size >= MaxSize) return 0;
     size_t Idx = (rand() % input->n_events);
     size_t IdxOffset = get_event_offset(input, Idx);
-    LLVMFuzzerMutate(Data + IdxOffset + 9, 4, 4);
-    return Size;
+    uint8_t if_id = around_event_id(Data[IdxOffset]);
+    uint8_t type = Id_Description[if_id].type;
+    switch (type) {
+        case EVENT_TYPE_PIO_READ:
+        case EVENT_TYPE_MMIO_READ:
+        case EVENT_TYPE_PIO_WRITE:
+        case EVENT_TYPE_MMIO_WRITE:
+            LLVMFuzzerMutate(Data + IdxOffset + 9, 4, 4);
+            return Size;
+        case EVENT_TYPE_CLOCK_STEP:
+            return Size;
+        default:
+            fprintf(stderr, "Unsupport Event Type (Mutate_ChangeSize)\n");
+            return Size;
+    }
 }
 
 // Size||
@@ -300,7 +331,8 @@ static size_t Mutate_ChangeValue(Input *input, uint8_t *Data,
     if (Size >= MaxSize) return 0;
     size_t Idx = (rand() % input->n_events);
     size_t IdxOffset = get_event_offset(input, Idx);
-    uint8_t type = Data[IdxOffset] % N_VALID_TYPES;
+    uint8_t if_id = around_event_id(Data[IdxOffset]);
+    uint8_t type = Id_Description[if_id].type;
     switch (type) {
         case EVENT_TYPE_PIO_READ:
         case EVENT_TYPE_MMIO_READ:
@@ -309,8 +341,11 @@ static size_t Mutate_ChangeValue(Input *input, uint8_t *Data,
         case EVENT_TYPE_MMIO_WRITE:
             LLVMFuzzerMutate(Data + IdxOffset + 13, 4, 4);
             return Size;
+        case EVENT_TYPE_CLOCK_STEP:
+            LLVMFuzzerMutate(Data + IdxOffset + 1, 8, 8);
+            return Size;
         default:
-            fprintf(stderr, "Unsupport Event Type\n");
+            fprintf(stderr, "Unsupport Event Type (Mutate_ChangeValue)\n");
             return Size;
     }
 }

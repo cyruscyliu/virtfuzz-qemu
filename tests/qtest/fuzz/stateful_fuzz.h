@@ -46,14 +46,14 @@
 // +-----------------+
 // +      event      +
 // +-----------------+
-#define N_VALID_TYPES 4
+#define N_VALID_TYPES 5
 typedef enum {
     EVENT_TYPE_MMIO_READ = 0,
     EVENT_TYPE_MMIO_WRITE,
     EVENT_TYPE_PIO_READ,
     EVENT_TYPE_PIO_WRITE,
-    EVENT_TYPE_INT,
     EVENT_TYPE_CLOCK_STEP,
+    EVENT_TYPE_INT,
     // these two events are only used
     // in the event injection, such that
     // the mutator does not know them
@@ -71,8 +71,8 @@ const char *EventTypeNames[12] = {
     "EVENT_TYPE_MMIO_WRITE", 
     "EVENT_TYPE_PIO_READ", // 2
     "EVENT_TYPE_PIO_WRITE",
-    "EVENT_TYPE_INT",
     "EVENT_TYPE_CLOCK_STEP",
+    "EVENT_TYPE_INT",
     "EVNET_NONE", 
     "EVNET_NONE",
     "EVENT_TYPE_MEM_READ", // 8 
@@ -130,6 +130,7 @@ static uint32_t n_interfaces = 0;
 // also transparent to the fuzzer
 #define INTERFACE_MEM_READ  32
 #define INTERFACE_MEM_WRITE 33
+#define INTERFACE_CLOCK_STEP 34
 #define INTERFACE_DATA_POOL 35
 
 // n interface -> 1 event
@@ -150,6 +151,11 @@ static InterfaceDescription Id_Description[36] = {
         .emb = {.addr = 0xFFFFFFFF, .size = 0xFFFFFFFF},
         .name = "guest_alloc",
         .min_access_size = 0xFF, .max_access_size = 0xFF,
+    }, [INTERFACE_CLOCK_STEP] = {
+        .type = EVENT_TYPE_CLOCK_STEP,
+        .emb = {.addr = 0xFFFFFFFF, .size = 0xFFFFFFFF},
+        .name = "clock_step",
+        .min_access_size = 0xFF, .max_access_size = 0xFF,
     }
 };
 
@@ -166,23 +172,38 @@ static void printf_event_description() {
     }
 }
 
+static uint8_t get_possible_interface(EventType type) {
+    // first best
+    if (type != EVENT_TYPE_CLOCK_STEP) {
+        for (int i = 0; i < n_interfaces; i++) {
+            if (Id_Description[i].type == type)
+                return i;
+        }
+    }
+    return INTERFACE_CLOCK_STEP;
+}
+
 // +-----------------+
 // +    event_ops    +
 // +-----------------+
 static void printf_event(Event *event) {
-    fprintf(stderr, "  * %d, %s, 0x%lx, 0x%x",
-            event->id, EventTypeNames[event->type],
-            event->addr, event->size);
+    fprintf(stderr, "  * %d, %s", event->id, EventTypeNames[event->type]);
     switch(event->type) {
         case EVENT_TYPE_MMIO_READ:
         case EVENT_TYPE_PIO_READ:
         case EVENT_TYPE_MEM_READ:
         case EVENT_TYPE_MEM_WRITE:
+            fprintf(stderr, ", 0x%lx, 0x%x\n", event->addr, event->size);
+            break;
         case EVENT_TYPE_DATA_POOL:
-            fprintf(stderr, "\n");
+            fprintf(stderr, ", 0x%x\n", event->size);
             break;
         case EVENT_TYPE_MMIO_WRITE:
         case EVENT_TYPE_PIO_WRITE:
+            fprintf(stderr, ", 0x%lx, 0x%x", event->addr, event->size);
+            fprintf(stderr, ", 0x%lx\n", event->val);
+            break;
+        case EVENT_TYPE_CLOCK_STEP:
             fprintf(stderr, ", 0x%lx\n", event->val);
             break;
         default:
@@ -193,15 +214,15 @@ static void printf_event(Event *event) {
 static uint8_t around_event_id(uint8_t id) {
     if (id == INTERFACE_MEM_READ ||
             id == INTERFACE_MEM_WRITE ||
-            id == INTERFACE_DATA_POOL)
+            id == INTERFACE_DATA_POOL ||
+            id == INTERFACE_CLOCK_STEP)
         return id;
     return id % n_interfaces;
 }
 
 static uint64_t around_event_addr(uint8_t id, uint64_t raw_addr) {
     if (id == INTERFACE_MEM_READ ||
-            id == INTERFACE_MEM_WRITE ||
-            id == INTERFACE_DATA_POOL)
+            id == INTERFACE_MEM_WRITE)
         return raw_addr;
     InterfaceDescription ed = Id_Description[id];
     return (ed.emb.addr + raw_addr % ed.emb.size) & 0xFFFFFFFFFFFFFFFC;
@@ -231,7 +252,8 @@ static uint32_t around_event_size(uint8_t id, uint8_t type, uint32_t raw_size) {
 static uint8_t around_event_type(uint8_t raw_type) {
     if (raw_type == EVENT_TYPE_MEM_READ ||
             raw_type == EVENT_TYPE_MEM_WRITE ||
-            raw_type == EVENT_TYPE_DATA_POOL)
+            raw_type == EVENT_TYPE_DATA_POOL ||
+            raw_type == EVENT_TYPE_CLOCK_STEP)
         return raw_type;
     return raw_type % N_VALID_TYPES;
 }
@@ -278,8 +300,14 @@ static uint32_t serialize(uint8_t *Data, size_t Offset, size_t MaxSize,
             memcpy(Data + Offset + 1, (uint8_t *)&size, 4);
             memcpy(Data + Offset + 5, (uint8_t *)val, size);
             return 5 + size;
+        case EVENT_TYPE_CLOCK_STEP:
+            if (Offset + 9 >= MaxSize)
+                return 0;
+            Data[Offset] = id;
+            memcpy(Data + Offset + 1, (uint8_t *)val, 8);
+            return 9;
         default:
-            fprintf(stderr, "Unsupport Event Type\n");
+            fprintf(stderr, "Unsupport Event Type (serialize)\n");
             return 0;
     }
 }
@@ -287,6 +315,9 @@ static uint32_t serialize(uint8_t *Data, size_t Offset, size_t MaxSize,
 #define DATA_POOL_MAXSIZE 4096
 // Specially, we have to put one EVENT_TYPE_DATA_POOL event
 // at the end of the input and make it a fuzzy data pool.
+#define MAXSIZE 4096
+#define SERIALIZE(id, addr, size, value) \
+    serialize(Data, Offset, MAXSIZE, id, addr, size, (uint8_t *)&value)
 static size_t reset_data(uint8_t *Data, size_t MaxSize) {
     size_t Offset = 0;
     // EVENT_TYPE_MMIO_READ addr=0 size=4
@@ -549,8 +580,30 @@ static uint32_t deserialize(Input *input, bool indexer) {
                 append_event(input, event);
                 DataSize += (size + 5);
                 break;
+            case EVENT_TYPE_CLOCK_STEP:
+                //   1B   8B
+                // +----+----+
+                // + ID +VALU+
+                // +----+----+
+                if (!input_check_index(input, 8)) {
+                    input->index--;
+                    return DataSize;
+                }
+                val = input_next_64(input);
+                event = (Event *)malloc(sizeof(Event));
+                event->id = id;
+                event->type = type;
+                event->addr = 0xFFFFFFFFFFFFFFFF;
+                event->size = 0xFFFFFFFF;
+#define CLOCK_MAX_STEP 1000
+                event->val = val % CLOCK_MAX_STEP;
+                event->offset = DataSize;
+                event->event_size = 9;
+                append_event(input, event);
+                DataSize += 9;
+                break;
             default:
-                fprintf(stderr, "Unsupport Event Type\n");
+                fprintf(stderr, "Unsupport Event Type (deserialize)\n");
         }
     }
     return DataSize;

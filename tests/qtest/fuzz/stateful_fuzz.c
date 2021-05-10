@@ -121,6 +121,13 @@ static void dispatch_mem_write(QTestState *s, uint64_t addr, const void *data, u
 }
 
 /*
+ * Generic clock step dispatcher
+ */
+static void dispatch_clock_step(QTestState *s, uint64_t val) {
+    qtest_clock_step(s, val);
+}
+
+/*
  * Class Event Dispatch Event
  */
 static void dispatch_event(Event *event, QTestState *s) {
@@ -148,6 +155,9 @@ static void dispatch_event(Event *event, QTestState *s) {
             dispatch_mem_write(s, addr, event->data, size);
             break;
         case EVENT_TYPE_DATA_POOL:
+            break;
+        case EVENT_TYPE_CLOCK_STEP:
+            dispatch_clock_step(s, event->val);
             break;
         default:
             fprintf(stderr, "wrong type of event %d\n", type);
@@ -425,6 +435,7 @@ size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
     // Mutate other events
     for (int i = 0; i < 100; i++) {
         size_t aaaaaaa = rand() % N_MUTATORS;
+        // printf("%s\n", CustomMutatorNames[aaaaaaa]);
         size_t NewSize = CustomMutators[aaaaaaa](input, Data, DataPoolOffset, MaxSize);
         if (NewSize) {
             size_t bbbbbbb = serialize(Data, NewSize, MaxSize,
