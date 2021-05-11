@@ -39,8 +39,8 @@ static uint8_t *get_data_49_44() {
     uint8_t *Data = (uint8_t *)malloc(4096);
     
     uint64_t EHCIqh = stateful_malloc(0x3000, /*chained=*/false);
-    uint64_t tmp_8c4e7e65 = EHCIqh;
-    size_49_44 += serialize(Data, size_49_44, 4096, 3, 0x16, 0x4, (uint8_t *)&tmp_8c4e7e65);
+    uint64_t tmp_d4713d60c8 = EHCIqh;
+    size_49_44 += serialize(Data, size_49_44, 4096, 3, 0x16, 0x4, (uint8_t *)&tmp_d4713d60c8);
     return Data;
 }
 
@@ -65,46 +65,106 @@ static uint8_t *get_data_49_46() {
     
     uint64_t EHCIqh = stateful_require(48);
     uint64_t EHCIqtd = stateful_malloc(32, /*chained=*/false);
-    uint64_t tmp_dfc68778 = EHCIqtd;
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 0, 0x4, (uint8_t *)&tmp_dfc68778);
-    uint64_t tmp_bc0e5404 = EHCIqtd;
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 4, 0x4, (uint8_t *)&tmp_bc0e5404);
-    uint64_t tmp_bc927bbb = get_data_from_pool4();
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 8, 0x4, (uint8_t *)&tmp_bc927bbb);
-    uint64_t tmp_b04997ab = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 12, 0x4, (uint8_t *)&tmp_b04997ab);
-    uint64_t tmp_4fddbf10 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 16, 0x4, (uint8_t *)&tmp_4fddbf10);
-    uint64_t tmp_091c7961 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 20, 0x4, (uint8_t *)&tmp_091c7961);
-    uint64_t tmp_8730c5c6 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 24, 0x4, (uint8_t *)&tmp_8730c5c6);
-    uint64_t tmp_18767a77 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 28, 0x4, (uint8_t *)&tmp_18767a77);
-    uint64_t tmp_66c65947 = EHCIqh;
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 0, 0x4, (uint8_t *)&tmp_66c65947);
-    uint64_t tmp_3dfd8d84 = get_data_from_pool4();
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 4, 0x4, (uint8_t *)&tmp_3dfd8d84);
-    uint64_t tmp_cd68a23f = get_data_from_pool4();
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 8, 0x4, (uint8_t *)&tmp_cd68a23f);
-    uint64_t tmp_b1cacfed = EHCIqtd;
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 12, 0x4, (uint8_t *)&tmp_b1cacfed);
-    uint64_t tmp_afff9025 = EHCIqtd;
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 16, 0x4, (uint8_t *)&tmp_afff9025);
-    uint64_t tmp_ca52b4a8 = EHCIqtd;
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 20, 0x4, (uint8_t *)&tmp_ca52b4a8);
-    uint64_t tmp_dc78e503 = get_data_from_pool4();
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 24, 0x4, (uint8_t *)&tmp_dc78e503);
-    uint64_t tmp_58f326d3 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 28, 0x4, (uint8_t *)&tmp_58f326d3);
-    uint64_t tmp_a1dfdf38 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 32, 0x4, (uint8_t *)&tmp_a1dfdf38);
-    uint64_t tmp_d7596842 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 36, 0x4, (uint8_t *)&tmp_d7596842);
-    uint64_t tmp_478a8c4e = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 40, 0x4, (uint8_t *)&tmp_478a8c4e);
-    uint64_t tmp_beeab835 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_46 += serialize(Data, size_49_46, 4096, 2, 44, 0x4, (uint8_t *)&tmp_beeab835);
+    uint32_t *tmp_4f65d4d925 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_4f65d4d925[i] = (uint32_t)EHCIqtd;
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 0, 0x4, (uint8_t *)tmp_4f65d4d925);
+    free(tmp_4f65d4d925);
+    uint32_t *tmp_af19922ad9 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_af19922ad9[i] = (uint32_t)EHCIqtd;
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 4, 0x4, (uint8_t *)tmp_af19922ad9);
+    free(tmp_af19922ad9);
+    uint32_t *tmp_8f4ff31e78 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_8f4ff31e78[i] = (uint32_t)get_data_from_pool4();
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 8, 0x4, (uint8_t *)tmp_8f4ff31e78);
+    free(tmp_8f4ff31e78);
+    uint32_t *tmp_6f25e2a25a = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_6f25e2a25a[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 12, 0x4, (uint8_t *)tmp_6f25e2a25a);
+    free(tmp_6f25e2a25a);
+    uint32_t *tmp_42af9fc385 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_42af9fc385[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 16, 0x4, (uint8_t *)tmp_42af9fc385);
+    free(tmp_42af9fc385);
+    uint32_t *tmp_3983ca8ea7 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_3983ca8ea7[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 20, 0x4, (uint8_t *)tmp_3983ca8ea7);
+    free(tmp_3983ca8ea7);
+    uint32_t *tmp_d71037d1b8 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_d71037d1b8[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 24, 0x4, (uint8_t *)tmp_d71037d1b8);
+    free(tmp_d71037d1b8);
+    uint32_t *tmp_a0116be5ab = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_a0116be5ab[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 28, 0x4, (uint8_t *)tmp_a0116be5ab);
+    free(tmp_a0116be5ab);
+    uint32_t *tmp_55485822de = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_55485822de[i] = (uint32_t)EHCIqh;
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 0, 0x4, (uint8_t *)tmp_55485822de);
+    free(tmp_55485822de);
+    uint32_t *tmp_101fbcccde = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_101fbcccde[i] = (uint32_t)get_data_from_pool4();
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 4, 0x4, (uint8_t *)tmp_101fbcccde);
+    free(tmp_101fbcccde);
+    uint32_t *tmp_9148624fea = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_9148624fea[i] = (uint32_t)get_data_from_pool4();
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 8, 0x4, (uint8_t *)tmp_9148624fea);
+    free(tmp_9148624fea);
+    uint32_t *tmp_1759edc372 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_1759edc372[i] = (uint32_t)EHCIqtd;
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 12, 0x4, (uint8_t *)tmp_1759edc372);
+    free(tmp_1759edc372);
+    uint32_t *tmp_1beb37117d = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_1beb37117d[i] = (uint32_t)EHCIqtd;
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 16, 0x4, (uint8_t *)tmp_1beb37117d);
+    free(tmp_1beb37117d);
+    uint32_t *tmp_8c25166a1f = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_8c25166a1f[i] = (uint32_t)EHCIqtd;
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 20, 0x4, (uint8_t *)tmp_8c25166a1f);
+    free(tmp_8c25166a1f);
+    uint32_t *tmp_71eacd0549 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_71eacd0549[i] = (uint32_t)get_data_from_pool4();
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 24, 0x4, (uint8_t *)tmp_71eacd0549);
+    free(tmp_71eacd0549);
+    uint32_t *tmp_cc45782198 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_cc45782198[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 28, 0x4, (uint8_t *)tmp_cc45782198);
+    free(tmp_cc45782198);
+    uint32_t *tmp_935ddd7251 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_935ddd7251[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 32, 0x4, (uint8_t *)tmp_935ddd7251);
+    free(tmp_935ddd7251);
+    uint32_t *tmp_2f1205544a = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_2f1205544a[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 36, 0x4, (uint8_t *)tmp_2f1205544a);
+    free(tmp_2f1205544a);
+    uint32_t *tmp_2fcd81b5d2 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_2fcd81b5d2[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 40, 0x4, (uint8_t *)tmp_2fcd81b5d2);
+    free(tmp_2fcd81b5d2);
+    uint32_t *tmp_79fdef7c42 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_79fdef7c42[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_46 += serialize(Data, size_49_46, 4096, INTERFACE_MEM_WRITE, 44, 0x4, (uint8_t *)tmp_79fdef7c42);
+    free(tmp_79fdef7c42);
     return Data;
 }
 
@@ -117,38 +177,86 @@ static uint8_t *get_data_49_47() {
     uint8_t *Data = (uint8_t *)malloc(4096);
     
     uint64_t EHCIitd = stateful_require(64);
-    uint64_t tmp_2507b0bc = EHCIitd;
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 0, 0x4, (uint8_t *)&tmp_2507b0bc);
-    uint64_t tmp_a050333d = get_data_from_pool4();
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 4, 0x4, (uint8_t *)&tmp_a050333d);
-    uint64_t tmp_ef3f0c7c = get_data_from_pool4();
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 8, 0x4, (uint8_t *)&tmp_ef3f0c7c);
-    uint64_t tmp_c56fc429 = get_data_from_pool4();
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 12, 0x4, (uint8_t *)&tmp_c56fc429);
-    uint64_t tmp_587820af = get_data_from_pool4();
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 16, 0x4, (uint8_t *)&tmp_587820af);
-    uint64_t tmp_c639e6e7 = get_data_from_pool4();
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 20, 0x4, (uint8_t *)&tmp_c639e6e7);
-    uint64_t tmp_9c7590df = get_data_from_pool4();
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 24, 0x4, (uint8_t *)&tmp_9c7590df);
-    uint64_t tmp_d911c263 = get_data_from_pool4();
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 28, 0x4, (uint8_t *)&tmp_d911c263);
-    uint64_t tmp_73916f78 = get_data_from_pool4();
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 32, 0x4, (uint8_t *)&tmp_73916f78);
-    uint64_t tmp_400829f3 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 36, 0x4, (uint8_t *)&tmp_400829f3);
-    uint64_t tmp_e0b27b8b = stateful_malloc(0x100, /*chained=*/false);
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 40, 0x4, (uint8_t *)&tmp_e0b27b8b);
-    uint64_t tmp_9d87c89f = stateful_malloc(0x100, /*chained=*/false);
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 44, 0x4, (uint8_t *)&tmp_9d87c89f);
-    uint64_t tmp_d9ad74d9 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 48, 0x4, (uint8_t *)&tmp_d9ad74d9);
-    uint64_t tmp_02fa6add = stateful_malloc(0x100, /*chained=*/false);
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 52, 0x4, (uint8_t *)&tmp_02fa6add);
-    uint64_t tmp_93a51171 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 56, 0x4, (uint8_t *)&tmp_93a51171);
-    uint64_t tmp_ec689432 = stateful_malloc(0x100, /*chained=*/false);
-    size_49_47 += serialize(Data, size_49_47, 4096, 2, 60, 0x4, (uint8_t *)&tmp_ec689432);
+    uint32_t *tmp_864a7a50b4 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_864a7a50b4[i] = (uint32_t)EHCIitd;
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 0, 0x4, (uint8_t *)tmp_864a7a50b4);
+    free(tmp_864a7a50b4);
+    uint32_t *tmp_cfc6e62585 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_cfc6e62585[i] = (uint32_t)get_data_from_pool4();
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 4, 0x4, (uint8_t *)tmp_cfc6e62585);
+    free(tmp_cfc6e62585);
+    uint32_t *tmp_73581a8146 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_73581a8146[i] = (uint32_t)get_data_from_pool4();
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 8, 0x4, (uint8_t *)tmp_73581a8146);
+    free(tmp_73581a8146);
+    uint32_t *tmp_5b7c709acb = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_5b7c709acb[i] = (uint32_t)get_data_from_pool4();
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 12, 0x4, (uint8_t *)tmp_5b7c709acb);
+    free(tmp_5b7c709acb);
+    uint32_t *tmp_9cdf5a8653 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_9cdf5a8653[i] = (uint32_t)get_data_from_pool4();
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 16, 0x4, (uint8_t *)tmp_9cdf5a8653);
+    free(tmp_9cdf5a8653);
+    uint32_t *tmp_d857010255 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_d857010255[i] = (uint32_t)get_data_from_pool4();
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 20, 0x4, (uint8_t *)tmp_d857010255);
+    free(tmp_d857010255);
+    uint32_t *tmp_552116dd2b = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_552116dd2b[i] = (uint32_t)get_data_from_pool4();
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 24, 0x4, (uint8_t *)tmp_552116dd2b);
+    free(tmp_552116dd2b);
+    uint32_t *tmp_febd845d0d = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_febd845d0d[i] = (uint32_t)get_data_from_pool4();
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 28, 0x4, (uint8_t *)tmp_febd845d0d);
+    free(tmp_febd845d0d);
+    uint32_t *tmp_38018b47b2 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_38018b47b2[i] = (uint32_t)get_data_from_pool4();
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 32, 0x4, (uint8_t *)tmp_38018b47b2);
+    free(tmp_38018b47b2);
+    uint32_t *tmp_ae3b16ec9a = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_ae3b16ec9a[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 36, 0x4, (uint8_t *)tmp_ae3b16ec9a);
+    free(tmp_ae3b16ec9a);
+    uint32_t *tmp_1ea45cd693 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_1ea45cd693[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 40, 0x4, (uint8_t *)tmp_1ea45cd693);
+    free(tmp_1ea45cd693);
+    uint32_t *tmp_1db53334fb = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_1db53334fb[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 44, 0x4, (uint8_t *)tmp_1db53334fb);
+    free(tmp_1db53334fb);
+    uint32_t *tmp_589f8779b0 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_589f8779b0[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 48, 0x4, (uint8_t *)tmp_589f8779b0);
+    free(tmp_589f8779b0);
+    uint32_t *tmp_f87f43fdf6 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_f87f43fdf6[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 52, 0x4, (uint8_t *)tmp_f87f43fdf6);
+    free(tmp_f87f43fdf6);
+    uint32_t *tmp_1fb797fab7 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_1fb797fab7[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 56, 0x4, (uint8_t *)tmp_1fb797fab7);
+    free(tmp_1fb797fab7);
+    uint32_t *tmp_8b53031d05 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_8b53031d05[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_47 += serialize(Data, size_49_47, 4096, INTERFACE_MEM_WRITE, 60, 0x4, (uint8_t *)tmp_8b53031d05);
+    free(tmp_8b53031d05);
     return Data;
 }
 
@@ -161,20 +269,41 @@ static uint8_t *get_data_49_48() {
     uint8_t *Data = (uint8_t *)malloc(4096);
     
     uint64_t EHCIsitd = stateful_require(28);
-    uint64_t tmp_325613c8 = EHCIsitd;
-    size_49_48 += serialize(Data, size_49_48, 4096, 2, 0, 0x4, (uint8_t *)&tmp_325613c8);
-    uint64_t tmp_784d242a = get_data_from_pool4();
-    size_49_48 += serialize(Data, size_49_48, 4096, 2, 4, 0x4, (uint8_t *)&tmp_784d242a);
-    uint64_t tmp_80ca6887 = get_data_from_pool4();
-    size_49_48 += serialize(Data, size_49_48, 4096, 2, 8, 0x4, (uint8_t *)&tmp_80ca6887);
-    uint64_t tmp_f8647642 = get_data_from_pool4();
-    size_49_48 += serialize(Data, size_49_48, 4096, 2, 12, 0x4, (uint8_t *)&tmp_f8647642);
-    uint64_t tmp_ba58b12f = stateful_malloc(0x100, /*chained=*/false);
-    size_49_48 += serialize(Data, size_49_48, 4096, 2, 16, 0x4, (uint8_t *)&tmp_ba58b12f);
-    uint64_t tmp_14d608ad = stateful_malloc(0x100, /*chained=*/false);
-    size_49_48 += serialize(Data, size_49_48, 4096, 2, 20, 0x4, (uint8_t *)&tmp_14d608ad);
-    uint64_t tmp_e6e75806 = EHCIsitd;
-    size_49_48 += serialize(Data, size_49_48, 4096, 2, 24, 0x4, (uint8_t *)&tmp_e6e75806);
+    uint32_t *tmp_a59cec9812 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_a59cec9812[i] = (uint32_t)EHCIsitd;
+    size_49_48 += serialize(Data, size_49_48, 4096, INTERFACE_MEM_WRITE, 0, 0x4, (uint8_t *)tmp_a59cec9812);
+    free(tmp_a59cec9812);
+    uint32_t *tmp_6fa231e959 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_6fa231e959[i] = (uint32_t)get_data_from_pool4();
+    size_49_48 += serialize(Data, size_49_48, 4096, INTERFACE_MEM_WRITE, 4, 0x4, (uint8_t *)tmp_6fa231e959);
+    free(tmp_6fa231e959);
+    uint32_t *tmp_80ee526e0f = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_80ee526e0f[i] = (uint32_t)get_data_from_pool4();
+    size_49_48 += serialize(Data, size_49_48, 4096, INTERFACE_MEM_WRITE, 8, 0x4, (uint8_t *)tmp_80ee526e0f);
+    free(tmp_80ee526e0f);
+    uint32_t *tmp_98b33c6e0a = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_98b33c6e0a[i] = (uint32_t)get_data_from_pool4();
+    size_49_48 += serialize(Data, size_49_48, 4096, INTERFACE_MEM_WRITE, 12, 0x4, (uint8_t *)tmp_98b33c6e0a);
+    free(tmp_98b33c6e0a);
+    uint32_t *tmp_fcfcfa81b3 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_fcfcfa81b3[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_48 += serialize(Data, size_49_48, 4096, INTERFACE_MEM_WRITE, 16, 0x4, (uint8_t *)tmp_fcfcfa81b3);
+    free(tmp_fcfcfa81b3);
+    uint32_t *tmp_429817c533 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_429817c533[i] = (uint32_t)stateful_malloc(0x100, /*chained=*/false);
+    size_49_48 += serialize(Data, size_49_48, 4096, INTERFACE_MEM_WRITE, 20, 0x4, (uint8_t *)tmp_429817c533);
+    free(tmp_429817c533);
+    uint32_t *tmp_bb4a06cbe7 = (uint32_t *)malloc(0x4);
+    for (int i = 0; i < (0x4) / 4; i++)
+        tmp_bb4a06cbe7[i] = (uint32_t)EHCIsitd;
+    size_49_48 += serialize(Data, size_49_48, 4096, INTERFACE_MEM_WRITE, 24, 0x4, (uint8_t *)tmp_bb4a06cbe7);
+    free(tmp_bb4a06cbe7);
     return Data;
 }
 
@@ -266,13 +395,13 @@ static uint8_t *get_data_49_41() {
     uint64_t base = stateful_malloc(0x3000, /*chained=*/true);
     stateful_lock(base, 0x2000 >> 1);
     uint64_t entry = stateful_require(0x1000);
-    uint32_t *tmp_523b25c6 = (uint32_t *)malloc((0x2000 >> 1));
+    uint32_t *tmp_bdd7d19b75 = (uint32_t *)malloc(0x2000 >> 1);
     for (int i = 0; i < (0x2000 >> 1) / 4; i++)
-        tmp_523b25c6[i] = (uint32_t)entry;
-    size_49_41 += serialize(Data, size_49_41, 4096, INTERFACE_MEM_WRITE, base, 0x2000 >> 1, (uint8_t *)&tmp_523b25c6);
-    free(tmp_523b25c6);
-    uint64_t tmp_ba0b4fee = base;
-    size_49_41 += serialize(Data, size_49_41, 4096, 2, 0x16, 0x4, (uint8_t *)&tmp_ba0b4fee);
+        tmp_bdd7d19b75[i] = (uint32_t)entry;
+    size_49_41 += serialize(Data, size_49_41, 4096, INTERFACE_MEM_WRITE, base, 0x2000 >> 1, (uint8_t *)tmp_bdd7d19b75);
+    free(tmp_bdd7d19b75);
+    uint64_t tmp_bd30291a55 = base;
+    size_49_41 += serialize(Data, size_49_41, 4096, 3, 0x16, 0x4, (uint8_t *)&tmp_bd30291a55);
     return Data;
 }
 
