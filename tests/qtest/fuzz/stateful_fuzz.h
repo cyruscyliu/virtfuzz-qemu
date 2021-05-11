@@ -656,6 +656,7 @@ static void stateful_memory_pool_init(void) {
 }
 
 static uint64_t (*stateful_guest_alloc)(size_t) = NULL;
+static void (*stateful_guest_free)(size_t) = NULL;
 
 static uint64_t __wrap_guest_alloc(size_t size) {
     if (stateful_guest_alloc)
@@ -663,6 +664,14 @@ static uint64_t __wrap_guest_alloc(size_t size) {
     else
         // alloc a dma accessible buffer in guest memory
         return guest_alloc(stateful_alloc, size);
+}
+
+static void __wrap_guest_free(uint64_t addr) {
+    if (stateful_guest_free)
+        stateful_guest_free(addr);
+    else
+        // free the dma accessible buffer in guest memory
+        guest_free(stateful_alloc, addr);
 }
 
 static uint64_t stateful_malloc(size_t size, bool chained) {
@@ -695,6 +704,8 @@ static ChainedBuffer *get_valid_chained_buffer(uint64_t addr) {
 }
 
 static bool stateful_free(uint64_t addr) {
+    // give back the guest memory
+    __wrap_guest_free(addr);
     ChainedBuffer *chained_buffer = get_valid_chained_buffer(addr);
     if (!chained_buffer)
         return false;
