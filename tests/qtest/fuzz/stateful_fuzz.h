@@ -315,9 +315,8 @@ static uint32_t serialize(uint8_t *Data, size_t Offset, size_t MaxSize,
 #define DATA_POOL_MAXSIZE 4096
 // Specially, we have to put one EVENT_TYPE_DATA_POOL event
 // at the end of the input and make it a fuzzy data pool.
-#define MAXSIZE 4096
 #define SERIALIZE(id, addr, size, value) \
-    serialize(Data, Offset, MAXSIZE, id, addr, size, (uint8_t *)&value)
+    serialize(Data, Offset, DATA_POOL_MAXSIZE, id, addr, size, (uint8_t *)&value)
 static size_t reset_data(uint8_t *Data, size_t MaxSize) {
     size_t Offset = 0;
     // EVENT_TYPE_MMIO_READ addr=0 size=4
@@ -340,7 +339,7 @@ static size_t reset_data(uint8_t *Data, size_t MaxSize) {
 }
 
 typedef struct DataPool {
-    uint8_t Data[4096];
+    uint8_t Data[DATA_POOL_MAXSIZE];
     size_t Size;
     uint32_t index;
 } DataPool;
@@ -662,6 +661,7 @@ static uint64_t __wrap_guest_alloc(size_t size) {
     if (stateful_guest_alloc)
         return stateful_guest_alloc(size);
     else
+        // alloc a dma accessible buffer in guest memory
         return guest_alloc(stateful_alloc, size);
 }
 
