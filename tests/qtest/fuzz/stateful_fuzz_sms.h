@@ -37,6 +37,7 @@ typedef struct StateMachine {
 size_t size_49_44 = 0;
 
 static uint8_t *get_data_49_44() {
+    size_49_44 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     uint64_t EHCIqh = stateful_malloc(0x3000, /*chained=*/false);
@@ -51,6 +52,7 @@ static size_t get_size_49_44() { return size_49_44;}
 size_t size_49_45 = 0;
 
 static uint8_t *get_data_49_45() {
+    size_49_45 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     return Data;
@@ -62,6 +64,7 @@ static size_t get_size_49_45() { return size_49_45;}
 size_t size_49_46 = 0;
 
 static uint8_t *get_data_49_46() {
+    size_49_46 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     uint64_t EHCIqh = stateful_require(48);
@@ -175,6 +178,7 @@ static size_t get_size_49_46() { return size_49_46;}
 size_t size_49_47 = 0;
 
 static uint8_t *get_data_49_47() {
+    size_49_47 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     uint64_t EHCIitd = stateful_require(64);
@@ -267,6 +271,7 @@ static size_t get_size_49_47() { return size_49_47;}
 size_t size_49_48 = 0;
 
 static uint8_t *get_data_49_48() {
+    size_49_48 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     uint64_t EHCIsitd = stateful_require(28);
@@ -314,6 +319,7 @@ static size_t get_size_49_48() { return size_49_48;}
 size_t size_49_49 = 0;
 
 static uint8_t *get_data_49_49() {
+    size_49_49 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     return Data;
@@ -325,6 +331,7 @@ static size_t get_size_49_49() { return size_49_49;}
 size_t size_49_50 = 0;
 
 static uint8_t *get_data_49_50() {
+    size_49_50 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     return Data;
@@ -336,6 +343,7 @@ static size_t get_size_49_50() { return size_49_50;}
 size_t size_49_53 = 0;
 
 static uint8_t *get_data_49_53() {
+    size_49_53 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     return Data;
@@ -347,6 +355,7 @@ static size_t get_size_49_53() { return size_49_53;}
 size_t size_49_51 = 0;
 
 static uint8_t *get_data_49_51() {
+    size_49_51 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     return Data;
@@ -358,6 +367,7 @@ static size_t get_size_49_51() { return size_49_51;}
 size_t size_49_42 = 0;
 
 static uint8_t *get_data_49_42() {
+    size_49_42 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     return Data;
@@ -369,6 +379,7 @@ static size_t get_size_49_42() { return size_49_42;}
 size_t size_49_52 = 0;
 
 static uint8_t *get_data_49_52() {
+    size_49_52 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     return Data;
@@ -380,6 +391,7 @@ static size_t get_size_49_52() { return size_49_52;}
 size_t size_49_40 = 0;
 
 static uint8_t *get_data_49_40() {
+    size_49_40 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     return Data;
@@ -391,6 +403,7 @@ static size_t get_size_49_40() { return size_49_40;}
 size_t size_49_41 = 0;
 
 static uint8_t *get_data_49_41() {
+    size_49_41 = 0;
     uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
     
     uint64_t base = stateful_malloc(0x3000, /*chained=*/true);

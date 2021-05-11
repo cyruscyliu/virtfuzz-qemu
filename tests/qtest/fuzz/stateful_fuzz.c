@@ -14,7 +14,7 @@
 #include "stateful_fuzz_sms.h"
 #include "stateful_fuzz_mutators.h"
 
-bool UseCustomMutator;
+bool StatefulFuzzer;
 static GHashTable *fuzzable_memoryregions;
 static GPtrArray *fuzzable_pci_devices;
 
@@ -169,6 +169,8 @@ void LLVMFuzzerTraceStateCallback(
         size_t StateMachineId, size_t NodeId);
 void LLVMFuzzerTraceStateCallback(
         size_t StateMachineId, size_t NodeId) {
+    if (!StatefulFuzzer)
+        return;
     StateMachine *state_machine = &state_machines[StateMachineId];
     Node *node = &state_machine->nodes[NodeId];
 
@@ -178,8 +180,9 @@ void LLVMFuzzerTraceStateCallback(
     Input *input = init_input(Data, Size);
     // free Data because nobody will free it later
     free(Data);
-    if (!input)
+    if (!input) {
         return;
+    }
     // deserialize Data to Events
     deserialize(input, /*indexer=*/false);
     // issue event one by one
@@ -298,7 +301,7 @@ static void stateful_pre_fuzz(QTestState *s) {
     MemoryRegion *mr;
     QPCIBus *pcibus;
     char **mrnames;
-    UseCustomMutator = 1;
+    StatefulFuzzer = 1;
 
     if (getenv("QTEST_LOG")) {
         qtest_log_enabled = 1;
@@ -405,7 +408,7 @@ size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
 size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
         size_t MaxSize, unsigned int Seed) {
     // for generic fuzz targets
-    if (!UseCustomMutator)
+    if (!StatefulFuzzer)
         return LLVMFuzzerMutate(Data, Size, MaxSize);
 
     Input *input = init_input(Data, Size);
