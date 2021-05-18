@@ -74,8 +74,6 @@ if ! make "-j$(nproc)" qemu-fuzz-i386 qemu-fuzz-hppa; then
           "\nFor example: CC=clang CXX=clang++ $0"
 fi
 
-exit
-
 for i in $(ldd ./qemu-fuzz-i386 | cut -f3 -d' '); do
     cp "$i" "$DEST_DIR/lib/"
 done
