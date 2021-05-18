@@ -318,9 +318,11 @@ static void stateful_pre_fuzz(QTestState *s) {
         locate_fuzzable_objects(qdev_get_machine(), mrnames[i]);
     }
 
-    pcibus = qpci_new_pc(s, NULL);
-    g_ptr_array_foreach(fuzzable_pci_devices, pci_enum, pcibus);
-    qpci_free_pc(pcibus);
+    if (strcmp(TARGET_NAME, "hppa") != 0) {
+        pcibus = qpci_new_pc(s, NULL);
+        g_ptr_array_foreach(fuzzable_pci_devices, pci_enum, pcibus);
+        qpci_free_pc(pcibus);
+    }
 
     fprintf(stderr, "Matching objects by name ");
     for (int i = 0; mrnames[i] != NULL; i++) {

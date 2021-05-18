@@ -348,6 +348,13 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "parallel*",
         .mrnames = "*parallel*",
         .file = "hw/char/parallel.c",
+    },{
+        // HPPA, artist graphics emulation added, introduced in 5.0
+        .name = "artist",
+        .args = "",
+        .objects = "artist",
+        .mrnames = "*artist.reg* *artist.vram*",
+        .file = "hw/display/artist.c",
     }
 };
 
