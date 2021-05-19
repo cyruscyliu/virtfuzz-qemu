@@ -268,14 +268,30 @@ static size_t Mutate_AddEventFromPersistentAutoDictionary(Input *input,
 }
 
 // Size||
-// If id is changed, then the format of event is also changed.
-// So disable this mutator.
+// Choose the type with the same format to change.
 static size_t Mutate_ChangeId(Input *input, uint8_t *Data,
         size_t Size, size_t MaxSize) { // random
     if (Size >= MaxSize) return 0;
     size_t Idx = (rand() % input->n_events);
     size_t IdxOffset = get_event_offset(input, Idx);
-    LLVMFuzzerMutate(Data + IdxOffset, 1, 1);
+    uint8_t OldId = around_event_id(Data[IdxOffset]);
+    if (OldId == INTERFACE_CLOCK_STEP ||
+            OldId == INTERFACE_MEM_READ ||
+            OldId == INTERFACE_MEM_WRITE ||
+            OldId == INTERFACE_CLOCK_STEP)
+        return Size;
+
+    InterfaceDescription ed = Id_Description[OldId];
+    uint8_t *id_candidates = (uint8_t *)malloc(n_interfaces);
+    uint8_t index = 0;
+    for (int i = 0; i < n_interfaces; i++) {
+         if (ed.type == Id_Description[i].type) {
+             id_candidates[index] = i;
+             index++;
+         }
+    }
+    Data[IdxOffset] = id_candidates[rand() % index];
+    free(id_candidates);
     return Size;
 }
 
@@ -350,7 +366,7 @@ static size_t Mutate_ChangeValue(Input *input, uint8_t *Data,
     }
 }
 
-#define N_MUTATORS 14
+#define N_MUTATORS 15
 static size_t (* CustomMutators[])(Input *input, uint8_t *Data,
         size_t Size, size_t MaxSize) = {
     Mutate_EraseFragment, // 1
@@ -366,7 +382,7 @@ static size_t (* CustomMutators[])(Input *input, uint8_t *Data,
     Mutate_ShuffleEvents, // 11
     Mutate_AddEventFromManualDictionary,
     Mutate_AddEventFromPersistentAutoDictionary,
-    // Mutate_ChangeId,
+    Mutate_ChangeId,
     Mutate_ChangeAddr,
     Mutate_ChangeSize, // 16
     Mutate_ChangeValue,
@@ -386,7 +402,7 @@ const char *CustomMutatorNames[N_MUTATORS] = {
     "Mutate_ShuffleEvents",
     "Mutate_AddEventFromManualDictionary",
     "Mutate_AddEventFromPersistentAutoDictionary",
-    // "Mutate_ChangeId",
+    "Mutate_ChangeId",
     "Mutate_ChangeAddr",
     "Mutate_ChangeSize",
     "Mutate_ChangeValue",
