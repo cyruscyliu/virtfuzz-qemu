@@ -348,7 +348,7 @@ static size_t reset_data(uint8_t *Data, size_t MaxSize) {
     return Offset;
 }
 
-void good_input(void) {
+static void good_input(void) {
 /*
     uint64_t portsc_preset = 1 << 8;
     uint64_t portsc_ped = 1 << 2;

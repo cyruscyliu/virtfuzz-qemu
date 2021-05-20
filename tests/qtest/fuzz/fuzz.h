@@ -107,6 +107,7 @@ void reboot(QTestState *);
 
 /* Use the QTest ASCII protocol or call address_space API directly?*/
 void fuzz_qtest_set_serialize(bool option);
+QTestState *get_qtest_state(void);
 
 /*
  * makes a copy of *target and adds it to the target-list.
