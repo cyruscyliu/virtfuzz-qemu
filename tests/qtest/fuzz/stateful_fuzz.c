@@ -171,6 +171,7 @@ void LLVMFuzzerTraceStateCallback(
         size_t StateMachineId, size_t NodeId) {
     if (!StatefulFuzzer)
         return;
+    // printf("[+] Current State is %zu\n", NodeId);
     StateMachine *state_machine = &state_machines[StateMachineId];
     Node *node = &state_machine->nodes[NodeId];
 
@@ -318,7 +319,7 @@ static void stateful_pre_fuzz(QTestState *s) {
         locate_fuzzable_objects(qdev_get_machine(), mrnames[i]);
     }
 
-    if (strcmp(TARGET_NAME, "hppa") != 0) {
+    if (strcmp(TARGET_NAME, "i386") == 0) {
         pcibus = qpci_new_pc(s, NULL);
         g_ptr_array_foreach(fuzzable_pci_devices, pci_enum, pcibus);
         qpci_free_pc(pcibus);

@@ -122,6 +122,23 @@ static inline gchar *generic_fuzzer_virtio_9p_args(void){
     "writeout=immediate,fmode=0600,dmode=0700", tmpdir);
 }
 
+static inline gchar *stateful_fuzz_ati_args(void) {
+    if (strcmp(TARGET_NAME, "mipsel") == 0) {
+        fprintf(stderr, "Cannot support qtest in %s\n", TARGET_NAME);
+        _Exit(0);
+        // return g_strdup_printf("-machine fulong2e -device ati-vga");
+    } else if (strcmp(TARGET_NAME, "ppc") == 0) {
+        fprintf(stderr, "Cannot find the ati-vga address in %s\n", TARGET_NAME);
+        _Exit(0);
+        // return g_strdup_printf("-machine mac99 -device ati-vga,romfile=\"\"");
+    } else if (strcmp(TARGET_NAME, "i386") == 0) {
+        return g_strdup_printf("-machine q35 -nodefaults -device ati-vga,romfile=\"\"");
+    } else {
+        fprintf(stderr, "Cannot support ati-vga in %s\n", TARGET_NAME);
+        _Exit(0);
+    }
+}
+
 static const generic_fuzz_config predefined_configs[] = {
     /*
     {
@@ -349,12 +366,19 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*parallel*",
         .file = "hw/char/parallel.c",
     },{
-        // HPPA, artist graphics emulation added, introduced in 5.0
+        // HPPA
         .name = "artist",
         .args = "",
-        .objects = "artist",
+        .objects = "*artist.reg* *artist.vram*",
         .mrnames = "*artist.reg* *artist.vram*",
         .file = "hw/display/artist.c",
+    },{
+        // i386, mipsel and ppc
+        .name = "ati",
+        .argfunc = stateful_fuzz_ati_args,
+        .objects = "*ati.mmregs*",
+        .mrnames = "*ati.mmregs*",
+        .file = "hw/display/ati.c",
     }
 };
 
