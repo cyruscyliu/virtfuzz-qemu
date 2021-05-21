@@ -201,11 +201,14 @@ static const generic_fuzz_config predefined_configs[] = {
         .args = "-M q35 -nodefaults "
         "-device e1000e,netdev=net0 -netdev user,id=net0",
         .objects = "e1000e",
-    },{
+    },*/{
         .name = "cirrus-vga",
         .args = "-machine q35 -nodefaults -device cirrus-vga",
         .objects = "cirrus*",
-    },{
+        .mrnames = "*cirrus-io*,*cirrus-low-memory*,"
+        "*cirrus-linear-io*,*cirrus-bitblt-mmio*,*cirrus-mmio*",
+        .file = "hw/display/cirrus-vga.c",
+    },/*{
         .name = "bochs-display",
         .args = "-machine q35 -nodefaults -device bochs-display",
         .objects = "bochs*",
