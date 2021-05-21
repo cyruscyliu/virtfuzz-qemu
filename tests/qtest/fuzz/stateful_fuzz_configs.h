@@ -390,7 +390,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*bcm2835-fb*",
         .mrnames = "*bcm2835-fb*",
         .file = "hw/display/bcm2835_fb.c",
-    }*/{
+    },*/{
         // i386
         .name = "bochs-display",
         .args = "-device bochs-display",
@@ -404,7 +404,14 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*cg3.reg*",
         .mrnames = "*cg3.reg*",
         .file = "hw/display/cg3.c",
-    }
+    },/*{
+        // arm
+        .name = "xlnx-dp",
+        .args = "-machine xlnx-zcu102",
+        .objects = "*.core*,*.v_blend*,*.av_buffer_manager*,*.audio*",
+        .mrnames = "*.core*,*.v_blend*,*.av_buffer_manager*,*.audio*",
+        .file = "hw/display/xlnx_dp.c",
+    }*/
 };
 
 #endif /* STATEFUL_FUZZ_CONFIGS_H */
