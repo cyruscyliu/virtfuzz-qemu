@@ -314,7 +314,7 @@ static void stateful_pre_fuzz(QTestState *s) {
     fuzzable_memoryregions = g_hash_table_new(NULL, NULL);
     fuzzable_pci_devices = g_ptr_array_new();
 
-    mrnames = g_strsplit(getenv("QEMU_FUZZ_MRNAME"), " ", -1);
+    mrnames = g_strsplit(getenv("QEMU_FUZZ_MRNAME"), ",", -1);
     for (int i = 0; mrnames[i] != NULL; i++) {
         locate_fuzzable_objects(qdev_get_machine(), mrnames[i]);
     }

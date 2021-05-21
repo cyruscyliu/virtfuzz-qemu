@@ -257,7 +257,7 @@ static const generic_fuzz_config predefined_configs[] = {
         "-device usb-kbd -device usb-mouse -device usb-serial,chardev=cd1 "
         "-device usb-tablet -device usb-wacom-tablet -device usb-audio",
         .objects = "*usb* *uhci* *xhci*",
-        .mrnames = "*capabilities* *operational* *runtime* *doorbell*",
+        .mrnames = "*capabilities*,*operational*,*runtime*,*doorbell*",
         .file = "hw/usb/hcd-xhci.c",
     },/*{
         .name = "pc-i440fx",
@@ -313,7 +313,7 @@ static const generic_fuzz_config predefined_configs[] = {
         "-device usb-tablet,bus=ich9-ehci-1.0,port=1,usb_version=1 "
         "-device usb-storage,bus=ich9-ehci-1.0,port=2,drive=usbcdrom",
         .objects = "*usb* *hci*",
-        .mrnames = "*capabilities* *operational* *ports*",
+        .mrnames = "*capabilities*,*operational*,*ports*",
         .file = "hw/usb/hcd-ehci.c",
     },{
         .name = "ohci",
@@ -356,7 +356,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .args = "-machine q35 -nodefaults "
         "-device sb16,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
         .objects = "sb16* i8257*",
-        .mrnames = "*sb16* *dma-chan* *dma-page* *dma-pageh* *dma-cont*",
+        .mrnames = "*sb16*,*dma-chan*,*dma-page*,*dma-pageh*,*dma-cont*",
         .file = "hw/audio/sb16.c hw/dma/i8257.c"
     },{
         .name = "parallel",
@@ -369,8 +369,8 @@ static const generic_fuzz_config predefined_configs[] = {
         // hppa
         .name = "artist",
         .args = "",
-        .objects = "*artist.reg* *artist.vram*",
-        .mrnames = "*artist.reg* *artist.vram*",
+        .objects = "*artist.reg*,*artist.vram*",
+        .mrnames = "*artist.reg*,*artist.vram*",
         .file = "hw/display/artist.c",
     },{
         // i386, mipsel and ppc
@@ -387,7 +387,14 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*bcm2835-fb*",
         .mrnames = "*bcm2835-fb*",
         .file = "hw/display/bcm2835_fb.c",
-    }*/
+    }*/{
+        // i386
+        .name = "bochs-display",
+        .args = "-device bochs-display",
+        .objects = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
+        .mrnames = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
+        .file = "hw/display/bochs-display.c",
+    }
 };
 
 #endif /* STATEFUL_FUZZ_CONFIGS_H */
