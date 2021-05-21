@@ -394,6 +394,13 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .mrnames = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .file = "hw/display/bochs-display.c",
+    },{
+        // sparc
+        .name = "cg3",
+        .args = "-m 256M -vga cg3",
+        .objects = "*cg3.reg*",
+        .mrnames = "*cg3.reg*",
+        .file = "hw/display/cg3.c",
     }
 };
 

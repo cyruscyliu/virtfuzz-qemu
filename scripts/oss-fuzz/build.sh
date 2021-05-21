@@ -66,10 +66,10 @@ mkdir -p "$DEST_DIR/lib/"  # Copy the shared libraries here
 ../configure --disable-werror --cc="$CC" --cxx="$CXX" --enable-fuzzing \
     --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
     --extra-cflags="$EXTRA_CFLAGS" --target-list="i386-softmmu arm-softmmu \
-    hppa-softmmu ppc-softmmu mipsel-softmmu"
+    hppa-softmmu ppc-softmmu mipsel-softmmu sparc-softmmu"
 
 if ! make "-j$(nproc)" qemu-fuzz-i386 qemu-fuzz-arm qemu-fuzz-hppa \
-	qemu-fuzz-ppc qemu-fuzz-mipsel; then
+	qemu-fuzz-ppc qemu-fuzz-mipsel qemu-fuzz-sparc; then
     fatal "Build failed. Please specify a compiler with fuzzing support"\
           "using the \$CC and \$CXX environment variables"\
           "\nFor example: CC=clang CXX=clang++ $0"
@@ -87,8 +87,10 @@ rm qemu-fuzz-i386
 ../configure --disable-werror --cc="$CC" --cxx="$CXX" --enable-fuzzing \
     --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
     --extra-cflags="$EXTRA_CFLAGS" --extra-ldflags="-Wl,-rpath,\$ORIGIN/lib" \
-    --target-list="i386-softmmu arm-softmmu hppa-softmmu ppc-softmmu mipsel-softmmu"
-make "-j$(nproc)" qemu-fuzz-i386 qemu-fuzz-arm qemu-fuzz-hppa qemu-fuzz-ppc qemu-fuzz-mipsel V=1
+    --target-list="i386-softmmu arm-softmmu hppa-softmmu ppc-softmmu \
+    mipsel-softmmu sparc-softmmu"
+make "-j$(nproc)" qemu-fuzz-i386 qemu-fuzz-arm qemu-fuzz-hppa qemu-fuzz-ppc \
+    qemu-fuzz-mipsel qemu-fuzz-sparc V=1
 
 # Copy over the datadir
 cp  -r ../pc-bios/ "$DEST_DIR/pc-bios"
