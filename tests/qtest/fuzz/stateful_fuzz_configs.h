@@ -366,7 +366,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*parallel*",
         .file = "hw/char/parallel.c",
     },{
-        // HPPA
+        // hppa
         .name = "artist",
         .args = "",
         .objects = "*artist.reg* *artist.vram*",
@@ -379,7 +379,15 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*ati.mmregs*",
         .mrnames = "*ati.mmregs*",
         .file = "hw/display/ati.c",
-    }
+    },/*{
+        // arm
+        .name = "bcm2835-fb",
+        // arm supports raspi0/1/2, aarch64 supports raspi3
+        .args = "-machine raspi0",
+        .objects = "*bcm2835-fb*",
+        .mrnames = "*bcm2835-fb*",
+        .file = "hw/display/bcm2835_fb.c",
+    }*/
 };
 
 #endif /* STATEFUL_FUZZ_CONFIGS_H */
