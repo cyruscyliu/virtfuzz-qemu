@@ -125,17 +125,19 @@ typedef struct {
 
 static uint32_t n_interfaces = 0;
 
+#define INTERFACE_MAX 124
 // predefined interfaces one-to-one mapped from
 // the transparent events, these interfaces are
 // also transparent to the fuzzer
-#define INTERFACE_MEM_READ  32
-#define INTERFACE_MEM_WRITE 33
-#define INTERFACE_CLOCK_STEP 34
-#define INTERFACE_DATA_POOL 35
+#define INTERFACE_MEM_READ   INTERFACE_MAX + 0
+#define INTERFACE_MEM_WRITE  INTERFACE_MAX + 1
+#define INTERFACE_CLOCK_STEP INTERFACE_MAX + 2
+#define INTERFACE_DATA_POOL  INTERFACE_MAX + 3
+#define INTERFACE_END INTERFACE_MAX + 4
 
 // n interface -> 1 event
 // 1 interface -> 1 event
-static InterfaceDescription Id_Description[36] = {
+static InterfaceDescription Id_Description[INTERFACE_END] = {
     [INTERFACE_MEM_READ] = {
         .type = EVENT_TYPE_MEM_READ,
         .emb = {.addr = 0xFFFFFFFF, .size = 0xFFFFFFFF},

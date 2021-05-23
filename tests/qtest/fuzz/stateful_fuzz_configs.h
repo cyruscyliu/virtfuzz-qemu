@@ -307,10 +307,19 @@ static const generic_fuzz_config predefined_configs[] = {
     },{
         .arch = "i386",
         .name = "ohci",
-        .args = "-machine q35 -nodefaults  -device pci-ohci -device usb-kbd",
+        .args = "-machine q35 -nodefaults -device pci-ohci -device usb-kbd",
         .objects = "*usb* *ohci*",
         .mrnames = "*ohci*",
         .file = "hw/usb/hcd-ohci.c",
+    },{
+        .arch = "i386",
+        .name = "uhci",
+        .args = "-machine q35 -nodefaults -device piix3-usb-uhci,id=uhci,addr=1d.0 "
+        "-drive id=drive0,if=none,file=null-co://,file.read-zeroes=on,format=raw "
+        "-device usb-tablet,bus=uhci.0,port=1",
+        .objects = "*uhci*",
+        .mrnames = "*uhci*",
+        .file = "hw/usb/hcd-uhci.c",
     },/*{
         .name = "megaraid",
         .args = "-machine q35 -nodefaults -device megasas -device scsi-cd,drive=null0 "
@@ -376,16 +385,15 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*ati.mmregs*",
         .mrnames = "*ati.mmregs*",
         .file = "hw/display/ati.c",
-    },/*{
-        // arm
-        .name = "bcm2835-fb",
+    },{
+        .arch = "arm",
+        .name = "dwc2",
         // arm supports raspi0/1/2, aarch64 supports raspi3
         .args = "-machine raspi0",
-        .objects = "*bcm2835-fb*",
-        .mrnames = "*bcm2835-fb*",
-        .file = "hw/display/bcm2835_fb.c",
-    },*/{
-        // i386
+        .objects = "*dwc2-io* *dwc2-fifo*",
+        .mrnames = "*dwc2-io*,*dwc2-fifo*",
+        .file = "hw/usb/hcd-dwc2.c",
+    },{
         .arch = "i386",
         .name = "bochs-display",
         .args = "-device bochs-display",
@@ -393,7 +401,6 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .file = "hw/display/bochs-display.c",
     },{
-        // sparc
         .arch = "sparc",
         .name = "cg3",
         .args = "-m 256M -vga cg3",
@@ -407,7 +414,30 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*.core*,*.v_blend*,*.av_buffer_manager*,*.audio*",
         .mrnames = "*.core*,*.v_blend*,*.av_buffer_manager*,*.audio*",
         .file = "hw/display/xlnx_dp.c",
-    }*/
+    },{
+        .arch = "arm",
+        .name = "tusb6010",
+        .args = "-machine n810 -m 128M -usb",
+        .objects = "*tusb-async* *",
+        .mrnames = "*tusb-async*",
+        .file = "hw/usb/tusb6010.c",
+    },*/{
+        .arch = "arm",
+        .name = "imx-usb-phy",
+        .args = "-machine sabrelite",
+        .objects = "*imx-usbphy*",
+        .mrnames = "*imx-usbphy*",
+        .file = "hw/usb/imx-usb-phy.c",
+    }, {
+        .arch = "arm",
+        .name = "chipidea",
+        .args = "-machine sabrelite",
+        .objects = "*usb-chipidea.misc*,*capabilities*,"
+        "*usb-chipidea.dc*,*operational*,*ports*,*usb-chipidea.endpoints*",
+        .mrnames = "*usb-chipidea.misc*,*capabilities*,"
+        "*usb-chipidea.dc*,*operational*,*ports*,*usb-chipidea.endpoints*",
+        .file = "hw/usb/chipidea.c",
+    }
 };
 
 #endif /* STATEFUL_FUZZ_CONFIGS_H */
