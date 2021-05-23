@@ -428,7 +428,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*imx-usbphy*",
         .mrnames = "*imx-usbphy*",
         .file = "hw/usb/imx-usb-phy.c",
-    }, {
+    },{
         .arch = "arm",
         .name = "chipidea",
         .args = "-machine sabrelite",
@@ -437,6 +437,20 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*usb-chipidea.misc*,*capabilities*,"
         "*usb-chipidea.dc*,*operational*,*ports*,*usb-chipidea.endpoints*",
         .file = "hw/usb/chipidea.c",
+    },{
+        .arch = "aarch64",
+        .name = "versal-usb2",
+        .args = "-machine xlnx-versal-virt",
+        .objects = "*versal.usb2Ctrl_alias*",
+        .mrnames = "*versal.usb2Ctrl_alias*",
+        .file = "hw/usb/xlnx-versal-usb2-ctrl-regs.c",
+    },{
+        .arch = "aarch64",
+        .name = "dwc3",
+        .args = "-machine xlnx-versal-virt",
+        .objects = "*versal.dwc3_alias*",
+        .mrnames = "*versal.dwc3_alias*",
+        .file = "hw/usb/hcd-dwc3.c",
     }
 };
 
