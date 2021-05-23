@@ -62,21 +62,31 @@ fi
 
 mkdir -p "$DEST_DIR/lib/"  # Copy the shared libraries here
 
+# If not necessary, use TARGET_LIST_32 for speed
+TARGET_LIST_64="aarch64-softmmu mips64-softmmu mips64el-softmmu \
+    ppc64-softmmu riscv64-softmmu sparc64-softmmu x86_64-softmmu"
+TARGET_LIST_64_NECESSARY=aarch64-softmmu
+TARGET_LIST_32="i386-softmmu arm-softmmu" # \
+    # alpha-softmmu avr-softmmu cris-softmmu \
+    # hppa-softmmu m68k-softmmu microblaze-softmmu \
+    # microblazeel-softmmu mips-softmmu mipsel-softmmu moxie-softmmu \
+    # nios2-softmmu or1k-softmmu ppc-softmmu riscv32-softmmu rx-softmmu \
+    # s390x-softmmu sh4-softmmu sh4eb-softmmu sparc-softmmu tricore-softmmu \
+    # xtensa-softmmu xtensaeb-softmmu"
+TARGET_LIST="$TARGET_LIST_32 $TARGET_LIST_64_NECESSARY"
+FUZZ_TARGET_LIST=$(echo $TARGET_LIST | sed "s/-softmmu//g" | \
+    sed -E "s/(\S)(\s|$)/\1  /g;s/(\s|^)(\S)/qemu-fuzz-\2/g")
+
 # Build once to get the list of dynamic lib paths, and copy them over
 ../configure --disable-werror --cc="$CC" --cxx="$CXX" --enable-fuzzing \
     --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
-    --extra-cflags="$EXTRA_CFLAGS" --target-list="i386-softmmu arm-softmmu \
-    hppa-softmmu ppc-softmmu mipsel-softmmu sparc-softmmu"
+    --extra-cflags="$EXTRA_CFLAGS" --target-list="i386-softmmu"
 
-if ! make "-j$(nproc)" qemu-fuzz-i386 qemu-fuzz-arm qemu-fuzz-hppa \
-	qemu-fuzz-ppc qemu-fuzz-mipsel qemu-fuzz-sparc; then
+if ! make "-j$(nproc)" qemu-fuzz-i386; then
     fatal "Build failed. Please specify a compiler with fuzzing support"\
           "using the \$CC and \$CXX environment variables"\
           "\nFor example: CC=clang CXX=clang++ $0"
 fi
-
-# for debug, remove this later
-exit
 
 for i in $(ldd ./qemu-fuzz-i386 | cut -f3 -d' '); do
     cp "$i" "$DEST_DIR/lib/"
@@ -87,33 +97,32 @@ rm qemu-fuzz-i386
 ../configure --disable-werror --cc="$CC" --cxx="$CXX" --enable-fuzzing \
     --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
     --extra-cflags="$EXTRA_CFLAGS" --extra-ldflags="-Wl,-rpath,\$ORIGIN/lib" \
-    --target-list="i386-softmmu arm-softmmu hppa-softmmu ppc-softmmu \
-    mipsel-softmmu sparc-softmmu"
-make "-j$(nproc)" qemu-fuzz-i386 qemu-fuzz-arm qemu-fuzz-hppa qemu-fuzz-ppc \
-    qemu-fuzz-mipsel qemu-fuzz-sparc V=1
+    --target-list="$TARGET_LIST"
+make "-j$(nproc)" $FUZZ_TARGET_LIST V=1
 
 # Copy over the datadir
 cp  -r ../pc-bios/ "$DEST_DIR/pc-bios"
 
-targets=$(./qemu-fuzz-i386 | awk '$1 ~ /\*/  {print $2}')
-base_copy="$DEST_DIR/qemu-fuzz-i386-target-$(echo "$targets" | head -n 1)"
+for arch in $(echo $TARGET_LIST | sed "s/-softmmu//g"); do
+    targets=$(./qemu-fuzz-$arch | awk '$1 ~ /\*/  {print $2}')
+    base_copy="$DEST_DIR/qemu-fuzz-$arch-target-$(echo "$targets" | head -n 1)"
 
-cp "./qemu-fuzz-i386" "$base_copy"
+    cp "./qemu-fuzz-$arch" "$base_copy"
 
-# Run the fuzzer with no arguments, to print the help-string and get the list
-# of available fuzz-targets. Copy over the qemu-fuzz-i386, naming it according
-# to each available fuzz target (See 05509c8e6d fuzz: select fuzz target using
-# executable name)
-for target in $(echo "$targets" | tail -n +2);
-do
-    # Ignore the generic-fuzz target, as it requires some environment variables
-    # to be configured. We have some generic-fuzz-{pc-q35, floppy, ...} targets
-    # that are thin wrappers around this target that set the required
-    # environment variables according to predefined configs.
-    if [ "$target" != "generic-fuzz"  ] && [ "$target" != "stateful-fuzz" ]; then
-        ln -f $base_copy \
-            "$DEST_DIR/qemu-fuzz-i386-target-$target"
-    fi
+    # Run the fuzzer with no arguments, to print the help-string and get the list
+    # of available fuzz-targets. Copy over the qemu-fuzz-i386, naming it according
+    # to each available fuzz target (See 05509c8e6d fuzz: select fuzz target using
+    # executable name)
+    for target in $(echo "$targets" | tail -n +2); do
+        # Ignore the generic-fuzz target, as it requires some environment variables
+        # to be configured. We have some generic-fuzz-{pc-q35, floppy, ...} targets
+        # that are thin wrappers around this target that set the required
+        # environment variables according to predefined configs.
+        if [ "$target" != "generic-fuzz"  ] && [ "$target" != "stateful-fuzz" ]; then
+            ln -f $base_copy \
+                "$DEST_DIR/qemu-fuzz-$arch-target-$target"
+        fi
+    done
 done
 
 echo "Done. The fuzzers are located in $DEST_DIR"

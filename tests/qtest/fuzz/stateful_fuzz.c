@@ -489,6 +489,8 @@ static void register_stateful_fuzz_targets(void) {
          i < sizeof(predefined_configs) / sizeof(generic_fuzz_config);
          i++) {
         config = predefined_configs + i;
+        if (strcmp(TARGET_NAME, config->arch) != 0)
+            continue;
         name = g_string_new("stateful-fuzz");
         g_string_append_printf(name, "-%s", config->name);
         fuzz_add_target(&(FuzzTarget){

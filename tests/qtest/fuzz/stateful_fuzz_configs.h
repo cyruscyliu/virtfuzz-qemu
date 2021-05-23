@@ -38,7 +38,7 @@ static inline void handle_timeout(int sig) {
 static useconds_t timeout = DEFAULT_TIMEOUT_US;
 
 typedef struct generic_fuzz_config {
-    const char *name, *args, *objects, *mrnames, *file;
+    const char *arch, *name, *args, *objects, *mrnames, *file;
     gchar* (*argfunc)(void); /* Result must be freeable by g_free() */
 } generic_fuzz_config;
 
@@ -122,23 +122,6 @@ static inline gchar *generic_fuzzer_virtio_9p_args(void){
     "writeout=immediate,fmode=0600,dmode=0700", tmpdir);
 }
 
-static inline gchar *stateful_fuzz_ati_args(void) {
-    if (strcmp(TARGET_NAME, "mipsel") == 0) {
-        fprintf(stderr, "Cannot support qtest in %s\n", TARGET_NAME);
-        _Exit(0);
-        // return g_strdup_printf("-machine fulong2e -device ati-vga");
-    } else if (strcmp(TARGET_NAME, "ppc") == 0) {
-        fprintf(stderr, "Cannot find the ati-vga address in %s\n", TARGET_NAME);
-        _Exit(0);
-        // return g_strdup_printf("-machine mac99 -device ati-vga,romfile=\"\"");
-    } else if (strcmp(TARGET_NAME, "i386") == 0) {
-        return g_strdup_printf("-machine q35 -nodefaults -device ati-vga,romfile=\"\"");
-    } else {
-        fprintf(stderr, "Cannot support ati-vga in %s\n", TARGET_NAME);
-        _Exit(0);
-    }
-}
-
 static const generic_fuzz_config predefined_configs[] = {
     /*
     {
@@ -202,6 +185,7 @@ static const generic_fuzz_config predefined_configs[] = {
         "-device e1000e,netdev=net0 -netdev user,id=net0",
         .objects = "e1000e",
     },*/{
+        .arch = "i386",
         .name = "cirrus-vga",
         .args = "-machine q35 -nodefaults -device cirrus-vga",
         .objects = "cirrus*",
@@ -250,6 +234,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "fd* floppy* i8257",
         .mrnames = "*fdc* *fdctrl*",
     },*/{
+        .arch = "i386",
         .name = "xhci",
         .args = "-machine q35 -nodefaults "
         "-drive file=null-co://,if=none,format=raw,id=disk0 "
@@ -302,6 +287,7 @@ static const generic_fuzz_config predefined_configs[] = {
         "-drive if=none,index=0,file=null-co://,format=raw,id=mydrive -nographic",
         .objects = "sd*"
     },*/{
+        .arch = "i386",
         .name = "ehci",
         .args = "-machine q35 -nodefaults "
         "-device ich9-usb-ehci1,bus=pcie.0,addr=1d.7,"
@@ -319,6 +305,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*capabilities*,*operational*,*ports*",
         .file = "hw/usb/hcd-ehci.c",
     },{
+        .arch = "i386",
         .name = "ohci",
         .args = "-machine q35 -nodefaults  -device pci-ohci -device usb-kbd",
         .objects = "*usb* *ohci*",
@@ -341,6 +328,7 @@ static const generic_fuzz_config predefined_configs[] = {
         "-device ac97,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
         .objects = "ac97*",
     },*/{
+        .arch = "i386",
         .name = "cs4231a",
         .args = "-machine q35 -nodefaults "
         "-device cs4231a,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
@@ -348,6 +336,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*cs4231a",
         .file = "hw/audio/cs4231a.c",
     },{
+        .arch = "i386",
         .name = "es1370",
         .args = "-machine q35 -nodefaults "
         "-device es1370,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
@@ -355,6 +344,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*es1370*",
         .file = "hw/audio/es1370.c",
     },{
+        .arch = "i386",
         .name = "sb16",
         .args = "-machine q35 -nodefaults "
         "-device sb16,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
@@ -362,6 +352,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*sb16*,*dma-chan*,*dma-page*,*dma-pageh*,*dma-cont*",
         .file = "hw/audio/sb16.c hw/dma/i8257.c"
     },{
+        .arch = "i386",
         .name = "parallel",
         .args = "-machine q35 -nodefaults "
         "-parallel file:/dev/null",
@@ -370,6 +361,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/char/parallel.c",
     },{
         // hppa
+        .arch = "hppa",
         .name = "artist",
         .args = "",
         .objects = "*artist.reg*,*artist.vram*",
@@ -377,8 +369,10 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/display/artist.c",
     },{
         // i386, mipsel and ppc
+        .arch = "i386",
         .name = "ati",
-        .argfunc = stateful_fuzz_ati_args,
+        .args = "-machine q35 -nodefaults "
+        "-device ati-vga,romfile=\"\"",
         .objects = "*ati.mmregs*",
         .mrnames = "*ati.mmregs*",
         .file = "hw/display/ati.c",
@@ -392,6 +386,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/display/bcm2835_fb.c",
     },*/{
         // i386
+        .arch = "i386",
         .name = "bochs-display",
         .args = "-device bochs-display",
         .objects = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
@@ -399,6 +394,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/display/bochs-display.c",
     },{
         // sparc
+        .arch = "sparc",
         .name = "cg3",
         .args = "-m 256M -vga cg3",
         .objects = "*cg3.reg*",
