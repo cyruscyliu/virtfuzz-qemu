@@ -388,19 +388,30 @@ static const generic_fuzz_config predefined_configs[] = {
                  "-drive id=disk0,if=none,file=null-co://,format=raw "
                  "-nodefaults",
         .objects = "*esp* *scsi* *am53c974*",
-    },{
+    },*/{
+        .arch = "i386",
         .name = "ac97",
         .args = "-machine q35 -nodefaults "
         "-device ac97,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
         .objects = "ac97*",
-    },*/{
+        .mrnames = "*ac97-nam*,*ac97-nabm*",
+        .file = "hw/audio/ac97.c",
+    },{
         .arch = "i386",
         .name = "cs4231a",
         .args = "-machine q35 -nodefaults "
         "-device cs4231a,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
         .objects = "cs4231a* i8257*",
-        .mrnames = "*cs4231a",
+        .mrnames = "*cs4231a*",
         .file = "hw/audio/cs4231a.c",
+    },{
+        .arch = "i386",
+        .name = "cs4231",
+        .args = "-machine q35 -nodefaults "
+        "-device cs4231,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
+        .objects = "cs4231a* i8257*",
+        .mrnames = "*cs4231*",
+        .file = "hw/audio/cs4231.c",
     },{
         .arch = "i386",
         .name = "es1370",
@@ -474,7 +485,15 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .mrnames = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .file = "hw/display/bochs-display.c",
-    },/*{
+    },{
+        .arch = "i386",
+        .name = "vmw-pvscsi",
+        .args = "-machine q35 -nodefaults -device pvscsi",
+        .objects = "*pvscsi-io*",
+        .mrnames = "*pvscsi-io*",
+        .file = "hw/scsi/vmw_pvscsi.c",
+    },
+    /*{
         .arch = "arm",
         .name = "tusb6010",
         .args = "-machine n810 -m 128M -usb",
@@ -652,6 +671,13 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*tc6393xb*",
         .mrnames = "*tc6393xb*",
         .file = "hw/display/tc6393xb.c",
+    },{
+        .arch = "arm",
+        .name = "pl041",
+        .args = "-machine integratorcp",
+        .objects = "*pl041*",
+        .mrnames = "*pl041*",
+        .file = "hw/audio/pl041.c",
     }
 };
 
