@@ -208,16 +208,15 @@ static uint8_t get_memoryregion_addr(MemoryRegion *mr, uint64_t *addr) {
     while (tmp_mr->container) {
         tmp_mr = tmp_mr->container;
         tmp_addr += tmp_mr->addr;
+        if (strcmp(tmp_mr->name, "system") == 0) {
+            *addr = tmp_addr;
+            return MMIO_ADDRESS;
+        } else if (strcmp(tmp_mr->name, "io") == 0) {
+            *addr = tmp_addr;
+            return PIO_ADDRESS;
+        }
     }
-    if (strcmp(tmp_mr->name, "system") == 0) {
-        *addr = tmp_addr;
-        return MMIO_ADDRESS;
-    } else if (strcmp(tmp_mr->name, "io") == 0) {
-        *addr = tmp_addr;
-        return PIO_ADDRESS;
-    } else {
-        return INVLID_ADDRESS;
-    }
+    return INVLID_ADDRESS;
 }
 
 static int insert_qom_composition_child(Object *obj, void *opaque)
