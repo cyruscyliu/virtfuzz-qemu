@@ -174,43 +174,6 @@ static const generic_fuzz_config predefined_configs[] = {
         "-device virtio-9p,fsdev=hshare,mount_tag=hshare "
         "-fsdev synth,id=hshare",
         .objects = "virtio*",
-    },{
-        .name = "intel-hda",
-        .args = "-machine q35 -nodefaults -device intel-hda,id=hda0 "
-        "-device hda-output,bus=hda0.0 -device hda-micro,bus=hda0.0 "
-        "-device hda-duplex,bus=hda0.0",
-        .objects = "intel-hda",
-    },{
-        .name = "ide-hd",
-        .args = "-machine pc -nodefaults "
-        "-drive file=null-co://,if=none,format=raw,id=disk0 "
-        "-device ide-hd,drive=disk0",
-        .objects = "*ide*",
-    },{
-        .name = "ide-atapi",
-        .args = "-machine pc -nodefaults "
-        "-drive file=null-co://,if=none,format=raw,id=disk0 "
-        "-device ide-cd,drive=disk0",
-        .objects = "*ide*",
-    },{
-        .name = "ahci-hd",
-        .args = "-machine q35 -nodefaults "
-        "-drive file=null-co://,if=none,format=raw,id=disk0 "
-        "-device ide-hd,drive=disk0",
-        .objects = "*ahci*",
-    },{
-        .name = "ahci-atapi",
-        .args = "-machine q35 -nodefaults "
-        "-drive file=null-co://,if=none,format=raw,id=disk0 "
-        "-device ide-cd,drive=disk0",
-        .objects = "*ahci*",
-    },{
-        .name = "floppy",
-        .args = "-machine pc -nodefaults -device floppy,id=floppy0 "
-        "-drive id=disk0,file=null-co://,file.read-zeroes=on,if=none,format=raw "
-        "-device floppy,drive=disk0,drive-type=288",
-        .objects = "fd* floppy* i8257",
-        .mrnames = "*fdc* *fdctrl*",
     },*/{
         .arch = "i386",
         .name = "xhci",
@@ -259,15 +222,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*uhci*",
         .mrnames = "*uhci*",
         .file = "hw/usb/hcd-uhci.c",
-    },/*{
-        .name = "pc-i440fx",
-        .args = "-machine pc",
-        .objects = "*",
     },{
-        .name = "pc-q35",
-        .args = "-machine q35",
-        .objects = "*",
-    },*/{
         .arch = "i386",
         .name = "vmxnet3",
         .args = "-machine q35 -nodefaults "
@@ -371,24 +326,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*rocker-mmio*",
         .mrnames = "*rocker-mmio*",
         .file = "hw/net/rocker/rocker.c",
-    },/*{
-        .name = "sdhci-v3",
-        .args = "-nodefaults -device sdhci-pci,sd-spec-version=3 "
-        "-device sd-card,drive=mydrive "
-        "-drive if=none,index=0,file=null-co://,format=raw,id=mydrive -nographic",
-        .objects = "sd*"
     },{
-        .name = "megaraid",
-        .args = "-machine q35 -nodefaults -device megasas -device scsi-cd,drive=null0 "
-        "-blockdev driver=null-co,read-zeroes=on,node-name=null0",
-        .objects = "megasas*",
-    },{
-        .name = "am53c974",
-        .args = "-device am53c974,id=scsi -device scsi-hd,drive=disk0 "
-                 "-drive id=disk0,if=none,file=null-co://,format=raw "
-                 "-nodefaults",
-        .objects = "*esp* *scsi* *am53c974*",
-    },*/{
         .arch = "i386",
         .name = "ac97",
         .args = "-machine q35 -nodefaults "
@@ -428,6 +366,15 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "sb16* i8257*",
         .mrnames = "*sb16*,*dma-chan*,*dma-page*,*dma-pageh*,*dma-cont*",
         .file = "hw/audio/sb16.c hw/dma/i8257.c"
+    },{
+        .arch = "i386",
+        .name = "intel-hda",
+        .args = "-machine q35 -nodefaults -device intel-hda,id=hda0 "
+        "-device hda-output,bus=hda0.0 -device hda-micro,bus=hda0.0 "
+        "-device hda-duplex,bus=hda0.0",
+        .objects = "intel-hda",
+        .mrnames = "*intel-hda*",
+        .file = "hw/audio/intel-hda.c",
     },{
         .arch = "i386",
         .name = "parallel",
@@ -487,13 +434,94 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/display/bochs-display.c",
     },{
         .arch = "i386",
+        .name = "floppy",
+        .args = "-machine pc -nodefaults "
+        "-drive id=disk0,file=null-co://,file.read-zeroes=on,if=none,format=raw "
+        "-device floppy,unit=0,drive=disk0",
+        .objects = "fd* floppy* i8257",
+        .mrnames = "*fdc*",
+        .file = "hw/block/fdc.c",
+    },{
+        .arch = "i386",
+        .name = "nvem",
+        .args = "-machine pc -nodefaults "
+        "-drive id=nvm,file=null-co://,file.read-zeroes=on,if=none,format=raw "
+        "-device nvme,serial=deadbeef,drive=nvm",
+        .objects = "*nvme*,*nvme-cmb*",
+        .mrnames = "*nvme*,*nvme-cmb*",
+        .file = "hw/block/nvme.c",
+    },{
+        .arch = "i386",
+        .name = "sdhci-v3",
+        .args = "-nodefaults -device sdhci-pci,sd-spec-version=3 "
+        "-device sd-card,drive=mydrive "
+        "-drive if=none,index=0,file=null-co://,format=raw,id=mydrive -nographic",
+        .objects = "sd*",
+        .mrnames = "*sdhci*",
+        .file = "hw/sd/sdhci-pci.c hw/sd/sdhci.c",
+    },{
+        .arch = "i386",
+        .name = "ide-hd",
+        .args = "-machine pc -nodefaults "
+        "-drive file=null-co://,if=none,format=raw,id=disk0 "
+        "-device ide-hd,drive=disk0",
+        .objects = "*ide*",
+        .mrnames = "*ide*",
+        .file = "hw/ide/qdev.c",
+    },{
+        .arch = "i386",
+        .name = "ide-atapi",
+        .args = "-machine pc -nodefaults "
+        "-drive file=null-co://,if=none,format=raw,id=disk0 "
+        "-device ide-cd,drive=disk0",
+        .objects = "*ide*",
+        .mrnames = "*ide*",
+        .file = "hw/ide/qdev.c",
+    },{
+        .arch = "i386",
+        .name = "ahci-hd",
+        .args = "-machine q35 -nodefaults "
+        "-drive file=null-co://,if=none,format=raw,id=disk0 "
+        "-device ide-hd,drive=disk0",
+        .objects = "*ahci*",
+        .mrnames = "*ahci*",
+        .file = "hw/ide/qdev.c",
+    },{
+        .arch = "i386",
+        .name = "ahci-atapi",
+        .args = "-machine q35 -nodefaults "
+        "-drive file=null-co://,if=none,format=raw,id=disk0 "
+        "-device ide-cd,drive=disk0",
+        .objects = "*ahci*",
+        .mrnames = "*ahci*",
+        .file = "hw/ide/qdev.c",
+    },{
+        .arch = "i386",
         .name = "vmw-pvscsi",
         .args = "-machine q35 -nodefaults -device pvscsi",
         .objects = "*pvscsi-io*",
         .mrnames = "*pvscsi-io*",
         .file = "hw/scsi/vmw_pvscsi.c",
-    },
-    /*{
+    },{
+        .arch = "i386",
+        .name = "megasas",
+        .args = "-machine q35 -nodefaults "
+        "-device megasas -device scsi-cd,drive=null0 "
+        "-blockdev driver=null-co,read-zeroes=on,node-name=null0",
+        .objects = "megasas*",
+        .mrnames = "*megasas-mmio*,*megasas-io*,*megasas-queue*",
+        .file = "hw/scsi/megasas.c",
+    },{
+        .arch = "i386",
+        .name = "am53c974",
+        .args = "-machine -q35 -nodefaults "
+        "-device am53c974,id=scsi "
+        "-device scsi-hd,drive=disk0 "
+        "-drive id=disk0,if=none,file=null-co://,format=raw",
+        .objects = "*esp* *scsi* *am53c974*",
+        .mrnames = "*esp-io*",
+        .file = "hw/scsi/esp-pci.c",
+    },/*{
         .arch = "arm",
         .name = "tusb6010",
         .args = "-machine n810 -m 128M -usb",
@@ -678,6 +706,85 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*pl041*",
         .mrnames = "*pl041*",
         .file = "hw/audio/pl041.c",
+    },{
+        .arch = "arm",
+        .name = "pflash-cfi02",
+        .args = "-machine xilinx-zynq-a9",
+        .objects = "*zynq.pflash*",
+        .mrnames = "*zynq.pflash*",
+        .file = "hw/block/pflash_cfi02.c"
+    },{
+        .arch = "arm",
+        .name = "pflash-cfi01",
+        .args = "-machine collie",
+        .objects = "*collie.fl1*,*collie.fl2*",
+        .mrnames = "*collie.fl1*,*collie.fl2*",
+        .file = "hw/block/pflash_cfi01.c",
+    },{
+        .arch = "arm",
+        .name = "onenand",
+        .args = "-machine n810 -m 128M",
+        .objects = "*onenand*",
+        .mrnames = "*onenand*",
+        .file = "hw/block/onenand.c"
+    },{
+        .arch = "arm",
+        .name = "allwinner-sdhost",
+        .args = "-machine cubieboard",
+        .objects = "*allwinner-sdhost*",
+        .mrnames = "*allwinner-sdhost*",
+        .file = "hw/sd/allwinner-sdhost.c"
+    },{
+        .arch = "arm",
+        .name = "aspeed-sdhci",
+        .args = "-machine palmetto-bmc",
+        .objects = "*aspeed.sdhci*",
+        .mrnames = "*aspeed.sdhci*",
+        .file = "hw/sd/aspeed_sdhci.c",
+    },{
+        .arch = "arm",
+        .name = "bcm2835-sdhost",
+        // arm supports raspi0/1/2, aarch64 supports raspi3
+        .args = "-machine raspi0",
+        .objects = "*bcm2835-sdhost*",
+        .mrnames = "*bcm2835-sdhost*",
+        .file = "hw/sd/bcm2835_sdhost.c",
+    },{
+        .arch = "arm",
+        .name = "omap-mmc",
+        .args = "-machine sx1-v1 -m 32M",
+        .objects = "*omap.mmc*",
+        .mrnames = "*omap.mmc*",
+        .file = "hw/sd/omap_mmc.c",
+    },{
+        .arch = "arm",
+        .name = "pl181",
+        .args = "-machine integratorcp",
+        .objects = "*pl181*",
+        .mrnames = "*pl181*",
+        .file = "hw/sd/pl181.c",
+    },{
+        .arch = "arm",
+        .name = "pxa2xx-mmci",
+        .args = "-machine verdex",
+        .objects = "*pxa2xx-mmci*",
+        .mrnames = "*pxa2xx-mmci*",
+        .file = "/hw/sd/pxa2xx_mmci.c",
+    },{
+        .arch = "arm",
+        .name = "sdhci",
+        // arm supports raspi0/1/2, aarch64 supports raspi3
+        .args = "-machine raspi0",
+        .objects = "*sdhci*",
+        .mrnames = "*sdhci*",
+        .file = "hw/sd/sdhci.c",
+    },{
+        .arch = "arm",
+        .name = "allwinner-ahci",
+        .args = "-machine cubieboard",
+        .objects = "*allwinner-ahci*",
+        .mrnames = "*allwinner-ahci*,*ahci*,*ahci-idp*",
+        .file = "hw/ide/ahci-allwinner",
     }
 };
 
