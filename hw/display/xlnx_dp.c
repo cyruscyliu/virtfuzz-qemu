@@ -527,7 +527,8 @@ static void xlnx_dp_aux_set_command(XlnxDPState *s, uint32_t value)
         break;
     default:
         error_report("%s: invalid command: %u", __func__, cmd);
-        abort();
+        // remove this abort to make the fuzzer live longer
+        // abort();
     }
 
     s->core_registers[DP_INTERRUPT_SIGNAL_STATE] |= 0x04;
