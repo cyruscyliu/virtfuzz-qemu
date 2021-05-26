@@ -122,6 +122,15 @@ static inline gchar *generic_fuzzer_virtio_9p_args(void){
     "writeout=immediate,fmode=0600,dmode=0700", tmpdir);
 }
 
+#define COMMON_USB_CMD \
+    "-usb " \
+    "-device usb-kbd -device usb-mouse -device usb-tablet " \
+    "-netdev user,id=net0 -device usb-net,netdev=net0 " \
+    "-device usb-ccid -device usb-wacom-tablet "
+#define COMMON_USB_CMD_1 \
+    "-usb " \
+    "-device usb-kbd "
+
 static const generic_fuzz_config predefined_configs[] = {
     /*
     {
@@ -191,6 +200,7 @@ static const generic_fuzz_config predefined_configs[] = {
     },{
         .arch = "i386",
         .name = "ehci",
+        // suitable for ich9-usb-ehci1, ich9-usb-ehci2 and usb-ehci
         .args = "-machine q35 -nodefaults "
         "-device ich9-usb-ehci1,bus=pcie.0,addr=1d.7,"
         "multifunction=on,id=ich9-ehci-1 "
@@ -209,13 +219,15 @@ static const generic_fuzz_config predefined_configs[] = {
     },{
         .arch = "i386",
         .name = "ohci",
-        .args = "-machine q35 -nodefaults -device pci-ohci -device usb-kbd",
+        .args = "-machine q35 -nodefaults -device pci-ohci "
+        COMMON_USB_CMD_1,
         .objects = "*usb* *ohci*",
         .mrnames = "*ohci*",
         .file = "hw/usb/hcd-ohci.c",
     },{
         .arch = "i386",
         .name = "uhci",
+        // suitable for piix3-usb-uhci, piix4-usb-uhci, ich9-usb-uchi[1-6]
         .args = "-machine q35 -nodefaults -device piix3-usb-uhci,id=uhci,addr=1d.0 "
         "-drive id=drive0,if=none,file=null-co://,file.read-zeroes=on,format=raw "
         "-device usb-tablet,bus=uhci.0,port=1",
@@ -288,28 +300,28 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*kvaser_pci-s5920*,*kvaser_pci-sja*,*kvaser_pci-xilinx*",
     },{
         .arch = "i386",
-        .name = "mioe3680-can",
-        .args = "-machine q35 -nodefaults "
-        "-object can-bus,id=canbus0 "
-        "-device pcm3680_pci,canbus0=canbus0,canbus1=canbus0",
-        // "-object can-host-socketcan,id=canhost0,if=can0,canbus=canbus0",
-        .objects = "*mioe3680_pci-sja1*,*mioe3680_pci-sja2*",
-        .mrnames = "*mioe3680_pci-sja1*,*mioe3680_pci-sja2*"
-    },{
-        .arch = "i386",
         .name = "pcm3680-can",
         .args = "-machine q35 -nodefaults "
-        "-object can-bus,id=canbus0 "
-        "-device mioe3680_pci,canbus0=canbus0",
+        "-object can-bus,id=canbus "
+        "-device pcm3680_pci,canbus0=canbus,canbus1=canbus",
         // "-object can-host-socketcan,id=canhost0,if=can0,canbus=canbus0",
         .objects = "*pcm3680i_pci-sja1*,*pcm3680i_pci-sja2*",
         .mrnames = "*pcm3680i_pci-sja1*,*pcm3680i_pci-sja2*",
     },{
         .arch = "i386",
+        .name = "mioe3680-can",
+        .args = "-machine q35 -nodefaults "
+        "-object can-bus,id=canbus "
+        "-device mioe3680_pci,canbus0=canbus",
+        // "-object can-host-socketcan,id=canhost0,if=can0,canbus=canbus0",
+        .objects = "*mioe3680_pci-sja1*,*mioe3680_pci-sja2*",
+        .mrnames = "*mioe3680_pci-sja1*,*mioe3680_pci-sja2*"
+    },{
+        .arch = "i386",
         .name = "ctu-can",
         .args = "-machine q35 -nodefaults "
         "-object can-bus,id=canbus0-bus "
-        "-device cutcan_pci,canbus0=canbus0-bus,canbus1=canbus0-bus",
+        "-device ctucan_pci,canbus0=canbus0-bus,canbus1=canbus0-bus",
         // "-object can-host-socketcan,if=can0,canbus=canbus0-bus,id=canbus0-socketcan",
         .objects = "*ctucan_pci-core0*,*ctucan_pci-core1*",
         .mrnames = "*ctucan_pci-core0*,*ctucan_pci-core1*",
@@ -416,14 +428,21 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/display/vmware-svga.c",
     },{
         .arch = "i386",
-        .name = "vga-std",
+        .name = "std-vga",
         .args = "-machine q35 -nodefaults -device VGA",
         .objects = "*vga-lowmem*,*vga ioports remapped*,"
-        "*bochs dispi interface*,*qemu extended regs*,"
-        "*vga-mm-ctrl*,*vga-mem*,",
+        "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .mrnames = "*vga-lowmem*,*vga ioports remapped*,"
-        "*bochs dispi interface*,*qemu extended regs*,"
-        "*vga-mm-ctrl*,*vga-mem*,",
+        "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
+        .file = "hw/display/vga.c",
+    },{
+        .arch = "i386",
+        .name = "secondary-vga",
+        .args = "-machine q35 -nodefaults -device secondary-vga",
+        .objects = "*vga-lowmem*,*vga ioports remapped*,"
+        "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
+        .mrnames = "*vga-lowmem*,*vga ioports remapped*,"
+        "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .file = "hw/display/vga.c",
     },{
         .arch = "i386",
@@ -434,7 +453,8 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/display/bochs-display.c",
     },{
         .arch = "i386",
-        .name = "floppy",
+        // the real thing we test is the fdc not the floopy
+        .name = "fdc",
         .args = "-machine pc -nodefaults "
         "-drive id=disk0,file=null-co://,file.read-zeroes=on,if=none,format=raw "
         "-device floppy,unit=0,drive=disk0",
@@ -443,7 +463,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/block/fdc.c",
     },{
         .arch = "i386",
-        .name = "nvem",
+        .name = "nvme",
         .args = "-machine pc -nodefaults "
         "-drive id=nvm,file=null-co://,file.read-zeroes=on,if=none,format=raw "
         "-device nvme,serial=deadbeef,drive=nvm",
@@ -459,7 +479,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "sd*",
         .mrnames = "*sdhci*",
         .file = "hw/sd/sdhci-pci.c hw/sd/sdhci.c",
-    },{
+    },/*{
         .arch = "i386",
         .name = "ide-hd",
         .args = "-machine pc -nodefaults "
@@ -495,6 +515,38 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*ahci*",
         .mrnames = "*ahci*",
         .file = "hw/ide/qdev.c",
+    },*/{
+        .arch = "i386",
+        .name = "piix3-ide",
+        // suitable for piix3-ide, piix4-ide and piix3-ide-xen
+        .args = "-machine q35 -nodefaults -device piix3-ide",
+        .objects = "*piix-bmdma*,*bmdma*",
+        .mrnames = "*piix-bmdma*,*bmdma*",
+        .file = "hw/ide/piix.c",
+    },{
+        .arch = "i386",
+        .name = "lsi53c895a",
+        .args = "-machine q35 -nodefaults "
+        "-device lsi53c895a,id=scsi0 "
+        "-device scsi-hd,drive=drive0,bus=scsi0.0,channel=0,scsi-id=0,lun=0 "
+        "-drive file=null-co://,if=none,format=raw,id=drive0 "
+        "-device scsi-hd,drive=drive1,bus=scsi0.0,channel=0,scsi-id=1,lun=0 "
+        "-drive file=null-co://,if=none,format=raw,id=drive1",
+        .objects = "*lsi-mmio*,*lsi-ram*,*lsi-io*",
+        .mrnames = "*lsi-mmio*,*lsi-ram*,*lsi-io*",
+        .file = "hw/scsi/lsi53c895a.c",
+    },{
+        .arch = "i386",
+        .name = "mptsas1068",
+        .args = "-machine q35 -nodefaults "
+        "-device mptsas1068,id=scsi0 "
+        "-device scsi-hd,drive=drive0,bus=scsi0.0,channel=0,scsi-id=0,lun=0 "
+        "-drive file=null-co://,if=none,format=raw,id=drive0 "
+        "-device scsi-hd,drive=drive1,bus=scsi0.0,channel=0,scsi-id=1,lun=0 "
+        "-drive file=null-co://,if=none,format=raw,id=drive1",
+        .objects = "*mptsas-mmio*,*mptsas-io*,*mptsas-diag*",
+        .mrnames = "*mptsas-mmio*,*mptsas-io*,*mptsas-diag*",
+        .file = "hw/scsi/mptsas.c",
     },{
         .arch = "i386",
         .name = "vmw-pvscsi",
@@ -514,13 +566,27 @@ static const generic_fuzz_config predefined_configs[] = {
     },{
         .arch = "i386",
         .name = "am53c974",
-        .args = "-machine -q35 -nodefaults "
+        .args = "-machine q35 -nodefaults "
         "-device am53c974,id=scsi "
         "-device scsi-hd,drive=disk0 "
         "-drive id=disk0,if=none,file=null-co://,format=raw",
         .objects = "*esp* *scsi* *am53c974*",
         .mrnames = "*esp-io*",
+        // because sysbus-esp is not supported in i386/arm/aarch
+        // we ignore hw/scsi/esp.c
         .file = "hw/scsi/esp-pci.c",
+    },{
+        .arch = "i386",
+        .name = "fw-cfg",
+        .args = "-machine q35 -nodefaults "
+        "-fw_cfg name=stateful,string=fuzz "
+        "-fw_cfg name=is,string=promising ",
+        .objects = "*fwcfg.ctl*,*fwcfg.data*,*fwcfg.dma*,"
+        "*fwcfg*",
+        .mrnames = "*fwcfg.ctl*,*fwcfg.data*,*fwcfg.dma*,"
+        "*fwcfg*",
+        .file = "hw/nvram/fw_cfg.c",
+
     },/*{
         .arch = "arm",
         .name = "tusb6010",
@@ -538,23 +604,27 @@ static const generic_fuzz_config predefined_configs[] = {
     },{
         .arch = "arm",
         .name = "chipidea",
-        .args = "-machine sabrelite",
-        .objects = "*usb-chipidea.misc*,*capabilities*,"
-        "*usb-chipidea.dc*,*operational*,*ports*,*usb-chipidea.endpoints*",
-        .mrnames = "*usb-chipidea.misc*,*capabilities*,"
-        "*usb-chipidea.dc*,*operational*,*ports*,*usb-chipidea.endpoints*",
+        .args = "-machine sabrelite -nodefaults "
+        COMMON_USB_CMD_1,
+        .objects = "*usb-chipidea.misc*,"
+        "*usb-chipidea.dc*,*usb-chipidea.endpoints*",
+        .mrnames = "*usb-chipidea.misc*,"
+        "*usb-chipidea.dc*,*usb-chipidea.endpoints*",
         .file = "hw/usb/chipidea.c",
     },{
         .arch = "aarch64",
         .name = "versal-usb2",
-        .args = "-machine xlnx-versal-virt",
+        .args = "-machine xlnx-versal-virt -nodefaults "
+        COMMON_USB_CMD,
         .objects = "*versal.usb2Ctrl_alias*",
         .mrnames = "*versal.usb2Ctrl_alias*",
         .file = "hw/usb/xlnx-versal-usb2-ctrl-regs.c",
     },{
+        // duplicated
         .arch = "aarch64",
         .name = "dwc3",
-        .args = "-machine xlnx-versal-virt",
+        .args = "-machine xlnx-versal-virt -nodefaults "
+        COMMON_USB_CMD,
         .objects = "*versal.dwc3_alias*",
         .mrnames = "*versal.dwc3_alias*",
         .file = "hw/usb/hcd-dwc3.c",
@@ -562,7 +632,8 @@ static const generic_fuzz_config predefined_configs[] = {
         .arch = "arm",
         .name = "dwc2",
         // arm supports raspi0/1/2, aarch64 supports raspi3
-        .args = "-machine raspi0",
+        .args = "-machine raspi0 -nodefaults "
+        COMMON_USB_CMD,
         .objects = "*dwc2-io* *dwc2-fifo*",
         .mrnames = "*dwc2-io*,*dwc2-fifo*",
         .file = "hw/usb/hcd-dwc2.c",
@@ -625,7 +696,8 @@ static const generic_fuzz_config predefined_configs[] = {
     },{
         .arch = "aarch64",
         .name = "cadence-gem",
-        .args = "-machine xlnx-versal-virt",
+        .args = "-machine xlnx-versal-virt "
+        "-net nic,model=cadence_gem,netdev=net0 -netdev user,id=net0",
         .objects = "*enet*",
         .mrnames = "*enet*",
         .file = "hw/net/cadence_gem.c",
@@ -639,10 +711,11 @@ static const generic_fuzz_config predefined_configs[] = {
     },{
         .arch = "arm",
         .name = "allwinner-emac",
-        .args = "-machine cubieboard",
+        .args = "-machine cubieboard -nodefaults "
+        "-net nic,model=allwinner-emac,netdev=net0 -netdev user,id=net0",
         .objects = "*aw_emac*",
         .mrnames = "*aw_emac*",
-        .file = "hw/net/allwinner-sun8i-emac.c",
+        .file = "hw/net/allwinner-emac.c",
     },{
         .arch = "aarch64",
         .name = "xlnx-zynqmp-can",
@@ -663,7 +736,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .args = "-machine smdkc210",
         .objects = "*exynos4210.fimd*",
         .mrnames = "*exynos4210.fimd*",
-        .file = "hw/net/lan9118.c",
+        .file = "hw/display/exynos4210_fimd.c",
     },{
         .arch = "arm",
         .name = "omap-dss",
@@ -691,7 +764,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .args = "-machine verdex",
         .objects = "*pxa2xx-lcd-controller*",
         .mrnames = "*pxa2xx-lcd-controller*",
-        .file = "/hw/display/pxa2xx_lcd.c",
+        .file = "hw/display/pxa2xx_lcd.c",
     },{
         .arch = "arm",
         .name = "tc6393xb",
@@ -769,7 +842,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .args = "-machine verdex",
         .objects = "*pxa2xx-mmci*",
         .mrnames = "*pxa2xx-mmci*",
-        .file = "/hw/sd/pxa2xx_mmci.c",
+        .file = "hw/sd/pxa2xx_mmci.c",
     },{
         .arch = "arm",
         .name = "sdhci",
@@ -780,11 +853,28 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/sd/sdhci.c",
     },{
         .arch = "arm",
+        // suitable for ich9-ahci,sysbus-ahci and allwinner-ahci
         .name = "allwinner-ahci",
         .args = "-machine cubieboard",
         .objects = "*allwinner-ahci*",
         .mrnames = "*allwinner-ahci*,*ahci*,*ahci-idp*",
-        .file = "hw/ide/ahci-allwinner",
+        .file = "hw/ide/ahci-allwinner.c",
+    },{
+        .arch = "arm",
+        .name = "npcm7xx-otp",
+        .args = "-machine npcm750-evb",
+        .objects = "*npcm7xx-emc*",
+        .mrnames = "*regs*",
+        .file = "hw/nvram/npcm7xx_otp.c",
+    }, {
+        .arch = "arm",
+        .name = "nrf51-nvm",
+        .args = "-machine microbit",
+        .objects = "*nrf51_soc.nvmc*,*nrf51_soc.ficr*,"
+        "*nrf51_soc.uicr*,*nrf51_soc.flash*",
+        .mrnames = "*nrf51_soc.nvmc*,*nrf51_soc.ficr*,"
+        "*nrf51_soc.uicr*,*nrf51_soc.flash*",
+        .file = "hw/nvram/nrf51_nvm.c",
     }
 };
 

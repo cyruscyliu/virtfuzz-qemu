@@ -211,6 +211,10 @@ static uint8_t get_memoryregion_addr(MemoryRegion *mr, uint64_t *addr) {
         if (strcmp(tmp_mr->name, "system") == 0) {
             *addr = tmp_addr;
             return MMIO_ADDRESS;
+        // TODO fix me
+        } else if (strcmp(tmp_mr->name, "nrf51-container") == 0) {
+            *addr = tmp_addr;
+            return MMIO_ADDRESS;
         } else if (strcmp(tmp_mr->name, "io") == 0) {
             *addr = tmp_addr;
             return PIO_ADDRESS;
@@ -257,10 +261,14 @@ static void locate_fuzzable_objects(Object *obj, char *mrname) {
                 Id_Description[n_interfaces + 1].type = EVENT_TYPE_MMIO_WRITE;
             } else if (mr_type == PIO_ADDRESS) {
                 min = 1;
-                max = (((MemoryRegionPortio *)((MemoryRegionPortioList *)mr->opaque)->ports)[0]).size;
-                if (max == 0) { max = min; }
-                Id_Description[n_interfaces].type = EVENT_TYPE_PIO_READ;
-                Id_Description[n_interfaces+ 1].type = EVENT_TYPE_PIO_WRITE;
+                // to avoid null pointer deference
+                MemoryRegionPortioList *mrpl = (MemoryRegionPortioList *)mr->opaque;
+                if (mrpl) {
+                    max = (((MemoryRegionPortio *)((MemoryRegionPortioList *)mr->opaque)->ports)[0]).size;
+                    if (max == 0) { max = min; }
+                    Id_Description[n_interfaces].type = EVENT_TYPE_PIO_READ;
+                    Id_Description[n_interfaces+ 1].type = EVENT_TYPE_PIO_WRITE;
+                }
             }
             // TODO: Deduplicate MemoryRegions in the future
             if (mr_type != INVLID_ADDRESS) {
