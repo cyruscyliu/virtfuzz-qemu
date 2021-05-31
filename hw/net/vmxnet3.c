@@ -1790,8 +1790,7 @@ vmxnet3_io_bar1_write(void *opaque,
     case VMXNET3_REG_ICR:
         VMW_CBPRN("Write BAR1 [VMXNET3_REG_ICR] = %" PRIx64 ", size %d",
                   val, size);
-        // TODO
-        // g_assert_not_reached();
+        g_assert_not_reached();
         break;
 
     /* Event Cause Register */
