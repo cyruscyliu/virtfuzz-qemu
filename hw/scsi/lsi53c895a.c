@@ -1919,6 +1919,10 @@ static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
             lsi_update_irq(s);
         }
         if (s->waiting == LSI_WAIT_RESELECT && val & LSI_ISTAT0_SIGP) {
+            if (!(((((s->sstat1 & 0x7) == PHASE_DO)
+                    || (s->sstat1 & 0x7) == PHASE_DI))
+                    && s->current))
+                break;
             trace_lsi_awoken();
             s->waiting = LSI_NOWAIT;
             s->dsp = s->dnad;
@@ -1980,8 +1984,13 @@ static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
          * instruction.  Is this correct?
          */
         if ((s->dmode & LSI_DMODE_MAN) == 0
-            && (s->istat1 & LSI_ISTAT1_SRUN) == 0)
+                && (s->istat1 & LSI_ISTAT1_SRUN) == 0) {
+            if (!(((((s->sstat1 & 0x7) == PHASE_DO)
+                    || (s->sstat1 & 0x7) == PHASE_DI))
+                    && s->current))
+                break;
             lsi_execute_script(s);
+        }
         break;
     CASE_SET_REG32(dsps, 0x30)
     CASE_SET_REG32(scratch[0], 0x34)
@@ -2001,8 +2010,13 @@ static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
          * FIXME: if s->waiting != LSI_NOWAIT, this will only execute one
          * instruction.  Is this correct?
          */
-        if ((val & LSI_DCNTL_STD) && (s->istat1 & LSI_ISTAT1_SRUN) == 0)
+        if ((val & LSI_DCNTL_STD) && (s->istat1 & LSI_ISTAT1_SRUN) == 0) {
+            if (!(((((s->sstat1 & 0x7) == PHASE_DO)
+                    || (s->sstat1 & 0x7) == PHASE_DI))
+                    && s->current))
+                break;
             lsi_execute_script(s);
+        }
         break;
     case 0x40: /* SIEN0 */
         s->sien0 = val;
