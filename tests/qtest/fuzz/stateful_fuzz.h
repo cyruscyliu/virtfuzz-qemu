@@ -46,24 +46,25 @@
 // +-----------------+
 // +      event      +
 // +-----------------+
-#define N_VALID_TYPES 5
-typedef enum {
-    EVENT_TYPE_MMIO_READ = 0,
-    EVENT_TYPE_MMIO_WRITE,
-    EVENT_TYPE_PIO_READ,
-    EVENT_TYPE_PIO_WRITE,
-    EVENT_TYPE_CLOCK_STEP,
+#define N_VALID_TYPES 6
+typedef enum {                          //DMIP
+    EVENT_TYPE_MMIO_READ = 0,           //***-
+    EVENT_TYPE_MMIO_WRITE,              //***-
+    EVENT_TYPE_PIO_READ,                //***-
+    EVENT_TYPE_PIO_WRITE,               //***-
+    EVENT_TYPE_CLOCK_STEP,              //-**-
+    EVENT_TYPE_SOCKET_WRITE = 5,        //-**-
     EVENT_TYPE_INT,
     // these two events are only used
     // in the event injection, such that
     // the mutator does not know them
-    EVENT_TYPE_MEM_READ = 8,
-    EVENT_TYPE_MEM_WRITE,
+    EVENT_TYPE_MEM_READ = 8,            //--*-
+    EVENT_TYPE_MEM_WRITE,               //--*-
     // this event is an extension
     // and it is never dispatched,
     // such that the mutator does not
     // know it either
-    EVENT_TYPE_DATA_POOL = 11,
+    EVENT_TYPE_DATA_POOL = 11,          //---*
 } EventType;
 
 const char *EventTypeNames[12] = {
@@ -72,8 +73,8 @@ const char *EventTypeNames[12] = {
     "EVENT_TYPE_PIO_READ", // 2
     "EVENT_TYPE_PIO_WRITE",
     "EVENT_TYPE_CLOCK_STEP",
+    "EVENT_TYPE_SOCKET_WRITE", // 5
     "EVENT_TYPE_INT",
-    "EVNET_NONE", 
     "EVNET_NONE",
     "EVENT_TYPE_MEM_READ", // 8 
     "EVENT_TYPE_MEM_WRITE",
@@ -129,11 +130,12 @@ static uint32_t n_interfaces = 0;
 // predefined interfaces one-to-one mapped from
 // the transparent events, these interfaces are
 // also transparent to the fuzzer
-#define INTERFACE_MEM_READ   INTERFACE_MAX + 0
-#define INTERFACE_MEM_WRITE  INTERFACE_MAX + 1
-#define INTERFACE_CLOCK_STEP INTERFACE_MAX + 2
-#define INTERFACE_DATA_POOL  INTERFACE_MAX + 3
-#define INTERFACE_END INTERFACE_MAX + 4
+#define INTERFACE_MEM_READ      INTERFACE_MAX + 0
+#define INTERFACE_MEM_WRITE     INTERFACE_MAX + 1
+#define INTERFACE_CLOCK_STEP    INTERFACE_MAX + 2
+#define INTERFACE_DATA_POOL     INTERFACE_MAX + 3
+#define INTERFACE_SOCKET_WRITE  INTERFACE_MAX + 4
+#define INTERFACE_END           INTERFACE_MAX + 5
 
 // n interface -> 1 event
 // 1 interface -> 1 event
@@ -158,6 +160,11 @@ static InterfaceDescription Id_Description[INTERFACE_END] = {
         .emb = {.addr = 0xFFFFFFFF, .size = 0xFFFFFFFF},
         .name = "clock_step",
         .min_access_size = 0xFF, .max_access_size = 0xFF,
+    }, [INTERFACE_SOCKET_WRITE] = {
+        .type = EVENT_TYPE_SOCKET_WRITE,
+        .emb = {.addr = 0xFFFFFFFF, .size = 0xFFFFFFFF},
+        .name = "socket_write",
+        .min_access_size = 0xFF, .max_access_size = 0xFF,
     }
 };
 
@@ -176,13 +183,13 @@ static void printf_event_description() {
 
 static uint8_t get_possible_interface(EventType type) {
     // first best
-    if (type != EVENT_TYPE_CLOCK_STEP) {
+    if (type != EVENT_TYPE_CLOCK_STEP && type != EVENT_TYPE_SOCKET_WRITE) {
         for (int i = 0; i < n_interfaces; i++) {
             if (Id_Description[i].type == type)
                 return i;
         }
     }
-    return INTERFACE_CLOCK_STEP;
+    return type % 2 ? INTERFACE_CLOCK_STEP : INTERFACE_SOCKET_WRITE;
 }
 
 // +-----------------+
@@ -197,6 +204,7 @@ static void printf_event(Event *event) {
         case EVENT_TYPE_MEM_WRITE:
             fprintf(stderr, ", 0x%lx, 0x%x\n", event->addr, event->size);
             break;
+        case EVENT_TYPE_SOCKET_WRITE:
         case EVENT_TYPE_DATA_POOL:
             fprintf(stderr, ", 0x%x\n", event->size);
             break;
@@ -217,14 +225,18 @@ static uint8_t around_event_id(uint8_t id) {
     if (id == INTERFACE_MEM_READ ||
             id == INTERFACE_MEM_WRITE ||
             id == INTERFACE_DATA_POOL ||
-            id == INTERFACE_CLOCK_STEP)
+            id == INTERFACE_CLOCK_STEP ||
+            id == INTERFACE_SOCKET_WRITE)
         return id;
     return id % n_interfaces;
 }
 
 static uint64_t around_event_addr(uint8_t id, uint64_t raw_addr) {
     if (id == INTERFACE_MEM_READ ||
-            id == INTERFACE_MEM_WRITE)
+            id == INTERFACE_MEM_WRITE ||
+            id == INTERFACE_DATA_POOL ||
+            id == INTERFACE_CLOCK_STEP ||
+            id == INTERFACE_SOCKET_WRITE)
         return raw_addr;
     InterfaceDescription ed = Id_Description[id];
     return (ed.emb.addr + raw_addr % ed.emb.size) & 0xFFFFFFFFFFFFFFFC;
@@ -243,6 +255,7 @@ static uint32_t around_event_size(uint8_t id, uint8_t type, uint32_t raw_size) {
             return pow2floor(((raw_size - ed.min_access_size) % diff) + ed.min_access_size);
         case EVENT_TYPE_MEM_READ:
         case EVENT_TYPE_MEM_WRITE:
+        case EVENT_TYPE_SOCKET_WRITE:
         case EVENT_TYPE_DATA_POOL:
             return raw_size;
         default:
@@ -254,8 +267,7 @@ static uint32_t around_event_size(uint8_t id, uint8_t type, uint32_t raw_size) {
 static uint8_t around_event_type(uint8_t raw_type) {
     if (raw_type == EVENT_TYPE_MEM_READ ||
             raw_type == EVENT_TYPE_MEM_WRITE ||
-            raw_type == EVENT_TYPE_DATA_POOL ||
-            raw_type == EVENT_TYPE_CLOCK_STEP)
+            raw_type == EVENT_TYPE_DATA_POOL)
         return raw_type;
     return raw_type % N_VALID_TYPES;
 }
@@ -295,6 +307,7 @@ static uint32_t serialize(uint8_t *Data, size_t Offset, size_t MaxSize,
             else
                 memcpy(Data + Offset + 13, (uint8_t *)val, size);
             return 13 + size;
+        case EVENT_TYPE_SOCKET_WRITE:
         case EVENT_TYPE_DATA_POOL:
             if (Offset + 5 + size >= MaxSize)
                 return 0;
@@ -344,6 +357,8 @@ static size_t reset_data(uint8_t *Data, size_t MaxSize) {
     // EVENT_TYPE_CLOCK_STEP step=0x100
     uint64_t clock_step = 0x100;
     Offset += SERIALIZE(INTERFACE_CLOCK_STEP, 0x0, 0x0, clock_step);
+    // EVENT_TYPE_SOCKET_WRITE size=13 Data=\0x00... (13 repeated \x00)
+    Offset += serialize(Data, Offset, MaxSize, INTERFACE_SOCKET_WRITE, 0, 13, Data);
     // EVENT_TYPE_DATA_POOL size=13 Data=\x00... (13 repeated \x00)
     // cannot use SERIALIZE because Data is a pointer
     Offset += serialize(Data, Offset, MaxSize, INTERFACE_DATA_POOL, 0, 13, Data);
@@ -492,6 +507,7 @@ static void free_events(Input *input, bool indexer) {
         switch (tmp->type) {
             case EVENT_TYPE_MEM_READ:
             case EVENT_TYPE_MEM_WRITE:
+            case EVENT_TYPE_SOCKET_WRITE:
             case EVENT_TYPE_DATA_POOL:
                 free(tmp->data);
         }
@@ -593,6 +609,7 @@ static uint32_t deserialize(Input *input, bool indexer) {
                 append_event(input, event);
                 DataSize += (size + 13);
                 break;
+            case EVENT_TYPE_SOCKET_WRITE:
             case EVENT_TYPE_DATA_POOL:
                 //   1B   4B   XB
                 // +----+----+----+

@@ -27,6 +27,16 @@
 static void usage(void);
 static bool qtest_log_enabled;
 
+static int sockfds[2];
+static bool sockfds_initialized = false;
+
+static void init_sockets(void) {
+    int ret = socketpair(PF_UNIX, SOCK_STREAM, 0, sockfds);
+    g_assert_cmpint(ret, !=, -1);
+    fcntl(sockfds[0], F_SETFL, O_NONBLOCK);
+    sockfds_initialized = true;
+}
+
 static inline void handle_timeout(int sig) {
     if (qtest_log_enabled) {
         fprintf(stderr, "[Timeout]\n");
@@ -40,6 +50,7 @@ static useconds_t timeout = DEFAULT_TIMEOUT_US;
 typedef struct generic_fuzz_config {
     const char *arch, *name, *args, *objects, *mrnames, *file;
     gchar* (*argfunc)(void); /* Result must be freeable by g_free() */
+    bool socket; /* Need support or not */
 } generic_fuzz_config;
 
 typedef struct MemoryRegionPortioList {
@@ -62,20 +73,27 @@ static inline GString *generic_fuzz_cmdline(FuzzTarget *t)
 
 static inline GString *generic_fuzz_predefined_config_cmdline(FuzzTarget *t)
 {
-    gchar *args;
+    GString *args = g_string_new(NULL);
     const generic_fuzz_config *config;
     g_assert(t->opaque);
 
     config = t->opaque;
+    if (config->socket && !sockfds_initialized) {
+        init_sockets();
+    }
     setenv("QEMU_AVOID_DOUBLE_FETCH", "1", 1);
     if (config->argfunc) {
-        args = config->argfunc();
-        setenv("QEMU_FUZZ_ARGS", args, 1);
-        g_free(args);
+        gchar *t = config->argfunc();
+        g_string_append_printf(args, t, sockfds[1]);
+        g_free(t);
     } else {
         g_assert_nonnull(config->args);
-        setenv("QEMU_FUZZ_ARGS", config->args, 1);
+        g_string_append_printf(args, config->args, sockfds[1]);
     }
+    gchar *args_str = g_string_free(args, FALSE);
+    setenv("QEMU_FUZZ_ARGS", args_str, 1);
+    g_free(args_str);
+
     setenv("QEMU_FUZZ_OBJECTS", config->objects, 1);
     setenv("QEMU_FUZZ_MRNAME", config->mrnames, 1);
     return generic_fuzz_cmdline(t);
@@ -132,57 +150,67 @@ static inline gchar *generic_fuzzer_virtio_9p_args(void){
     "-device usb-kbd "
 
 static const generic_fuzz_config predefined_configs[] = {
-    /*
-    {
+    /* {
         .name = "virtio-net-pci-slirp",
         .args = "-M q35 -nodefaults "
         "-device virtio-net,netdev=net0 -netdev user,id=net0",
         .objects = "virtio*",
+        .socket = false,
     },{
         .name = "virtio-blk",
         .args = "-machine q35 -device virtio-blk,drive=disk0 "
         "-drive file=null-co://,id=disk0,if=none,format=raw",
         .objects = "virtio*",
+        .socket = false,
     },{
         .name = "virtio-scsi",
         .args = "-machine q35 -device virtio-scsi,num_queues=8 "
         "-device scsi-hd,drive=disk0 "
         "-drive file=null-co://,id=disk0,if=none,format=raw",
         .objects = "scsi* virtio*",
+        .socket = false,
     },{
         .name = "virtio-gpu",
         .args = "-machine q35 -nodefaults -device virtio-gpu",
         .objects = "virtio*",
+        .socket = false,
     },{
         .name = "virtio-vga",
         .args = "-machine q35 -nodefaults -device virtio-vga",
         .objects = "virtio*",
+        .socket = false,
     },{
         .name = "virtio-rng",
         .args = "-machine q35 -nodefaults -device virtio-rng",
         .objects = "virtio*",
+        .socket = false,
     },{
         .name = "virtio-balloon",
         .args = "-machine q35 -nodefaults -device virtio-balloon",
         .objects = "virtio*",
+        .socket = false,
     },{
         .name = "virtio-serial",
         .args = "-machine q35 -nodefaults -device virtio-serial",
         .objects = "virtio*",
+        .socket = false,
     },{
         .name = "virtio-mouse",
         .args = "-machine q35 -nodefaults -device virtio-mouse",
         .objects = "virtio*",
+        .socket = false,
     },{
         .name = "virtio-9p",
         .argfunc = generic_fuzzer_virtio_9p_args,
         .objects = "virtio*",
+        .socket = false,
     },{
         .name = "virtio-9p-synth",
         .args = "-machine q35 -nodefaults "
         "-device virtio-9p,fsdev=hshare,mount_tag=hshare "
         "-fsdev synth,id=hshare",
         .objects = "virtio*",
+        .socket = false,
     },*/{
         .arch = "i386",
         .name = "xhci",
@@ -197,6 +225,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*usb* *uhci* *xhci*",
         .mrnames = "*capabilities*,*operational*,*runtime*,*doorbell*",
         .file = "hw/usb/hcd-xhci.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "ehci",
@@ -216,6 +245,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*usb* *hci*",
         .mrnames = "*capabilities*,*operational*,*ports*",
         .file = "hw/usb/hcd-ehci.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "ohci",
@@ -224,6 +254,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*usb* *ohci*",
         .mrnames = "*ohci*",
         .file = "hw/usb/hcd-ohci.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "uhci",
@@ -234,14 +265,16 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*uhci*",
         .mrnames = "*uhci*",
         .file = "hw/usb/hcd-uhci.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "vmxnet3",
         .args = "-machine q35 -nodefaults "
-        "-device vmxnet3,netdev=net0 -netdev user,id=net0",
+        "-device vmxnet3,netdev=net0 -netdev socket,fd=%d,id=net0",
         .objects = "vmxnet3",
         .mrnames = "*vmxnet3-b0*,*vmxnet3-b1*",
         .file = "hw/net/vmxnet3.c",
+        .socket = true,
     },{
         .arch = "i386",
         .name = "ne2000",
@@ -250,6 +283,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "ne2k*",
         .mrnames = "*ne2000*",
         .file = "hw/net/ne2000.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "pcnet",
@@ -258,6 +292,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "pcnet",
         .mrnames = "*pcnet-mmio*,*pcnet-io*",
         .file = "hw/net/pcnet-pci.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "rtl8139",
@@ -266,6 +301,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "rtl8139",
         .mrnames = "*rtl8139*",
         .file = "hw/net/rtl8139.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "i82550",
@@ -274,6 +310,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*eepro100-mmio*,*eepro100-io*,*eepro100-flash*",
         .mrnames = "*eepro100-mmio*,*eepro100-io*,*eepro100-flash*",
         .file = "hw/net/eepro100.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "e1000",
@@ -282,6 +319,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "e1000",
         .mrnames = "*e1000-mmio*,*e1000-io*",
         .file = "hw/net/e1000.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "e1000e",
@@ -290,6 +328,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "e1000e",
         .mrnames = "*e1000e-mmio*,*e1000e-io*",
         .file = "hw/net/e1000e.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "kvaser-can",
@@ -298,6 +337,7 @@ static const generic_fuzz_config predefined_configs[] = {
         // "-object can-host-socketcan,id=canhost0,if=can0,canbus=canbus0",
         .objects = "*kvaser_pci-s5920*,*kvaser_pci-sja*,*kvaser_pci-xilinx*",
         .mrnames = "*kvaser_pci-s5920*,*kvaser_pci-sja*,*kvaser_pci-xilinx*",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "pcm3680-can",
@@ -307,6 +347,7 @@ static const generic_fuzz_config predefined_configs[] = {
         // "-object can-host-socketcan,id=canhost0,if=can0,canbus=canbus0",
         .objects = "*pcm3680i_pci-sja1*,*pcm3680i_pci-sja2*",
         .mrnames = "*pcm3680i_pci-sja1*,*pcm3680i_pci-sja2*",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "mioe3680-can",
@@ -315,7 +356,8 @@ static const generic_fuzz_config predefined_configs[] = {
         "-device mioe3680_pci,canbus0=canbus",
         // "-object can-host-socketcan,id=canhost0,if=can0,canbus=canbus0",
         .objects = "*mioe3680_pci-sja1*,*mioe3680_pci-sja2*",
-        .mrnames = "*mioe3680_pci-sja1*,*mioe3680_pci-sja2*"
+        .mrnames = "*mioe3680_pci-sja1*,*mioe3680_pci-sja2*",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "ctu-can",
@@ -325,6 +367,7 @@ static const generic_fuzz_config predefined_configs[] = {
         // "-object can-host-socketcan,if=can0,canbus=canbus0-bus,id=canbus0-socketcan",
         .objects = "*ctucan_pci-core0*,*ctucan_pci-core1*",
         .mrnames = "*ctucan_pci-core0*,*ctucan_pci-core1*",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "rocker",
@@ -338,6 +381,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*rocker-mmio*",
         .mrnames = "*rocker-mmio*",
         .file = "hw/net/rocker/rocker.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "ac97",
@@ -346,6 +390,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "ac97*",
         .mrnames = "*ac97-nam*,*ac97-nabm*",
         .file = "hw/audio/ac97.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "cs4231a",
@@ -354,6 +399,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "cs4231a* i8257*",
         .mrnames = "*cs4231a*",
         .file = "hw/audio/cs4231a.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "cs4231",
@@ -362,6 +408,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "cs4231a* i8257*",
         .mrnames = "*cs4231*",
         .file = "hw/audio/cs4231.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "es1370",
@@ -370,6 +417,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "es1370*",
         .mrnames = "*es1370*",
         .file = "hw/audio/es1370.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "sb16",
@@ -377,7 +425,8 @@ static const generic_fuzz_config predefined_configs[] = {
         "-device sb16,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
         .objects = "sb16* i8257*",
         .mrnames = "*sb16*,*dma-chan*,*dma-page*,*dma-pageh*,*dma-cont*",
-        .file = "hw/audio/sb16.c hw/dma/i8257.c"
+        .file = "hw/audio/sb16.c hw/dma/i8257.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "intel-hda",
@@ -387,6 +436,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "intel-hda",
         .mrnames = "*intel-hda*",
         .file = "hw/audio/intel-hda.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "parallel",
@@ -395,6 +445,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "parallel*",
         .mrnames = "*parallel*",
         .file = "hw/char/parallel.c",
+        .socket = false,
     },{
         // i386, mipsel and ppc
         .arch = "i386",
@@ -404,6 +455,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*ati.mmregs*",
         .mrnames = "*ati.mmregs*",
         .file = "hw/display/ati.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "cirrus-vga",
@@ -412,6 +464,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*cirrus-io*,*cirrus-low-memory*,"
         "*cirrus-linear-io*,*cirrus-bitblt-mmio*,*cirrus-mmio*",
         .file = "hw/display/cirrus-vga.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "qxl",
@@ -419,6 +472,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*qxl-ioports*",
         .mrnames = "*qxl-ioports*",
         .file = "hw/display/qxl.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "vmware-svga",
@@ -426,6 +480,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*vmsvga-io*",
         .mrnames = "*vmsvga-io*",
         .file = "hw/display/vmware-svga.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "std-vga",
@@ -435,6 +490,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*vga-lowmem*,*vga ioports remapped*,"
         "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .file = "hw/display/vga.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "secondary-vga",
@@ -444,6 +500,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*vga-lowmem*,*vga ioports remapped*,"
         "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .file = "hw/display/vga.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "bochs-display",
@@ -451,6 +508,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .mrnames = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .file = "hw/display/bochs-display.c",
+        .socket = false,
     },{
         .arch = "i386",
         // the real thing we test is the fdc not the floopy
@@ -461,6 +519,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "fd* floppy* i8257",
         .mrnames = "*fdc*",
         .file = "hw/block/fdc.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "nvme",
@@ -470,6 +529,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*nvme*,*nvme-cmb*",
         .mrnames = "*nvme*,*nvme-cmb*",
         .file = "hw/block/nvme.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "sdhci-v3",
@@ -479,6 +539,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "sd*",
         .mrnames = "*sdhci*",
         .file = "hw/sd/sdhci-pci.c hw/sd/sdhci.c",
+        .socket = false,
     },/*{
         .arch = "i386",
         .name = "ide-hd",
@@ -488,6 +549,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*ide*",
         .mrnames = "*ide*",
         .file = "hw/ide/qdev.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "ide-atapi",
@@ -497,6 +559,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*ide*",
         .mrnames = "*ide*",
         .file = "hw/ide/qdev.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "ahci-hd",
@@ -506,6 +569,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*ahci*",
         .mrnames = "*ahci*",
         .file = "hw/ide/qdev.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "ahci-atapi",
@@ -515,6 +579,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*ahci*",
         .mrnames = "*ahci*",
         .file = "hw/ide/qdev.c",
+        .socket = false,
     },*/{
         .arch = "i386",
         .name = "piix3-ide",
@@ -523,6 +588,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*piix-bmdma*,*bmdma*",
         .mrnames = "*piix-bmdma*,*bmdma*",
         .file = "hw/ide/piix.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "lsi53c895a",
@@ -535,6 +601,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*lsi-mmio*,*lsi-ram*,*lsi-io*",
         .mrnames = "*lsi-mmio*,*lsi-ram*,*lsi-io*",
         .file = "hw/scsi/lsi53c895a.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "mptsas1068",
@@ -547,6 +614,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*mptsas-mmio*,*mptsas-io*,*mptsas-diag*",
         .mrnames = "*mptsas-mmio*,*mptsas-io*,*mptsas-diag*",
         .file = "hw/scsi/mptsas.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "vmw-pvscsi",
@@ -554,6 +622,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*pvscsi-io*",
         .mrnames = "*pvscsi-io*",
         .file = "hw/scsi/vmw_pvscsi.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "megasas",
@@ -563,6 +632,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "megasas*",
         .mrnames = "*megasas-mmio*,*megasas-io*,*megasas-queue*",
         .file = "hw/scsi/megasas.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "am53c974",
@@ -575,6 +645,7 @@ static const generic_fuzz_config predefined_configs[] = {
         // because sysbus-esp is not supported in i386/arm/aarch
         // we ignore hw/scsi/esp.c
         .file = "hw/scsi/esp-pci.c",
+        .socket = false,
     },{
         .arch = "i386",
         .name = "fw-cfg",
@@ -586,7 +657,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*fwcfg.ctl*,*fwcfg.data*,*fwcfg.dma*,"
         "*fwcfg*",
         .file = "hw/nvram/fw_cfg.c",
-
+        .socket = false,
     },/*{
         .arch = "arm",
         .name = "tusb6010",
@@ -594,6 +665,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*tusb-async* *",
         .mrnames = "*tusb-async*",
         .file = "hw/usb/tusb6010.c",
+        .socket = false,
     },*/{
         .arch = "arm",
         .name = "imx-usb-phy",
@@ -601,6 +673,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*imx-usbphy*",
         .mrnames = "*imx-usbphy*",
         .file = "hw/usb/imx-usb-phy.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "chipidea",
@@ -611,6 +684,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*usb-chipidea.misc*,"
         "*usb-chipidea.dc*,*usb-chipidea.endpoints*",
         .file = "hw/usb/chipidea.c",
+        .socket = false,
     },{
         .arch = "aarch64",
         .name = "versal-usb2",
@@ -619,6 +693,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*versal.usb2Ctrl_alias*",
         .mrnames = "*versal.usb2Ctrl_alias*",
         .file = "hw/usb/xlnx-versal-usb2-ctrl-regs.c",
+        .socket = false,
     },{
         // duplicated
         .arch = "aarch64",
@@ -628,6 +703,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*versal.dwc3_alias*",
         .mrnames = "*versal.dwc3_alias*",
         .file = "hw/usb/hcd-dwc3.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "dwc2",
@@ -637,6 +713,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*dwc2-io* *dwc2-fifo*",
         .mrnames = "*dwc2-io*,*dwc2-fifo*",
         .file = "hw/usb/hcd-dwc2.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "xgmac",
@@ -644,6 +721,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*xgmac*",
         .mrnames = "*xgmac*",
         .file = "hw/net/xgmac.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "stellaris-enet",
@@ -651,6 +729,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*stellaris_enet*",
         .mrnames = "*stellaris_enet*",
         .file = "hw/net/stellaris_enet.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "scm91c111",
@@ -658,6 +737,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*smc91c111-mmio*",
         .mrnames = "*smc91c111-mmio*",
         .file = "hw/net/smc91c111.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "npcm7xx-emc",
@@ -665,6 +745,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*npcm7xx-emc*",
         .mrnames = "*npcm7xx-emc*",
         .file = "hw/net/npcm7xx_emc.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "msf2-emac",
@@ -672,6 +753,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*msf2-emac*",
         .mrnames = "*msf2-emac*",
         .file = "hw/net/msf2-emac.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "lan9118",
@@ -679,6 +761,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*lan9118-mmio*",
         .mrnames = "*lan9118-mmio*",
         .file = "hw/net/lan9118.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "imx-fec",
@@ -686,6 +769,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*imx.fec*",
         .mrnames = "*imx.fec*",
         .file = "hw/net/imx_fec.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "ftgmac100",
@@ -693,6 +777,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*ftgmac100*,*aspeed-mmi*",
         .mrnames = "*ftgmac100*,*aspeed-mmi*",
         .file = "hw/net/ftgmac100.c",
+        .socket = false,
     },{
         .arch = "aarch64",
         .name = "cadence-gem",
@@ -701,6 +786,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*enet*",
         .mrnames = "*enet*",
         .file = "hw/net/cadence_gem.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "allwinner-sun8i-emac",
@@ -708,6 +794,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*allwinner-sun8i-emac*",
         .mrnames = "*allwinner-sun8i-emac*",
         .file = "hw/net/allwinner-sun8i-emac.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "allwinner-emac",
@@ -716,6 +803,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*aw_emac*",
         .mrnames = "*aw_emac*",
         .file = "hw/net/allwinner-emac.c",
+        .socket = false,
     },{
         .arch = "aarch64",
         .name = "xlnx-zynqmp-can",
@@ -723,6 +811,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*xlnx.zynqmp-can*",
         .mrnames = "*xlnx.zynqmp-can*",
         .file = "hw/net/can/xlnx-zynqmp-can.c",
+        .socket = false,
     },{
         .arch = "aarch64",
         .name = "xlnx-dp",
@@ -730,6 +819,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*.core*,*.v_blend*,*.av_buffer_manager*,*.audio*",
         .mrnames = "*.core*,*.v_blend*,*.av_buffer_manager*,*.audio*",
         .file = "hw/display/xlnx_dp.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "exynos4210-fimd",
@@ -737,6 +827,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*exynos4210.fimd*",
         .mrnames = "*exynos4210.fimd*",
         .file = "hw/display/exynos4210_fimd.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "omap-dss",
@@ -744,6 +835,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*omap.diss1*,*omap.disc1*,*omap.rfbi1*,*omap.venc1*,*omap.im3*",
         .mrnames = "*omap.diss1*,*omap.disc1*,*omap.rfbi1*,*omap.venc1*,*omap.im3*",
         .file = "hw/net/omap_dss.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "omap-lcdc",
@@ -751,6 +843,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*omap.lcdc*",
         .mrnames = "*omap.lcdc*",
         .file = "hw/net/omap_lcdc.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "pl110",
@@ -758,6 +851,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*pl110*",
         .mrnames = "*pl110*",
         .file = "hw/display/pl110.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "pxa2xx-lcd",
@@ -765,6 +859,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*pxa2xx-lcd-controller*",
         .mrnames = "*pxa2xx-lcd-controller*",
         .file = "hw/display/pxa2xx_lcd.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "tc6393xb",
@@ -772,6 +867,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*tc6393xb*",
         .mrnames = "*tc6393xb*",
         .file = "hw/display/tc6393xb.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "pl041",
@@ -779,13 +875,15 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*pl041*",
         .mrnames = "*pl041*",
         .file = "hw/audio/pl041.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "pflash-cfi02",
         .args = "-machine xilinx-zynq-a9",
         .objects = "*zynq.pflash*",
         .mrnames = "*zynq.pflash*",
-        .file = "hw/block/pflash_cfi02.c"
+        .file = "hw/block/pflash_cfi02.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "pflash-cfi01",
@@ -793,20 +891,23 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*collie.fl1*,*collie.fl2*",
         .mrnames = "*collie.fl1*,*collie.fl2*",
         .file = "hw/block/pflash_cfi01.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "onenand",
         .args = "-machine n810 -m 128M",
         .objects = "*onenand*",
         .mrnames = "*onenand*",
-        .file = "hw/block/onenand.c"
+        .file = "hw/block/onenand.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "allwinner-sdhost",
         .args = "-machine cubieboard",
         .objects = "*allwinner-sdhost*",
         .mrnames = "*allwinner-sdhost*",
-        .file = "hw/sd/allwinner-sdhost.c"
+        .file = "hw/sd/allwinner-sdhost.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "aspeed-sdhci",
@@ -814,6 +915,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*aspeed.sdhci*",
         .mrnames = "*aspeed.sdhci*",
         .file = "hw/sd/aspeed_sdhci.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "bcm2835-sdhost",
@@ -822,6 +924,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*bcm2835-sdhost*",
         .mrnames = "*bcm2835-sdhost*",
         .file = "hw/sd/bcm2835_sdhost.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "omap-mmc",
@@ -829,6 +932,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*omap.mmc*",
         .mrnames = "*omap.mmc*",
         .file = "hw/sd/omap_mmc.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "pl181",
@@ -836,6 +940,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*pl181*",
         .mrnames = "*pl181*",
         .file = "hw/sd/pl181.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "pxa2xx-mmci",
@@ -843,6 +948,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*pxa2xx-mmci*",
         .mrnames = "*pxa2xx-mmci*",
         .file = "hw/sd/pxa2xx_mmci.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "sdhci",
@@ -851,6 +957,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*sdhci*",
         .mrnames = "*sdhci*",
         .file = "hw/sd/sdhci.c",
+        .socket = false,
     },{
         .arch = "arm",
         // suitable for ich9-ahci,sysbus-ahci and allwinner-ahci
@@ -859,6 +966,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*allwinner-ahci*",
         .mrnames = "*allwinner-ahci*,*ahci*,*ahci-idp*",
         .file = "hw/ide/ahci-allwinner.c",
+        .socket = false,
     },{
         .arch = "arm",
         .name = "npcm7xx-otp",
@@ -866,6 +974,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*npcm7xx-emc*",
         .mrnames = "*regs*",
         .file = "hw/nvram/npcm7xx_otp.c",
+        .socket = false,
     }, {
         .arch = "arm",
         .name = "nrf51-nvm",
@@ -875,6 +984,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*nrf51_soc.nvmc*,*nrf51_soc.ficr*,"
         "*nrf51_soc.uicr*,*nrf51_soc.flash*",
         .file = "hw/nvram/nrf51_nvm.c",
+        .socket = false,
     }
 };
 

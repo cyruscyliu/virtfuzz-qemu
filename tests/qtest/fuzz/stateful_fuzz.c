@@ -128,6 +128,16 @@ static void dispatch_clock_step(QTestState *s, uint64_t val) {
 }
 
 /*
+ * Generic socket write dispatcher
+ */
+static void dispatch_socket_write(QTestState *s, const void *data, uint32_t size) {
+    if (!sockfds_initialized)
+        return;
+    int ignore = write(sockfds[0], data, size);
+    (void) ignore;
+}
+
+/*
  * Class Event Dispatch Event
  */
 static void dispatch_event(Event *event, QTestState *s) {
@@ -158,6 +168,9 @@ static void dispatch_event(Event *event, QTestState *s) {
             break;
         case EVENT_TYPE_CLOCK_STEP:
             dispatch_clock_step(s, event->val);
+            break;
+        case EVENT_TYPE_SOCKET_WRITE:
+            dispatch_socket_write(s, event->data, size);
             break;
         default:
             fprintf(stderr, "wrong type of event %d\n", type);

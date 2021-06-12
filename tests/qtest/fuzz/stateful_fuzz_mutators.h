@@ -37,6 +37,13 @@ static size_t insert_event(uint8_t *Data, size_t Size,
     if (if_id == INTERFACE_CLOCK_STEP) {
         Data[Size] = if_id;
         return Size + 9;
+    } else if (if_id == INTERFACE_SOCKET_WRITE){
+        if (Size + 5 + 13 >= MaxSize)
+            return 0;
+        Data[Size] = if_id;
+        uint32_t sw_size = 13;
+        memcpy(Data + Size + 1, (uint8_t *)&sw_size, 4);
+        return Size + 5 + 13;
     } else {
         switch (type) {
             case EVENT_TYPE_PIO_READ:
@@ -278,7 +285,7 @@ static size_t Mutate_ChangeId(Input *input, uint8_t *Data,
     if (OldId == INTERFACE_CLOCK_STEP ||
             OldId == INTERFACE_MEM_READ ||
             OldId == INTERFACE_MEM_WRITE ||
-            OldId == INTERFACE_CLOCK_STEP)
+            OldId == INTERFACE_SOCKET_WRITE)
         return Size;
 
     InterfaceDescription ed = Id_Description[OldId];
@@ -311,6 +318,7 @@ static size_t Mutate_ChangeAddr(Input *input, uint8_t *Data,
             LLVMFuzzerMutate(Data + IdxOffset + 1, 8, 8);
             return Size;
         case EVENT_TYPE_CLOCK_STEP:
+        case EVENT_TYPE_SOCKET_WRITE:
             return Size;
         default:
             fprintf(stderr, "Unsupport Event Type (Mutate_ChangeAddr)\n");
@@ -334,6 +342,7 @@ static size_t Mutate_ChangeSize(Input *input, uint8_t *Data,
             LLVMFuzzerMutate(Data + IdxOffset + 9, 4, 4);
             return Size;
         case EVENT_TYPE_CLOCK_STEP:
+        case EVENT_TYPE_SOCKET_WRITE:
             return Size;
         default:
             fprintf(stderr, "Unsupport Event Type (Mutate_ChangeSize)\n");
@@ -349,6 +358,7 @@ static size_t Mutate_ChangeValue(Input *input, uint8_t *Data,
     size_t IdxOffset = get_event_offset(input, Idx);
     uint8_t if_id = around_event_id(Data[IdxOffset]);
     uint8_t type = Id_Description[if_id].type;
+    uint32_t sw_size;
     switch (type) {
         case EVENT_TYPE_PIO_READ:
         case EVENT_TYPE_MMIO_READ:
@@ -359,6 +369,10 @@ static size_t Mutate_ChangeValue(Input *input, uint8_t *Data,
             return Size;
         case EVENT_TYPE_CLOCK_STEP:
             LLVMFuzzerMutate(Data + IdxOffset + 1, 8, 8);
+            return Size;
+        case EVENT_TYPE_SOCKET_WRITE:
+            memcpy((uint8_t *)&sw_size, Data + IdxOffset + 1, 4);
+            LLVMFuzzerMutate(Data + IdxOffset + 1 + 4, sw_size, sw_size);
             return Size;
         default:
             fprintf(stderr, "Unsupport Event Type (Mutate_ChangeValue)\n");
