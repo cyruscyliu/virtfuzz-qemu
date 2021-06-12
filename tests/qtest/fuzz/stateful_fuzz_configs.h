@@ -279,7 +279,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "ne2000",
         .args = "-machine q35 -nodefaults "
-        "-device ne2k_pci,netdev=net0 -netdev user,id=net0",
+        "-device ne2k_pci,netdev=net0 -netdev socket,fd=%d,id=net0",
         .objects = "ne2k*",
         .mrnames = "*ne2000*",
         .file = "hw/net/ne2000.c",
@@ -288,7 +288,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "pcnet",
         .args = "-machine q35 -nodefaults "
-        "-device pcnet,netdev=net0 -netdev user,id=net0",
+        "-device pcnet,netdev=net0 -netdev socket,fd=%d,id=net0",
         .objects = "pcnet",
         .mrnames = "*pcnet-mmio*,*pcnet-io*",
         .file = "hw/net/pcnet-pci.c",
@@ -297,7 +297,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "rtl8139",
         .args = "-machine q35 -nodefaults "
-        "-device rtl8139,netdev=net0 -netdev user,id=net0",
+        "-device rtl8139,netdev=net0 -netdev socket,fd=%d,id=net0",
         .objects = "rtl8139",
         .mrnames = "*rtl8139*",
         .file = "hw/net/rtl8139.c",
@@ -306,7 +306,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "i82550",
         .args = "-machine q35 -nodefaults "
-        "-device i82550,netdev=net0 -netdev user,id=net0",
+        "-device i82550,netdev=net0 -netdev socket,fd=%d,id=net0",
         .objects = "*eepro100-mmio*,*eepro100-io*,*eepro100-flash*",
         .mrnames = "*eepro100-mmio*,*eepro100-io*,*eepro100-flash*",
         .file = "hw/net/eepro100.c",
@@ -315,7 +315,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "e1000",
         .args = "-M q35 -nodefaults "
-        "-device e1000,netdev=net0 -netdev user,id=net0",
+        "-device e1000,netdev=net0 -netdev socket,fd=%d,id=net0",
         .objects = "e1000",
         .mrnames = "*e1000-mmio*,*e1000-io*",
         .file = "hw/net/e1000.c",
@@ -324,7 +324,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "e1000e",
         .args = "-M q35 -nodefaults "
-        "-device e1000e,netdev=net0 -netdev user,id=net0",
+        "-device e1000e,netdev=net0 -netdev socket,fd=%d,id=net0",
         .objects = "e1000e",
         .mrnames = "*e1000e-mmio*,*e1000e-io*",
         .file = "hw/net/e1000e.c",
