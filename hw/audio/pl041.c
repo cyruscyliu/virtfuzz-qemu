@@ -441,6 +441,8 @@ static void pl041_write(void *opaque, hwaddr offset,
         break;
     }
     case PL041_sl1tx:
+        if (s->regs.slfr & SL2TXEMPTY)
+            break;
         s->regs.slfr &= ~SL1TXEMPTY;
 
         control = (s->regs.sl1tx >> 12) & 0x7F;
