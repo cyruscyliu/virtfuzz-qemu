@@ -1018,7 +1018,6 @@ static void xlnx_dp_avbufm_write(void *opaque, hwaddr offset, uint64_t value,
                                  unsigned size)
 {
     XlnxDPState *s = XLNX_DP(opaque);
-    uint32_t avbufm_registers[DP_AVBUF_REG_ARRAY_SIZE];
 
     DPRINTF("avbufm: write @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
                                                                (uint32_t)value);
