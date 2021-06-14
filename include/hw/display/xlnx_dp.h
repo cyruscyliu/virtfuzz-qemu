@@ -107,4 +107,7 @@ struct XlnxDPState {
 #define TYPE_XLNX_DP "xlnx.v-dp"
 OBJECT_DECLARE_SIMPLE_TYPE(XlnxDPState, XLNX_DP)
 
+#define EDP_GRAPHIC -1
+#define EDP_NL_VID_FMT -2
+
 #endif
