@@ -1018,6 +1018,7 @@ static void xlnx_dp_avbufm_write(void *opaque, hwaddr offset, uint64_t value,
                                  unsigned size)
 {
     XlnxDPState *s = XLNX_DP(opaque);
+    uint32_t old_av_buf_format;
 
     DPRINTF("avbufm: write @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
                                                                (uint32_t)value);
@@ -1025,7 +1026,7 @@ static void xlnx_dp_avbufm_write(void *opaque, hwaddr offset, uint64_t value,
 
     switch (offset) {
     case AV_BUF_FORMAT:
-        uint32_t old_av_buf_format = s->avbufm_registers[offset];
+        old_av_buf_format = s->avbufm_registers[offset];
         s->avbufm_registers[offset] = value & 0x00000FFF;
         if (xlnx_dp_change_graphic_fmt(s))
             s->avbufm_registers[offset] = old_av_buf_format;
