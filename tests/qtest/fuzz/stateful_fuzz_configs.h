@@ -532,6 +532,9 @@ static const generic_fuzz_config predefined_configs[] = {
         .socket = false,
     },{
         .arch = "i386",
+        // sdhci -> sdhci-pci (pci) (i386)
+        // sdhci -> sysbus-sdhci (sysbus) (arm)
+        // sdhci + mmio -> cadence-sdhci (arm)
         .name = "sdhci-v3",
         .args = "-nodefaults -device sdhci-pci,sd-spec-version=3 "
         "-device sd-card,drive=mydrive "
@@ -910,14 +913,6 @@ static const generic_fuzz_config predefined_configs[] = {
         .socket = false,
     },{
         .arch = "arm",
-        .name = "aspeed-sdhci",
-        .args = "-machine palmetto-bmc",
-        .objects = "*aspeed.sdhci*",
-        .mrnames = "*aspeed.sdhci*",
-        .file = "hw/sd/aspeed_sdhci.c",
-        .socket = false,
-    },{
-        .arch = "arm",
         .name = "bcm2835-sdhost",
         // arm supports raspi0/1/2, aarch64 supports raspi3
         .args = "-machine raspi0",
@@ -951,21 +946,17 @@ static const generic_fuzz_config predefined_configs[] = {
         .socket = false,
     },{
         .arch = "arm",
-        .name = "sdhci",
-        // arm supports raspi0/1/2, aarch64 supports raspi3
-        .args = "-machine raspi0",
-        .objects = "*sdhci*",
-        .mrnames = "*sdhci*",
-        .file = "hw/sd/sdhci.c",
-        .socket = false,
-    },{
-        .arch = "arm",
-        // suitable for ich9-ahci,sysbus-ahci and allwinner-ahci
-        .name = "allwinner-ahci",
-        .args = "-machine cubieboard",
-        .objects = "*allwinner-ahci*",
-        .mrnames = "*allwinner-ahci*,*ahci*,*ahci-idp*",
-        .file = "hw/ide/ahci-allwinner.c",
+        // ahci -> ich9-ahci (pci) (i386/mips)
+        // ahci -> sysbus-ahci (sysbus) (arm)
+        // ahci + mmio -> allwinner-ahci (sysbus) (arm)
+        // change: change allwinner-ahci to sysbus-ahci/ich9-ahci (TODO)
+        // note that problems in sysbus-ahci are also in ich9-ahci
+        // note that ahci-idp is not explosed for arm machine!
+        .name = "sysbus-ahci",
+        .args = "-machine midway",
+        .objects= "*ahci* *ahci-idp*",
+        .mrnames = "*ahci*,*ahci-idp*",
+        .file = "hw/ide/ahci.c",
         .socket = false,
     },{
         .arch = "arm",
@@ -984,6 +975,177 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*nrf51_soc.nvmc*,*nrf51_soc.ficr*,"
         "*nrf51_soc.uicr*,*nrf51_soc.flash*",
         .file = "hw/nvram/nrf51_nvm.c",
+        .socket = false,
+    },
+// according to PMM's summary, we will support virt, sbsa-ref,
+// xlnx-versal-virt, xlnx-zcu102, highbank and midway first
+    /* common in highbank and midway */ {
+        .arch = "arm",
+        .name = "sp804",
+        .args = "-machine midway",
+        .objects = "*sp804*",
+        .mrnames = "*sp804*",
+        .file = "hw/timer/arm_timer.c",
+        .socket = false,
+    }, {
+        .arch = "arm",
+        .name = "pl011",
+        .args = "-machine midway",
+        .objects = "*pl011*",
+        .mrnames = "*pl011*",
+        .file = "hw/char/pl011.c",
+        .socket = false,
+    }, {
+        .arch = "arm",
+        .name = "highbank-regs",
+        .args = "-machine midway",
+        .objects = "*highbank_regs*",
+        .mrnames = "*highbank_regs*",
+        .file = "hw/arm/highbank.c",
+        .socket = false,
+    }, {
+        .arch = "arm",
+        .name = "pl061",
+        .args = "-machine midway",
+        .objects = "*pl061*",
+        .mrnames = "*pl061*",
+        .file = "hw/gpio/pl061.c",
+        .socket = false,
+    }, {
+        .arch = "arm",
+        .name = "pl031",
+        .args = "-machine midway",
+        .objects = "*pl031*",
+        .mrnames = "*pl031*",
+        .file = "hw/rtc/pl031.c",
+        .socket = false,
+    }, {
+        .arch = "arm",
+        .name = "pl022",
+        .args = "-machine midway",
+        .objects = "*pl022*",
+        .mrnames = "*pl022*",
+        .file = "hw/ssi/pl022.c",
+        .socket = false,
+    }, /* xgmac/ahci see above */
+    /* only in highbank */ {
+        .arch = "arm",
+        .name = "a9-scu",
+        .args = "-machine highbank",
+        .objects = "*a9-scu*",
+        .mrnames = "*a9-scu*",
+        .file = "hw/misc/a9scu.c",
+        .socket = false,
+    }, {
+        .arch = "arm",
+        .name = "arm-gic",
+        .args = "-machine highbank",
+        .objects = "*gic_dist*,*gic_cpu*,*gic_viface*,*gic_vcpu*",
+        .mrnames = "*gic_dist*,*gic_cpu*,*gic_viface*,*gic_vcpu*",
+        .file = "hw/intc/arm_gic.c hw/intc/arm_gic_common.c",
+        .socket = false,
+    }, {
+        .arch = "arm",
+        .name = "a9-gtimer",
+        .args = "-machine highbank",
+        .objects = "*a9gtimer shared*,*a9gtimer per cpu*",
+        .mrnames = "*a9gtimer shared*,*a9gtimer per cpu*",
+        .file = "hw/timer/a9gtimer.c",
+        .socket = false,
+    }, {
+        .arch = "arm",
+        .name = "arm-mptimer",
+        .args = "-machine highbank",
+        .objects = "*arm_mptimer_timer*,*arm_mptimer_timerblock*",
+        .mrnames = "*arm_mptimer_timer*,*arm_mptimer_timerblock*",
+        .file = "hw/timer/arm_mptimer.c",
+        .socket = false,
+    },
+    /* xlnx-zcu102 */
+    /* gic/cadence-gem/xlnx-zynqmp-can
+     * sysbus-ahci/sdhci/xlnx-dp see above */ {
+        .arch = "aarch64",
+        .name = "cadence-uart",
+        .args = "-machine xlnx-zcu102",
+        .objects = "*uart*",
+        .mrnames = "*uart*",
+        .file = "hw/char/cadence_uart.c",
+        .socket = false,
+    }, {
+        .arch = "aarch64",
+        // xilinx-spips + mmio -> xilinx-qspips
+        // xilinx-qspips + fifo -> xlnx-zynqmp-qspips
+        .name = "xlnx-zynqmp-qspips",
+        .args = "-machine xlnx-zcu102",
+        .objects = "*spi*,*lqspi*",
+        .mrnames = "*spi*,*lqspi*",
+        .file = "hw/ssi/xilinx_spips.c",
+        .socket = false,
+    }, {
+        .arch = "aarch64",
+        .name = "xlnx-dpdma",
+        .args = "-machine xlnx-zcu102",
+        .objects = "*xlnx.dpdma*",
+        .mrnames = "*xlnx.dpdma*",
+        .file = "hw/dma/xlnx_dpdma.c",
+        .socket = false,
+    }, {
+        .arch = "aarch64",
+        .name = "xlnx-zynqmp-ipi",
+        .args = "-machine xlnx-zcu102",
+        .objects = "*xlnx.zynqmp_ipi*",
+        .mrnames = "*xlnx.zynqmp_ipi*",
+        .file = "hw/intc/xln-zynqmp-pip.c",
+        .socket = false,
+    }, {
+        .arch = "aarch64",
+        .name = "xlnx-zynqmp-rtc",
+        .args = "-machine xlnx-zcu102",
+        .objects = "*xlnx-zynmp.rtc*",
+        .mrnames = "*xlnx-zynmp.rtc*",
+        .file = "hw/rtc/xlnx-zynqmp-rtc.c",
+        .socket = false,
+    }, {
+        .arch = "aarch64",
+        .name = "xlnx-zdma",
+        .args = "-machine xlnx-zcu102",
+        .objects = "*xlnx.zdma*",
+        .mrnames = "*xlnx.zdma*",
+        .file = "hw/dma/xlnx-zdma.c",
+        .socket = false,
+    }, {
+        .arch = "aarch64",
+        .name = "xlnx-csu-dma",
+        .args = "-machine xlnx-zcu102",
+        .objects = "*xlnx.csu_dma*",
+        .mrnames = "*xlnx.csu_dma*",
+        .file = "hw/dma/xlnx_csu_dma.c",
+        .socket = false,
+    },
+    /* sbsa-ref */ {
+        .arch = "aarch64",
+        .name = "arm-gicv3",
+        .args = "-machine sbsa-ref",
+        .objects = "*gicv3_dist*,*gicv3_redist_region*",
+        .mrnames = "*gicv3_dist*,*gicv3_redist_region*",
+        .file = "hw/intc/arm_gicv3.c hw/intc/arm_gicv3_common.c",
+        .socket = false,
+    }, /* pl011/pl031/e1000e/vga see above */ {
+        .arch = "aarch64",
+        .name = "wdt-sbsa",
+        .args = "-machine sbsa-ref",
+        .objects = "*sbsa_gwdt.refresh*,*sbsa_gwdt.control*",
+        .mrnames = "*sbsa_gwdt.refresh*,*sbsa_gwdt.control*",
+        .file = "hw/watchdog/sbsa_gwdt.c",
+        .socket = false,
+    },
+    /* virt, pl011/pl031/pl061 see above */ {
+        .arch = "aarch64",
+        .name = "platform-bus",
+        .args = "-machine virt",
+        .objects = "*platform bus*",
+        .mrnames = "*platform bus*",
+        .file = "hw/core/platform-bus.c",
         .socket = false,
     }
 };
