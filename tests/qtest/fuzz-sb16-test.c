@@ -37,6 +37,34 @@ static void test_fuzz_sb16_0x91(void)
     qtest_quit(s);
 }
 
+/*
+ * This used to trigger the assert in audio_calloc
+ * through command 0xd4
+ */
+static void test_fuzz_sb16_0x0000(void)
+{
+    QTestState *s = qtest_init("-M pc -display none "
+                               "-device sb16,audiodev=none "
+                               "-audiodev id=none,driver=none");
+    qtest_outb(s, 0x22c, 0x41);
+    qtest_outb(s, 0x22c, 0x00);
+    qtest_outb(s, 0x22c, 0x00);
+    qtest_outb(s, 0x22c, 0xd4);
+    qtest_quit(s);
+}
+
+static void test_fuzz_sb16_0xffff(void)
+{
+    QTestState *s = qtest_init("-M pc -display none "
+                               "-device sb16,audiodev=none "
+                               "-audiodev id=none,driver=none");
+    qtest_outb(s, 0x22c, 0x41);
+    qtest_outb(s, 0x22c, 0xff);
+    qtest_outb(s, 0x22c, 0xff);
+    qtest_outb(s, 0x22c, 0xd4);
+    qtest_quit(s);
+}
+
 int main(int argc, char **argv)
 {
     const char *arch = qtest_get_arch();
@@ -46,6 +74,8 @@ int main(int argc, char **argv)
    if (strcmp(arch, "i386") == 0) {
         qtest_add_func("fuzz/test_fuzz_sb16/1c", test_fuzz_sb16_0x1c);
         qtest_add_func("fuzz/test_fuzz_sb16/91", test_fuzz_sb16_0x91);
+        qtest_add_func("fuzz/test_fuzz_sb16/0000", test_fuzz_sb16_0x0000);
+        qtest_add_func("fuzz/test_fuzz_sb16/ffff", test_fuzz_sb16_0xffff);
    }
 
    return g_test_run();
