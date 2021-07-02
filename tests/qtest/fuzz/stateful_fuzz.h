@@ -192,6 +192,19 @@ static uint8_t get_possible_interface(EventType type) {
     return type % 2 ? INTERFACE_CLOCK_STEP : INTERFACE_SOCKET_WRITE;
 }
 
+static int get_interface_id(const char *name, EventType type) {
+    // first best
+    int i;
+    InterfaceDescription ed;
+    for (i = 0; i < n_interfaces; i++) {
+        ed = Id_Description[i];
+        if (ed.type == type && g_strcmp0(ed.name, name) == 0) {
+            return i;
+        }
+    }
+    return INTERFACE_MAX;
+}
+
 // +-----------------+
 // +    event_ops    +
 // +-----------------+
@@ -401,6 +414,16 @@ static uint32_t get_data_from_pool4(void) {
         ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
     }
     data_pool.index += 4;
+    return ret; 
+}
+
+static uint16_t get_data_from_pool2(void) { 
+    // make it a circle
+    uint32_t ret = 0;
+    for (int i = 0; i < 2; i++) {
+        ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
+    }
+    data_pool.index += 2;
     return ret; 
 }
 
@@ -686,7 +709,6 @@ typedef struct ChainedBuffer {
     size_t dirty_size;
     ChainedAddr chained_addr;
 } ChainedBuffer;
-
 
 typedef struct StatefulMemoryPool {
     ChainedBuffer chained_buffers[8];

@@ -178,6 +178,7 @@ static void dispatch_event(Event *event, QTestState *s) {
 }
 
 extern QTestState *get_qtest_state(void);
+/*
 void LLVMFuzzerTraceStateCallback(
         size_t StateMachineId, size_t NodeId);
 void LLVMFuzzerTraceStateCallback(
@@ -187,10 +188,13 @@ void LLVMFuzzerTraceStateCallback(
     // printf("[+] Current State is %zu\n", NodeId);
     StateMachine *state_machine = &state_machines[StateMachineId];
     Node *node = &state_machine->nodes[NodeId];
-
+*/
+extern void TraceStateCallback(uint8_t id);
+void TraceStateCallback(uint8_t id) {
+    Callback *callback = &callbacks[id];
     // read Data to Input
-    uint8_t *Data = node->get_data();
-    size_t Size = node->get_size();
+    uint8_t *Data = callback->get_data();
+    size_t Size = callback->get_size();
     Input *input = init_input(Data, Size);
     // free Data because nobody will free it later
     free(Data);
@@ -198,6 +202,7 @@ void LLVMFuzzerTraceStateCallback(
         return;
     }
     // deserialize Data to Events
+    printf("[+] TraceStateCallback %d\n", id);
     deserialize(input, /*indexer=*/false);
     // issue event one by one
     Event *event = input->events;
@@ -264,7 +269,7 @@ static void locate_fuzzable_objects(Object *obj, char *mrname) {
             // TODO: Improve to resolve the max/min in the future
             if (mr_type == MMIO_ADDRESS) {
                 if (mr->ops->valid.min_access_size == 0 &&
-                        mr->ops->valid.max_access_size ==0) {
+                        mr->ops->valid.max_access_size == 0) {
                     min = max = 4;
                 } else {
                     min = mr->ops->valid.min_access_size;
@@ -273,15 +278,18 @@ static void locate_fuzzable_objects(Object *obj, char *mrname) {
                 Id_Description[n_interfaces].type = EVENT_TYPE_MMIO_READ;
                 Id_Description[n_interfaces + 1].type = EVENT_TYPE_MMIO_WRITE;
             } else if (mr_type == PIO_ADDRESS) {
-                min = 1;
-                // to avoid null pointer deference
                 MemoryRegionPortioList *mrpl = (MemoryRegionPortioList *)mr->opaque;
-                if (mrpl) {
+                if (mr->ops->valid.min_access_size == 0 &&
+                        mr->ops->valid.max_access_size == 0 && mrpl) {
+                    min = 1;
                     max = (((MemoryRegionPortio *)((MemoryRegionPortioList *)mr->opaque)->ports)[0]).size;
                     if (max == 0) { max = min; }
-                    Id_Description[n_interfaces].type = EVENT_TYPE_PIO_READ;
-                    Id_Description[n_interfaces+ 1].type = EVENT_TYPE_PIO_WRITE;
+                } else {
+                    min = mr->ops->valid.min_access_size;
+                    max = mr->ops->valid.max_access_size;
                 }
+                Id_Description[n_interfaces].type = EVENT_TYPE_PIO_READ;
+                Id_Description[n_interfaces + 1].type = EVENT_TYPE_PIO_WRITE;
             }
             // TODO: Deduplicate MemoryRegions in the future
             if (mr_type != INVLID_ADDRESS) {
