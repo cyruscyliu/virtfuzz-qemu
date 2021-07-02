@@ -565,8 +565,6 @@ static void ehci_queue_stopped(EHCIQueue *q)
         return;
     }
 
-    if (q->last_pid == USB_TOKEN_SETUP && endp != 0)
-        endp = 0;
     usb_device_ep_stopped(q->dev, usb_ep_get(q->dev, q->last_pid, endp));
 }
 
@@ -1367,8 +1365,6 @@ static int ehci_execute(EHCIPacket *p, const char *action)
     p->pid = ehci_get_pid(&p->qtd);
     p->queue->last_pid = p->pid;
     endp = get_field(p->queue->qh.epchar, QH_EPCHAR_EP);
-    if (p->pid == USB_TOKEN_SETUP && endp != 0)
-        endp = 0;
     ep = usb_ep_get(p->queue->dev, p->pid, endp);
 
     if (p->async == EHCI_ASYNC_NONE) {
