@@ -407,24 +407,26 @@ static DataPool data_pool = {
     .index = 0,
 };
 
-static uint32_t get_data_from_pool4(void) { 
+static uint32_t get_data_from_pool(int size) { 
     // make it a circle
     uint32_t ret = 0;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < size; i++) {
         ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
     }
-    data_pool.index += 4;
+    data_pool.index += size;
     return ret; 
 }
 
-static uint16_t get_data_from_pool2(void) { 
-    // make it a circle
-    uint32_t ret = 0;
-    for (int i = 0; i < 2; i++) {
-        ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
-    }
-    data_pool.index += 2;
-    return ret; 
+static uint32_t get_data_from_pool4(void) {
+    return get_data_from_pool(4);
+}
+
+static uint16_t get_data_from_pool2(void) {
+    return (uint16_t)get_data_from_pool(2);
+}
+
+static uint8_t get_data_from_pool1(void) { 
+    return (uint8_t)get_data_from_pool(1);
 }
 
 static void set_data_pool(Event *data_pool_event) {
