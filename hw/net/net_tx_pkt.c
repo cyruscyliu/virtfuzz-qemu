@@ -450,7 +450,8 @@ void net_tx_pkt_reset(struct NetTxPkt *pkt)
     pkt->payload_len = 0;
     pkt->payload_frags = 0;
 
-    assert(pkt->raw);
+    if (!pkt->raw)
+        return;
     for (i = 0; i < pkt->raw_frags; i++) {
         assert(pkt->raw[i].iov_base);
         pci_dma_unmap(pkt->pci_dev, pkt->raw[i].iov_base, pkt->raw[i].iov_len,

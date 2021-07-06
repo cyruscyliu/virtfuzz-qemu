@@ -1093,7 +1093,9 @@ vmxnet3_io_bar0_write(void *opaque, hwaddr addr,
         int tx_queue_idx =
             VMW_MULTIREG_IDX_BY_ADDR(addr, VMXNET3_REG_TXPROD,
                                      VMXNET3_REG_ALIGN);
-        assert(tx_queue_idx <= s->txq_num);
+        // assert(tx_queue_idx <= s->txq_num);
+        if (tx_queue_idx > s->txq_num)
+            return;
         vmxnet3_process_tx_queue(s, tx_queue_idx);
         return;
     }
@@ -1116,8 +1118,8 @@ vmxnet3_io_bar0_write(void *opaque, hwaddr addr,
         return;
     }
 
-    VMW_WRPRN("BAR0 unknown write [%" PRIx64 "] = %" PRIx64 ", size %d",
-              (uint64_t) addr, val, size);
+    // VMW_WRPRN("BAR0 unknown write [%" PRIx64 "] = %" PRIx64 ", size %d",
+    //           (uint64_t) addr, val, size);
 }
 
 static uint64_t
@@ -1393,6 +1395,7 @@ static void vmxnet3_validate_queues(VMXNET3State *s)
     }
 }
 
+extern void TraceStateCallback(uint8_t id);
 static void vmxnet3_activate_device(VMXNET3State *s)
 {
     int i;
@@ -1403,6 +1406,7 @@ static void vmxnet3_activate_device(VMXNET3State *s)
     uint32_t size;
 
     /* Verify configuration consistency */
+    TraceStateCallback(4);
     if (!vmxnet3_verify_driver_magic(d, s->drv_shmem)) {
         VMW_ERPRN("Device configuration received from driver is invalid");
         return;
@@ -1689,7 +1693,7 @@ static uint64_t vmxnet3_get_command_status(VMXNET3State *s)
         break;
 
     default:
-        VMW_WRPRN("Received request for unknown command: %x", s->last_command);
+        // VMW_WRPRN("Received request for unknown command: %x", s->last_command);
         ret = 0;
         break;
     }
