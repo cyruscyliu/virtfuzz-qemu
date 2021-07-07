@@ -1516,7 +1516,8 @@ static int ehci_process_itd(EHCIState *ehci,
 /*  This state is the entry point for asynchronous schedule
  *  processing.  Entry here consitutes a EHCI start event state (4.8.5)
  */
-extern void TraceStateCallback(uint8_t id);
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 static int ehci_state_waitlisthead(EHCIState *ehci,  int async)
 {
     EHCIqh qh;

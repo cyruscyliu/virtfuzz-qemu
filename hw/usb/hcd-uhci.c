@@ -950,7 +950,8 @@ static void uhci_queue_fill(UHCIQueue *q, UHCI_TD *td)
     usb_device_flush_ep_queue(q->ep->dev, q->ep);
 }
 
-extern void TraceStateCallback(uint8_t id);
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 static void uhci_process_frame(UHCIState *s)
 {
     TraceStateCallback(0);

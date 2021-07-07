@@ -1249,7 +1249,8 @@ static void ohci_process_lists(OHCIState *ohci, int completion)
     }
 }
 
-extern void TraceStateCallback(uint8_t id);
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 /* Do frame processing on frame boundary */
 static void ohci_frame_boundary(void *opaque)
 {
