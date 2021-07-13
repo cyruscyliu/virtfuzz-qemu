@@ -202,7 +202,8 @@ static int get_interface_id(const char *name, EventType type) {
             return i;
         }
     }
-    return INTERFACE_MAX;
+    fprintf(stderr, "cannot find a valid interface\n");
+    _Exit(0);
 }
 
 // +-----------------+

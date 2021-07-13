@@ -135,6 +135,7 @@ static void dispatch_socket_write(QTestState *s, const void *data, uint32_t size
         return;
     int ignore = write(sockfds[0], data, size);
     (void) ignore;
+    return;
 }
 
 /*
@@ -208,6 +209,7 @@ void TraceStateCallback(uint8_t id) {
     Event *event = input->events;
     QTestState *s = get_qtest_state();
     for (int i = 0; event != NULL; i++) {
+        printf_event(event);
         dispatch_event(event, s);
         flush_events(s);
         event = event->next;
