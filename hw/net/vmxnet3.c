@@ -1350,31 +1350,37 @@ static bool vmxnet3_verify_intx(VMXNET3State *s, int intx)
         || intx == pci_get_byte(s->parent_obj.config + PCI_INTERRUPT_PIN) - 1;
 }
 
-static void vmxnet3_validate_interrupt_idx(bool is_msix, int idx)
+static bool vmxnet3_validate_interrupt_idx(bool is_msix, int idx)
 {
     int max_ints = is_msix ? VMXNET3_MAX_INTRS : VMXNET3_MAX_NMSIX_INTRS;
     if (idx >= max_ints) {
-        hw_error("Bad interrupt index: %d\n", idx);
+        // hw_error("Bad interrupt index: %d\n", idx);
+        return false;
     }
+    return true;
 }
 
 static void vmxnet3_validate_interrupts(VMXNET3State *s)
 {
     int i;
+    int max_ints = s->msix_used ? VMXNET3_MAX_INTRS : VMXNET3_MAX_NMSIX_INTRS;
 
     VMW_CFPRN("Verifying event interrupt index (%d)", s->event_int_idx);
-    vmxnet3_validate_interrupt_idx(s->msix_used, s->event_int_idx);
+    if (!vmxnet3_validate_interrupt_idx(s->msix_used, s->event_int_idx))
+        s->event_int_idx = max_ints - 1;
 
     for (i = 0; i < s->txq_num; i++) {
         int idx = s->txq_descr[i].intr_idx;
         VMW_CFPRN("Verifying TX queue %d interrupt index (%d)", i, idx);
-        vmxnet3_validate_interrupt_idx(s->msix_used, idx);
+        if (!vmxnet3_validate_interrupt_idx(s->msix_used, idx))
+            s->txq_descr[i].intr_idx = max_ints - 1;
     }
 
     for (i = 0; i < s->rxq_num; i++) {
         int idx = s->rxq_descr[i].intr_idx;
         VMW_CFPRN("Verifying RX queue %d interrupt index (%d)", i, idx);
-        vmxnet3_validate_interrupt_idx(s->msix_used, idx);
+        if (!vmxnet3_validate_interrupt_idx(s->msix_used, idx))
+            s->rxq_descr[i].intr_idx = max_ints - 1;
     }
 }
 
@@ -1387,15 +1393,18 @@ static void vmxnet3_validate_queues(VMXNET3State *s)
     */
 
     if (s->txq_num > VMXNET3_DEVICE_MAX_TX_QUEUES) {
-        hw_error("Bad TX queues number: %d\n", s->txq_num);
+        // hw_error("Bad TX queues number: %d\n", s->txq_num);
+        s->txq_num = VMXNET3_DEVICE_MAX_TX_QUEUES;
     }
 
     if (s->rxq_num > VMXNET3_DEVICE_MAX_RX_QUEUES) {
-        hw_error("Bad RX queues number: %d\n", s->rxq_num);
+        // hw_error("Bad RX queues number: %d\n", s->rxq_num);
+        s->rxq_num = VMXNET3_DEVICE_MAX_RX_QUEUES;
     }
 }
 
-extern void TraceStateCallback(uint8_t id);
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 static void vmxnet3_activate_device(VMXNET3State *s)
 {
     int i;

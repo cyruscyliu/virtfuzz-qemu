@@ -306,6 +306,10 @@ static void uhci_update_irq(UHCIState *s)
 
 static void uhci_reset(DeviceState *dev)
 {
+    static int counter = 0;
+    if (counter > 10)
+        return;
+    counter++;
     PCIDevice *d = PCI_DEVICE(dev);
     UHCIState *s = UHCI(d);
     uint8_t *pci_conf;
@@ -396,7 +400,7 @@ static void uhci_port_write(void *opaque, hwaddr addr,
             /* start frame processing */
             trace_usb_uhci_schedule_start();
             s->expire_time = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                (NANOSECONDS_PER_SECOND / FRAME_TIMER_FREQ);
+                (NANOSECONDS_PER_SECOND / FRAME_TIMER_FREQ / 100);
             timer_mod(s->frame_timer, s->expire_time);
             s->status &= ~UHCI_STS_HCHALTED;
         } else if (!(val & UHCI_CMD_RS)) {
@@ -963,8 +967,10 @@ static void uhci_process_frame(UHCIState *s)
     QhDb qhdb;
 
     frame_addr = s->fl_base_addr + ((s->frnum & 0x3ff) << 2);
+    printf("[+] address is 0x%x\n", frame_addr);
 
     pci_dma_read(&s->dev, frame_addr, &link, 4);
+    printf("[+] (spray) link is 0x%x\n", link);
     le32_to_cpus(&link);
 
     int_mask = 0;
