@@ -275,7 +275,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*vmxnet3-b0*,*vmxnet3-b1*",
         .file = "hw/net/vmxnet3.c",
         .socket = true,
-    },{
+    },/*{
         .arch = "i386",
         .name = "ne2000",
         .args = "-machine q35 -nodefaults "
@@ -329,7 +329,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*e1000e-mmio*,*e1000e-io*",
         .file = "hw/net/e1000e.c",
         .socket = false,
-    },{
+    },*/{
         .arch = "i386",
         .name = "kvaser-can",
         .args = "-machine q35 -nodefaults "
@@ -348,7 +348,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*pcm3680i_pci-sja1*,*pcm3680i_pci-sja2*",
         .mrnames = "*pcm3680i_pci-sja1*,*pcm3680i_pci-sja2*",
         .socket = false,
-    },{
+    },/*{
         .arch = "i386",
         .name = "mioe3680-can",
         .args = "-machine q35 -nodefaults "
@@ -358,7 +358,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*mioe3680_pci-sja1*,*mioe3680_pci-sja2*",
         .mrnames = "*mioe3680_pci-sja1*,*mioe3680_pci-sja2*",
         .socket = false,
-    },{
+    },*/{
         .arch = "i386",
         .name = "ctu-can",
         .args = "-machine q35 -nodefaults "
@@ -391,7 +391,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*ac97-nam*,*ac97-nabm*",
         .file = "hw/audio/ac97.c",
         .socket = false,
-    },{
+    },/*{
         .arch = "i386",
         .name = "cs4231a",
         .args = "-machine q35 -nodefaults "
@@ -400,7 +400,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*cs4231a*",
         .file = "hw/audio/cs4231a.c",
         .socket = false,
-    },{
+    },*/{
         .arch = "i386",
         .name = "cs4231",
         .args = "-machine q35 -nodefaults "
@@ -879,7 +879,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*pl041*",
         .file = "hw/audio/pl041.c",
         .socket = false,
-    },{
+    },/*{
         .arch = "arm",
         .name = "pflash-cfi02",
         .args = "-machine xilinx-zynq-a9",
@@ -887,7 +887,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*zynq.pflash*",
         .file = "hw/block/pflash_cfi02.c",
         .socket = false,
-    },{
+    },*/{
         .arch = "arm",
         .name = "pflash-cfi01",
         .args = "-machine collie",
