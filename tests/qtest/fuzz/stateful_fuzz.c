@@ -209,7 +209,8 @@ void TraceStateCallback(uint8_t id) {
     Event *event = input->events;
     QTestState *s = get_qtest_state();
     for (int i = 0; event != NULL; i++) {
-        printf_event(event);
+        // fprintf(stderr, "%d ", i);
+        // printf_event(event);
         dispatch_event(event, s);
         flush_events(s);
         event = event->next;
