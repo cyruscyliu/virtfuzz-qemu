@@ -713,6 +713,7 @@ static uint64_t xlnx_dp_read(void *opaque, hwaddr offset, unsigned size)
         ret = 0;
         break;
     default:
+        assert(offset <= (0x3AC >> 2));
         if (offset == (0x3A8 >> 2) || offset == (0x3AC >> 2)) {
             ret = s->core_registers[DP_INT_MASK];
         } else {
@@ -879,6 +880,7 @@ static void xlnx_dp_write(void *opaque, hwaddr offset, uint64_t value,
         xlnx_dp_update_irq(s);
         break;
     default:
+        assert(offset <= (0x504C >> 2));
         s->core_registers[offset] = value;
         break;
     }
