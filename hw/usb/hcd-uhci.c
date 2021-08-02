@@ -967,10 +967,10 @@ static void uhci_process_frame(UHCIState *s)
     QhDb qhdb;
 
     frame_addr = s->fl_base_addr + ((s->frnum & 0x3ff) << 2);
-    printf("[+] address is 0x%x\n", frame_addr);
+    // printf("[+] address is 0x%x\n", frame_addr);
 
     pci_dma_read(&s->dev, frame_addr, &link, 4);
-    printf("[+] (spray) link is 0x%x\n", link);
+    // printf("[+] (spray) link is 0x%x\n", link);
     le32_to_cpus(&link);
 
     int_mask = 0;

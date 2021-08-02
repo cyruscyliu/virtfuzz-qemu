@@ -1038,8 +1038,8 @@ static void ehci_opreg_write(void *ptr, hwaddr addr,
 
         /* not supporting dynamic frame list size at the moment */
         if ((val & USBCMD_FLS) && !(s->usbcmd & USBCMD_FLS)) {
-            fprintf(stderr, "attempt to set frame list size -- value %d\n",
-                    (int)val & USBCMD_FLS);
+            // fprintf(stderr, "attempt to set frame list size -- value %d\n",
+            //         (int)val & USBCMD_FLS);
             val &= ~USBCMD_FLS;
         }
 
@@ -1094,17 +1094,21 @@ static void ehci_opreg_write(void *ptr, hwaddr addr,
 
     case PERIODICLISTBASE:
         if (ehci_periodic_enabled(s)) {
+            /*
             fprintf(stderr,
               "ehci: PERIODIC list base register set while periodic schedule\n"
               "      is enabled and HC is enabled\n");
+              */
         }
         break;
 
     case ASYNCLISTADDR:
         if (ehci_async_enabled(s)) {
+            /*
             fprintf(stderr,
               "ehci: ASYNC list address register set while async schedule\n"
               "      is enabled and HC is enabled\n");
+              */
         }
         break;
     }
@@ -2122,7 +2126,7 @@ static void ehci_advance_state(EHCIState *ehci, int async)
 
         if (again < 0 || itd_count > 16) {
             /* TODO: notify guest (raise HSE irq?) */
-            fprintf(stderr, "processing error - resetting ehci HC\n");
+            // fprintf(stderr, "processing error - resetting ehci HC\n");
             ehci_reset(ehci);
             again = 0;
         }
