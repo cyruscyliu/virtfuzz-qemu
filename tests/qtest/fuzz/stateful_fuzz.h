@@ -52,7 +52,7 @@ typedef enum {                          //DMIP
     EVENT_TYPE_MMIO_WRITE,              //***-
     EVENT_TYPE_PIO_READ,                //***-
     EVENT_TYPE_PIO_WRITE,               //***-
-#define CLOCK_MAX_STEP 1000000
+#define CLOCK_MAX_STEP 10000
     EVENT_TYPE_CLOCK_STEP,              //-**-
     EVENT_TYPE_SOCKET_WRITE = 5,        //-**-
     EVENT_TYPE_INT,
