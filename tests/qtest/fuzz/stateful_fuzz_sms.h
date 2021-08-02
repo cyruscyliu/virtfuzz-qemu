@@ -31,7 +31,7 @@ static void fill(uint8_t *dst, size_t dst_size, uint64_t filler, size_t filler_s
         dst[i] = filler_p[i % filler_size];
 }
 
-#define CALLBACK_MAXSIZE 0x2000
+#define CALLBACK_MAXSIZE 0x100000
 
 // ==== hw/usb/hcd-uhci.c:uhci_process_frame:frame_addr = ============================
 size_t size_0 = 0;

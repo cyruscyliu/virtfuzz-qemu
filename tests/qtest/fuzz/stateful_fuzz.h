@@ -52,6 +52,7 @@ typedef enum {                          //DMIP
     EVENT_TYPE_MMIO_WRITE,              //***-
     EVENT_TYPE_PIO_READ,                //***-
     EVENT_TYPE_PIO_WRITE,               //***-
+#define CLOCK_MAX_STEP 1000000
     EVENT_TYPE_CLOCK_STEP,              //-**-
     EVENT_TYPE_SOCKET_WRITE = 5,        //-**-
     EVENT_TYPE_INT,
@@ -369,7 +370,7 @@ static size_t reset_data(uint8_t *Data, size_t MaxSize) {
         }
     }
     // EVENT_TYPE_CLOCK_STEP step=0x100
-    uint64_t clock_step = 0x100;
+    uint64_t clock_step = CLOCK_MAX_STEP;
     Offset += SERIALIZE(INTERFACE_CLOCK_STEP, 0x0, 0x0, clock_step);
     // EVENT_TYPE_SOCKET_WRITE size=13 Data=\0x00... (13 repeated \x00)
     Offset += serialize(Data, Offset, MaxSize, INTERFACE_SOCKET_WRITE, 0, 13, Data);
@@ -410,12 +411,23 @@ static DataPool data_pool = {
 
 static uint32_t get_data_from_pool(int size) { 
     // make it a circle
-    uint32_t ret = 0;
-    for (int i = 0; i < size; i++) {
-        ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
+    // uint32_t ret = 0;
+    // for (int i = 0; i < size; i++) {
+    //     ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
+    // }
+    // data_pool.index += size;
+    uint32_t ret = (uint32_t)rand();
+    switch (size) {
+        case 1:
+            return ret % 0xff;
+        case 2:
+            return ret % 0xffff;
+        case 4:
+            return ret % 0xffffffff;
+        default:
+            fprintf(stderr, "Wrong size of get_data_from_pool: %d\n", size);
+            return 0xffffffff;
     }
-    data_pool.index += size;
-    return ret; 
 }
 
 static uint32_t get_data_from_pool4(void) {
@@ -678,7 +690,6 @@ static uint32_t deserialize(Input *input, bool indexer) {
                 event->type = type;
                 event->addr = 0xFFFFFFFFFFFFFFFF;
                 event->size = 0xFFFFFFFF;
-#define CLOCK_MAX_STEP 1000
                 event->val = val % CLOCK_MAX_STEP;
                 event->offset = DataSize;
                 event->event_size = 9;

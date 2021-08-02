@@ -203,7 +203,10 @@ void TraceStateCallback(uint8_t id) {
         return;
     }
     // deserialize Data to Events
-    printf("[+] TraceStateCallback %d\n", id);
+    static int counter = 0;
+    if (counter % 1000 == 0)
+        printf("[+] TraceStateCallback %d (%d)\n", id, counter);
+    counter++;
     deserialize(input, /*indexer=*/false);
     // issue event one by one
     Event *event = input->events;
