@@ -825,6 +825,7 @@ static void ehci_wakeup_endpoint(USBBus *bus, USBEndpoint *ep,
 
 static USBDevice *ehci_find_device(EHCIState *ehci, uint8_t addr)
 {
+    addr = 0; // enforce it to zero
     USBDevice *dev;
     USBPort *port;
     int i;
