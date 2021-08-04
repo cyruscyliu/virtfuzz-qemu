@@ -70,7 +70,7 @@ vd4713d60c8_0:;
     size_0 += serialize(Data, size_0, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, UHCI_TD_v7a024204f7 + 0x4, 0x4, (uint8_t *)v1759edc372);
     free(v1759edc372);
     uint8_t *v1beb37117d = (uint8_t *)malloc(0x4);
-    fill(v1beb37117d, 0x4, (((get_data_from_pool4() & ((1 << (0x08 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x07 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x0b + 1)) - 1)) << 0x13)), 0x4);
+    fill(v1beb37117d, 0x4, (((get_data_from_pool4() & ((1 << (0x08 + 1)) - 1)) << 0x00) | ((0 & ((1 << (0x07 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x0b + 1)) - 1)) << 0x13)), 0x4);
     size_0 += serialize(Data, size_0, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, UHCI_TD_v7a024204f7 + 0x8, 0x4, (uint8_t *)v1beb37117d);
     free(v1beb37117d);
     stateful_free(buffer_v8133287637);
@@ -106,7 +106,7 @@ v4f65d4d925_0:;
     size_0 += serialize(Data, size_0, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, UHCI_TD_vaf19922ad9 + 0x4, 0x4, (uint8_t *)v73581a8146);
     free(v73581a8146);
     uint8_t *v5b7c709acb = (uint8_t *)malloc(0x4);
-    fill(v5b7c709acb, 0x4, (((get_data_from_pool4() & ((1 << (0x08 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x07 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x0b + 1)) - 1)) << 0x13)), 0x4);
+    fill(v5b7c709acb, 0x4, (((get_data_from_pool4() & ((1 << (0x08 + 1)) - 1)) << 0x00) | ((0 & ((1 << (0x07 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x0b + 1)) - 1)) << 0x13)), 0x4);
     size_0 += serialize(Data, size_0, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, UHCI_TD_vaf19922ad9 + 0x8, 0x4, (uint8_t *)v5b7c709acb);
     free(v5b7c709acb);
     stateful_free(buffer_v8f4ff31e78);
@@ -5953,7 +5953,7 @@ vd35a3a1464_0:;
     size_2 += serialize(Data, size_2, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, ehci_qh_0 + 0x0, 0x4, (uint8_t *)v8cea5c8bc4);
     free(v8cea5c8bc4);
     uint8_t *vf5d2148ced = (uint8_t *)malloc(0x4);
-    fill(vf5d2148ced, 0x4, (((get_data_from_pool4() & ((1 << (0x07 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x07) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x02 + 1)) - 1)) << 0x0c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x0b + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1b) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x1c)), 0x4);
+    fill(vf5d2148ced, 0x4, (((0 & ((1 << (0x07 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x07) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x02 + 1)) - 1)) << 0x0c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x0b + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1b) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x1c)), 0x4);
     size_2 += serialize(Data, size_2, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, ehci_qh_0 + 0x4, 0x4, (uint8_t *)vf5d2148ced);
     free(vf5d2148ced);
     uint8_t *v905d811c1b = (uint8_t *)malloc(0x4);
@@ -6328,7 +6328,7 @@ v8d05f9d4df_0:;
     size_3 += serialize(Data, size_3, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, ehci_mix_0 + 0x0, 0x4, (uint8_t *)vaffce8e962);
     free(vaffce8e962);
     uint8_t *v20a22b16cf = (uint8_t *)malloc(0x4);
-    fill(v20a22b16cf, 0x4, (((get_data_from_pool4() & ((1 << (0x07 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x07) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x02 + 1)) - 1)) << 0x0c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x0b + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1b) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x1c)), 0x4);
+    fill(v20a22b16cf, 0x4, (((0 & ((1 << (0x07 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x07) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x02 + 1)) - 1)) << 0x0c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x0b + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1b) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x1c)), 0x4);
     size_3 += serialize(Data, size_3, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, ehci_mix_0 + 0x4, 0x4, (uint8_t *)v20a22b16cf);
     free(v20a22b16cf);
     uint8_t *v938d45104e = (uint8_t *)malloc(0x4);
@@ -6988,6 +6988,45 @@ v477453988a_out:;
 
 static size_t get_size_4() { return size_4;}
 
+// ==== hw/usb/hcd-xhci.c:xhci_process_commands:while ((type = ============================
+size_t size_5 = 0;
+
+static uint64_t xhci_trb_0 = 0;
+
+static uint8_t *get_data_5() {
+    size_5 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto v994907f128_0; break;
+    }
+v994907f128_0:;
+    stateful_free(xhci_trb_0);
+    xhci_trb_0 = stateful_malloc(0x10, /*chained=*/false);
+    // printf("[+] xhci_trb_0 = 0x%lx\n", xhci_trb_0);
+    uint8_t *vb9be64e1b0 = (uint8_t *)malloc(0x8);
+    fill(vb9be64e1b0, 0x8, (xhci_trb_0 & 0xffffffc0), 0x4);
+    size_5 += serialize(Data, size_5, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, xhci_trb_0 + 0x0, 0x8, (uint8_t *)vb9be64e1b0);
+    free(vb9be64e1b0);
+    uint8_t *v649ddd5103 = (uint8_t *)malloc(0x4);
+    fill(v649ddd5103, 0x4, (((get_data_from_pool4() & ((1 << (0x10 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x06 + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x16)), 0x4);
+    size_5 += serialize(Data, size_5, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, xhci_trb_0 + 0x8, 0x4, (uint8_t *)v649ddd5103);
+    free(v649ddd5103);
+    uint8_t *v431d779ade = (uint8_t *)malloc(0x4);
+    fill(v431d779ade, 0x4, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x06) | ((get_data_from_pool4() & ((1 << (0x02 + 1)) - 1)) << 0x07) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x09) | ((get_data_from_pool4() & ((1 << (0x06 + 1)) - 1)) << 0x0a) | ((get_data_from_pool4() & ((1 << (0x05 + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x03 + 1)) - 1)) << 0x15) | ((get_data_from_pool4() & ((1 << (0x08 + 1)) - 1)) << 0x18)), 0x4);
+    size_5 += serialize(Data, size_5, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, xhci_trb_0 + 0xc, 0x4, (uint8_t *)v431d779ade);
+    free(v431d779ade);
+    uint64_t v95f45a1fe1 = (xhci_trb_0 & 0xffffffc0);
+    size_5 += serialize(Data, size_5, CALLBACK_MAXSIZE, get_interface_id("operational", EVENT_TYPE_MMIO_WRITE), 0x18, 0x4, (uint8_t *)&v95f45a1fe1);
+    uint64_t v19cf40ca16 = 0x0;
+    size_5 += serialize(Data, size_5, CALLBACK_MAXSIZE, get_interface_id("operational", EVENT_TYPE_MMIO_WRITE), 0x1c, 0x0, (uint8_t *)&v19cf40ca16);
+    goto v994907f128_out;
+v994907f128_out:;
+    return Data;
+}
+
+static size_t get_size_5() { return size_5;}
+
 static Callback callbacks[] = { 
     [0] = {
         .id = 0,
@@ -7018,6 +7057,12 @@ static Callback callbacks[] = {
         .name = "vmxnet31",
         .get_data = get_data_4,
         .get_size = get_size_4,
+    },
+    [5] = {
+        .id = 5,
+        .name = "xhci0",
+        .get_data = get_data_5,
+        .get_size = get_size_5,
     },
 };
 

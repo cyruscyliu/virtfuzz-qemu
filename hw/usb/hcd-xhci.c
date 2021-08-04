@@ -310,6 +310,8 @@ static void xhci_xfer_report(XHCITransfer *xfer);
 static void xhci_event(XHCIState *xhci, XHCIEvent *event, int v);
 static void xhci_write_event(XHCIState *xhci, XHCIEvent *event, int v);
 static USBEndpoint *xhci_epid_to_usbep(XHCIEPContext *epctx);
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 
 static const char *TRBType_names[] = {
     [TRB_RESERVED]                     = "TRB_RESERVED",
@@ -675,6 +677,7 @@ static TRBType xhci_ring_fetch(XHCIState *xhci, XHCIRing *ring, XHCITRB *trb,
 
     while (1) {
         TRBType type;
+        // printf("[0] ring->dequeue=0x%lx\n", ring->dequeue);
         dma_memory_read(xhci->as, ring->dequeue, trb, TRB_SIZE);
         trb->addr = ring->dequeue;
         trb->ccs = ring->ccs;
@@ -685,6 +688,7 @@ static TRBType xhci_ring_fetch(XHCIState *xhci, XHCIRing *ring, XHCITRB *trb,
         trace_usb_xhci_fetch_trb(ring->dequeue, trb_name(trb),
                                  trb->parameter, trb->status, trb->control);
 
+        // printf("[0] trb->control=0x%x\n", trb->control);
         if ((trb->control & TRB_C) != ring->ccs) {
             return 0;
         }
@@ -2430,6 +2434,7 @@ static void xhci_process_commands(XHCIState *xhci)
 
     xhci->crcr_low |= CRCR_CRR;
 
+    TraceStateCallback(5);
     while ((type = xhci_ring_fetch(xhci, &xhci->cmd_ring, &trb, &addr))) {
         event.ptr = addr;
         switch (type) {
