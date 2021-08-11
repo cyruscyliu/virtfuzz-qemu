@@ -400,7 +400,7 @@ static void uhci_port_write(void *opaque, hwaddr addr,
             /* start frame processing */
             trace_usb_uhci_schedule_start();
             s->expire_time = qemu_clock_get_ns(QEMU_CLOCK_VIRTUAL) +
-                (NANOSECONDS_PER_SECOND / FRAME_TIMER_FREQ / 100);
+                (NANOSECONDS_PER_SECOND / FRAME_TIMER_FREQ);
             timer_mod(s->frame_timer, s->expire_time);
             s->status &= ~UHCI_STS_HCHALTED;
         } else if (!(val & UHCI_CMD_RS)) {
@@ -1114,6 +1114,7 @@ static void uhci_frame_timer(void *opaque)
 
     /* Process up to MAX_FRAMES_PER_TICK frames */
     frames = (t_now - t_last_run) / frame_t;
+    // printf("frames=%d\n", frames);
     if (frames > s->maxframes) {
         int skipped = frames - s->maxframes;
         s->expire_time += skipped * frame_t;
