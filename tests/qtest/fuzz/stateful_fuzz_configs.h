@@ -311,7 +311,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*eepro100-mmio*,*eepro100-io*,*eepro100-flash*",
         .file = "hw/net/eepro100.c",
         .socket = false,
-    },{
+    },*/{
         .arch = "i386",
         .name = "e1000",
         .args = "-M q35 -nodefaults "
@@ -319,7 +319,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "e1000",
         .mrnames = "*e1000-mmio*,*e1000-io*",
         .file = "hw/net/e1000.c",
-        .socket = false,
+        .socket = true,
     },{
         .arch = "i386",
         .name = "e1000e",
@@ -328,8 +328,8 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "e1000e",
         .mrnames = "*e1000e-mmio*,*e1000e-io*",
         .file = "hw/net/e1000e.c",
-        .socket = false,
-    },*/{
+        .socket = true,
+    },{
         .arch = "i386",
         .name = "kvaser-can",
         .args = "-machine q35 -nodefaults "

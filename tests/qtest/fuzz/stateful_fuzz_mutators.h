@@ -326,7 +326,7 @@ static size_t Mutate_ChangeAddr(Input *input, uint8_t *Data,
     }
 }
 
-// Size||
+// Size||++
 static size_t Mutate_ChangeSize(Input *input, uint8_t *Data,
         size_t Size, size_t MaxSize) { // random
     if (Size >= MaxSize) return 0;
@@ -334,6 +334,7 @@ static size_t Mutate_ChangeSize(Input *input, uint8_t *Data,
     size_t IdxOffset = get_event_offset(input, Idx);
     uint8_t if_id = around_event_id(Data[IdxOffset]);
     uint8_t type = Id_Description[if_id].type;
+    size_t OldSize, NewSize, RemainingLen;
     switch (type) {
         case EVENT_TYPE_PIO_READ:
         case EVENT_TYPE_MMIO_READ:
@@ -342,8 +343,16 @@ static size_t Mutate_ChangeSize(Input *input, uint8_t *Data,
             LLVMFuzzerMutate(Data + IdxOffset + 9, 4, 4);
             return Size;
         case EVENT_TYPE_CLOCK_STEP:
-        case EVENT_TYPE_SOCKET_WRITE:
             return Size;
+        case EVENT_TYPE_SOCKET_WRITE:
+            OldSize = get_event_size(input, Idx) - 5;
+            NewSize = rand() % SOCKET_WRITE_MAX_SIZE;
+            if (NewSize - OldSize + Size >= MaxSize)
+                return 0;
+            RemainingLen = Size - (IdxOffset + 1 + 4 + OldSize);
+            memcpy(Data + IdxOffset + 1, (uint8_t *)&NewSize, 4);
+            memmove(Data + IdxOffset + 1 + 4 + NewSize, Data + IdxOffset + 1 + 4 + OldSize, RemainingLen);
+            return Size + NewSize - OldSize;
         default:
             fprintf(stderr, "Unsupport Event Type (Mutate_ChangeSize)\n");
             return Size;

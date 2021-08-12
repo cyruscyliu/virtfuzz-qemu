@@ -133,7 +133,16 @@ static void dispatch_clock_step(QTestState *s, uint64_t val) {
 static void dispatch_socket_write(QTestState *s, const void *data, uint32_t size) {
     if (!sockfds_initialized)
         return;
-    int ignore = write(sockfds[0], data, size);
+    uint8_t D[SOCKET_WRITE_MAX_SIZE + 4];
+    if (size > SOCKET_WRITE_MAX_SIZE)
+        return;
+    uint32_t S = htonl(size);
+    memcpy(D, (uint8_t *)&S, 4);
+    memcpy(D + 4, data, size);
+    int ignore = write(sockfds[0], D, size + 4);
+    if (getenv("FUZZ_SERIALIZE_QTEST")) {
+        printf("[W] sock: %d, 0x%x bytes -> %d\n", sockfds[0], size, ignore);
+    }
     (void) ignore;
     return;
 }
@@ -212,8 +221,10 @@ void TraceStateCallback(uint8_t id) {
     Event *event = input->events;
     QTestState *s = get_qtest_state();
     for (int i = 0; event != NULL; i++) {
-        // fprintf(stderr, "%d ", i);
-        // printf_event(event);
+        if (getenv("PRINT_EVENT")) {
+            fprintf(stderr, "%d ", i);
+            printf_event(event);
+        }
         dispatch_event(event, s);
         flush_events(s);
         event = event->next;
