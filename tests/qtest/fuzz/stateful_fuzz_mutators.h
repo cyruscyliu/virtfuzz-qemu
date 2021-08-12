@@ -226,7 +226,7 @@ static size_t Mutate_InsertRepeatedEvent(Input *input, uint8_t *Data,
     if (Size >= MaxSize) return 0;
     uint8_t type = rand() % N_VALID_TYPES;
     size_t kMinEventsToInsert = 3;
-    size_t kMaxEventsToInsert = 128;
+    size_t kMaxEventsToInsert = 8;
     size_t N = (rand() % (kMaxEventsToInsert - kMinEventsToInsert))
         + kMinEventsToInsert;
     for (int i = 0; i < N; i++) {
