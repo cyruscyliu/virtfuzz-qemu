@@ -275,7 +275,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*vmxnet3-b0*,*vmxnet3-b1*",
         .file = "hw/net/vmxnet3.c",
         .socket = true,
-    },/*{
+    },{
         .arch = "i386",
         .name = "ne2000",
         .args = "-machine q35 -nodefaults "
@@ -283,7 +283,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "ne2k*",
         .mrnames = "*ne2000*",
         .file = "hw/net/ne2000.c",
-        .socket = false,
+        .socket = true,
     },{
         .arch = "i386",
         .name = "pcnet",
@@ -292,7 +292,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "pcnet",
         .mrnames = "*pcnet-mmio*,*pcnet-io*",
         .file = "hw/net/pcnet-pci.c",
-        .socket = false,
+        .socket = true,
     },{
         .arch = "i386",
         .name = "rtl8139",
@@ -301,7 +301,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "rtl8139",
         .mrnames = "*rtl8139*",
         .file = "hw/net/rtl8139.c",
-        .socket = false,
+        .socket = true,
     },{
         .arch = "i386",
         .name = "i82550",
@@ -310,8 +310,8 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*eepro100-mmio*,*eepro100-io*,*eepro100-flash*",
         .mrnames = "*eepro100-mmio*,*eepro100-io*,*eepro100-flash*",
         .file = "hw/net/eepro100.c",
-        .socket = false,
-    },*/{
+        .socket = true,
+    },{
         .arch = "i386",
         .name = "e1000",
         .args = "-M q35 -nodefaults "
@@ -337,7 +337,7 @@ static const generic_fuzz_config predefined_configs[] = {
         // "-object can-host-socketcan,id=canhost0,if=can0,canbus=canbus0",
         .objects = "*kvaser_pci-s5920*,*kvaser_pci-sja*,*kvaser_pci-xilinx*",
         .mrnames = "*kvaser_pci-s5920*,*kvaser_pci-sja*,*kvaser_pci-xilinx*",
-        .socket = false,
+        .socket = true,
     },{
         .arch = "i386",
         .name = "pcm3680-can",
@@ -347,7 +347,7 @@ static const generic_fuzz_config predefined_configs[] = {
         // "-object can-host-socketcan,id=canhost0,if=can0,canbus=canbus0",
         .objects = "*pcm3680i_pci-sja1*,*pcm3680i_pci-sja2*",
         .mrnames = "*pcm3680i_pci-sja1*,*pcm3680i_pci-sja2*",
-        .socket = false,
+        .socket = true,
     },/*{
         .arch = "i386",
         .name = "mioe3680-can",
@@ -367,7 +367,7 @@ static const generic_fuzz_config predefined_configs[] = {
         // "-object can-host-socketcan,if=can0,canbus=canbus0-bus,id=canbus0-socketcan",
         .objects = "*ctucan_pci-core0*,*ctucan_pci-core1*",
         .mrnames = "*ctucan_pci-core0*,*ctucan_pci-core1*",
-        .socket = false,
+        .socket = true,
     },{
         .arch = "i386",
         .name = "rocker",
@@ -381,7 +381,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .objects = "*rocker-mmio*",
         .mrnames = "*rocker-mmio*",
         .file = "hw/net/rocker/rocker.c",
-        .socket = false,
+        .socket = true,
     },{
         .arch = "i386",
         .name = "ac97",

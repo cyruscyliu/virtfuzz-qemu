@@ -350,6 +350,7 @@ static size_t Mutate_ChangeSize(Input *input, uint8_t *Data,
             if (NewSize - OldSize + Size >= MaxSize)
                 return 0;
             RemainingLen = Size - (IdxOffset + 1 + 4 + OldSize);
+	        // printf("OldSize=%zu, NewSize=%zu, RemainingLen=%zu, Size=%zu, IdxOffset=%zu\n", OldSize, NewSize, RemainingLen, Size, IdxOffset);
             memcpy(Data + IdxOffset + 1, (uint8_t *)&NewSize, 4);
             memmove(Data + IdxOffset + 1 + 4 + NewSize, Data + IdxOffset + 1 + 4 + OldSize, RemainingLen);
             return Size + NewSize - OldSize;
@@ -381,7 +382,8 @@ static size_t Mutate_ChangeValue(Input *input, uint8_t *Data,
             return Size;
         case EVENT_TYPE_SOCKET_WRITE:
             memcpy((uint8_t *)&sw_size, Data + IdxOffset + 1, 4);
-            LLVMFuzzerMutate(Data + IdxOffset + 1 + 4, sw_size, sw_size);
+            if (sw_size)
+                LLVMFuzzerMutate(Data + IdxOffset + 1 + 4, sw_size, sw_size);
             return Size;
         default:
             fprintf(stderr, "Unsupport Event Type (Mutate_ChangeValue)\n");

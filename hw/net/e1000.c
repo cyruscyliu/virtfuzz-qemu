@@ -406,13 +406,15 @@ e1000_flush_queue_timer(void *opaque)
 static void
 set_rx_control(E1000State *s, int index, uint32_t val)
 {
+    static int counter = 0;
     s->mac_reg[RCTL] = val;
     s->rxbuf_size = e1000x_rxbufsize(val);
     s->rxbuf_min_shift = ((val / E1000_RCTL_RDMTS_QUAT) & 3) + 1;
     DBGOUT(RX, "RCTL: %d, mac_reg[RCTL] = 0x%x\n", s->mac_reg[RDT],
            s->mac_reg[RCTL]);
-    timer_mod(s->flush_queue_timer,
-              qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL) + 1000);
+    if (counter++ % 100000 == 0)
+        timer_mod(s->flush_queue_timer,
+                  qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL) + 1000);
 }
 
 static void
@@ -735,6 +737,8 @@ static uint64_t tx_desc_base(E1000State *s)
     return (bah << 32) + bal;
 }
 
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 static void
 start_xmit(E1000State *s)
 {
@@ -748,9 +752,11 @@ start_xmit(E1000State *s)
         return;
     }
 
+    TraceStateCallback(6);
     while (s->mac_reg[TDH] != s->mac_reg[TDT]) {
         base = tx_desc_base(s) +
                sizeof(struct e1000_tx_desc) * s->mac_reg[TDH];
+        // printf("[+] base1=0x%lx\n", base);
         pci_dma_read(d, base, &desc, sizeof(desc));
 
         DBGOUT(TX, "index %d: %p : %x %x\n", s->mac_reg[TDH],
@@ -954,10 +960,12 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
         if (desc_size > s->rxbuf_size) {
             desc_size = s->rxbuf_size;
         }
+        TraceStateCallback(7);
         base = rx_desc_base(s) + sizeof(desc) * s->mac_reg[RDH];
         pci_dma_read(d, base, &desc, sizeof(desc));
         desc.special = vlan_special;
         desc.status |= (vlan_status | E1000_RXD_STAT_DD);
+        // printf("[+] base=0x%lx 0x%lx\n", base, desc.buffer_addr);
         if (desc.buffer_addr) {
             if (desc_offset < size) {
                 size_t iov_copy;

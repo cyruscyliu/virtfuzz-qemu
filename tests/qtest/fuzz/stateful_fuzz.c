@@ -286,24 +286,29 @@ static void locate_fuzzable_objects(Object *obj, char *mrname) {
             // TODO: Improve to resolve the max/min in the future
             if (mr_type == MMIO_ADDRESS) {
                 if (mr->ops->valid.min_access_size == 0 &&
-                        mr->ops->valid.max_access_size == 0) {
-                    min = max = 4;
+                        mr->ops->valid.max_access_size == 0 &&
+                        mr->ops->impl.min_access_size == 0 &&
+                        mr->ops->impl.max_access_size == 0) {
+                    min = 1;
+                    max = 4;
                 } else {
-                    min = mr->ops->valid.min_access_size;
-                    max = mr->ops->valid.max_access_size;
+                    min = MAX(mr->ops->valid.min_access_size, mr->ops->impl.min_access_size);
+                    max = MAX(mr->ops->valid.max_access_size, mr->ops->impl.max_access_size);
                 }
                 Id_Description[n_interfaces].type = EVENT_TYPE_MMIO_READ;
                 Id_Description[n_interfaces + 1].type = EVENT_TYPE_MMIO_WRITE;
             } else if (mr_type == PIO_ADDRESS) {
                 MemoryRegionPortioList *mrpl = (MemoryRegionPortioList *)mr->opaque;
                 if (mr->ops->valid.min_access_size == 0 &&
-                        mr->ops->valid.max_access_size == 0 && mrpl) {
+                        mr->ops->valid.max_access_size == 0 &&
+                        mr->ops->impl.min_access_size == 0 &&
+                        mr->ops->impl.max_access_size == 0 && mrpl) {
                     min = 1;
                     max = (((MemoryRegionPortio *)((MemoryRegionPortioList *)mr->opaque)->ports)[0]).size;
-                    if (max == 0) { max = min; }
+                    if (max == 0) { max = 4; }
                 } else {
-                    min = mr->ops->valid.min_access_size;
-                    max = mr->ops->valid.max_access_size;
+                    min = MAX(mr->ops->valid.min_access_size, mr->ops->impl.min_access_size);
+                    max = MAX(mr->ops->valid.max_access_size, mr->ops->impl.max_access_size);
                 }
                 Id_Description[n_interfaces].type = EVENT_TYPE_PIO_READ;
                 Id_Description[n_interfaces + 1].type = EVENT_TYPE_PIO_WRITE;
@@ -411,6 +416,8 @@ static void stateful_fuzz(QTestState *s, const uint8_t *Data, size_t Size) {
     deserialize(input, /*indexer=*/false);
     // fetch data pool
     Event *data_pool_event = get_event(input, input->n_events - 1);
+    // printf_event(data_pool_event);
+    // printf("[-] Size=%zu\n", Size);
     g_assert(data_pool_event->id == INTERFACE_DATA_POOL);
     set_data_pool(data_pool_event);
     // if (fork() == 0) {

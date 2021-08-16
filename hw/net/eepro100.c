@@ -84,7 +84,8 @@
 
 #define TRACE(flag, command) ((flag) ? (command) : (void)0)
 
-#define missing(text) fprintf(stderr, "eepro100: feature is missing in this emulation: " text "\n")
+#define missing(text) "// fprintf(stderr, \"eepro100: feature is missing in this emulation: \" text \"\n\")"
+
 
 #define MAX_ETH_FRAME_SIZE 1514
 
