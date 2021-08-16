@@ -255,7 +255,12 @@ static uint64_t around_event_addr(uint8_t id, uint64_t raw_addr) {
             id == INTERFACE_SOCKET_WRITE)
         return raw_addr;
     InterfaceDescription ed = Id_Description[id];
-    return (ed.emb.addr + raw_addr % ed.emb.size) & 0xFFFFFFFFFFFFFFFC;
+    // only rtl3189 has one-byte aligned address
+    if (getenv("BYTE_ADDRESS")) {
+        return (ed.emb.addr + raw_addr % ed.emb.size) & 0xFFFFFFFFFFFFFFFF;
+    } else {
+        return (ed.emb.addr + raw_addr % ed.emb.size) & 0xFFFFFFFFFFFFFFFC;
+    }
 }
 
 static uint32_t around_event_size(uint8_t id, uint8_t type, uint32_t raw_size) {

@@ -7161,6 +7161,147 @@ v1d993cf26f_out:;
 
 static size_t get_size_7() { return size_7;}
 
+// ==== hw/net/rtl8139.c:rtl8139_do_receive:int descriptor = s-> ============================
+size_t size_8 = 0;
+
+static uint64_t rtl8139_rx_ring_desc_0 = 0;
+static uint64_t buffer_ve52cbc1987 = 0;
+
+static uint8_t *get_data_8() {
+    size_8 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto v88374a8610_0; break;
+    }
+v88374a8610_0:;
+    stateful_free(rtl8139_rx_ring_desc_0);
+    rtl8139_rx_ring_desc_0 = stateful_malloc(0x10, /*chained=*/false);
+    // printf("[+] rtl8139_rx_ring_desc_0 = 0x%lx\n", rtl8139_rx_ring_desc_0);
+    uint8_t *v224bfb0d59 = (uint8_t *)malloc(0x4);
+    fill(v224bfb0d59, 0x4, (((get_data_from_pool4() & ((1 << (0x0d + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0d) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x11) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x12) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x13) | ((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x14) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x18) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x19) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1a) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1b) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1d) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1f)), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_8 += serialize(Data, size_8, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, rtl8139_rx_ring_desc_0 + 0x0, 0x4, (uint8_t *)v224bfb0d59);
+    free(v224bfb0d59);
+    uint8_t *v4716a271b6 = (uint8_t *)malloc(0x4);
+    fill(v4716a271b6, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_8 += serialize(Data, size_8, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, rtl8139_rx_ring_desc_0 + 0x4, 0x4, (uint8_t *)v4716a271b6);
+    free(v4716a271b6);
+    stateful_free(buffer_ve52cbc1987);
+    buffer_ve52cbc1987 = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_ve52cbc1987 = 0x%lx\n", buffer_ve52cbc1987);
+    uint8_t *v596303d936 = (uint8_t *)malloc(0x100);
+    fill(v596303d936, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_8 += serialize(Data, size_8, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_ve52cbc1987 + 0x0, 0x100, (uint8_t *)v596303d936);
+    free(v596303d936);
+    uint8_t *v7e4e182b61 = (uint8_t *)malloc(0x4);
+    fill(v7e4e182b61, 0x4, (buffer_ve52cbc1987 | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_8 += serialize(Data, size_8, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, rtl8139_rx_ring_desc_0 + 0x8, 0x4, (uint8_t *)v7e4e182b61);
+    free(v7e4e182b61);
+    uint8_t *vf13ef6d241 = (uint8_t *)malloc(0x4);
+    fill(vf13ef6d241, 0x4, 0x0, 0x4 > 0x4 ? 0x4 : 0x4);
+    size_8 += serialize(Data, size_8, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, rtl8139_rx_ring_desc_0 + 0xc, 0x4, (uint8_t *)vf13ef6d241);
+    free(vf13ef6d241);
+    uint64_t vc9ab9a1b98 = 0x8;
+    size_8 += serialize(Data, size_8, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0x37, 0x1, (uint8_t *)&vc9ab9a1b98);
+    uint64_t v3afed6be43 = rtl8139_rx_ring_desc_0;
+    size_8 += serialize(Data, size_8, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0xE4, 0x4, (uint8_t *)&v3afed6be43);
+    uint64_t vfc62a7d0e4 = 0x0;
+    size_8 += serialize(Data, size_8, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0xE8, 0x4, (uint8_t *)&vfc62a7d0e4);
+    goto v88374a8610_out;
+v88374a8610_out:;
+    return Data;
+}
+
+static size_t get_size_8() { return size_8;}
+
+// ==== hw/net/rtl8139.c:rtl8139_cplus_transmit_one:int descriptor = s-> ============================
+size_t size_9 = 0;
+
+static uint64_t rtl8139_tx_ring_desc_0 = 0;
+static uint64_t buffer_v290819c14b = 0;
+
+static uint8_t *get_data_9() {
+    size_9 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto vea9f3eb8dd_0; break;
+    }
+vea9f3eb8dd_0:;
+    stateful_free(rtl8139_tx_ring_desc_0);
+    rtl8139_tx_ring_desc_0 = stateful_malloc(0x10, /*chained=*/false);
+    // printf("[+] rtl8139_tx_ring_desc_0 = 0x%lx\n", rtl8139_tx_ring_desc_0);
+    uint8_t *ve354f6ae6d = (uint8_t *)malloc(0x4);
+    fill(ve354f6ae6d, 0x4, (((get_data_from_pool4() & ((1 << (0x10 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x11) | ((get_data_from_pool4() & ((1 << (0x09 + 1)) - 1)) << 0x12) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1b) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1d) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1f)), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_9 += serialize(Data, size_9, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, rtl8139_tx_ring_desc_0 + 0x0, 0x4, (uint8_t *)ve354f6ae6d);
+    free(ve354f6ae6d);
+    uint8_t *v6a76c29dd4 = (uint8_t *)malloc(0x4);
+    fill(v6a76c29dd4, 0x4, (((get_data_from_pool4() & ((1 << (0x10 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x11) | ((get_data_from_pool4() & ((1 << (0x0e + 1)) - 1)) << 0x12)), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_9 += serialize(Data, size_9, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, rtl8139_tx_ring_desc_0 + 0x4, 0x4, (uint8_t *)v6a76c29dd4);
+    free(v6a76c29dd4);
+    stateful_free(buffer_v290819c14b);
+    buffer_v290819c14b = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_v290819c14b = 0x%lx\n", buffer_v290819c14b);
+    uint8_t *v4e2cf6881a = (uint8_t *)malloc(0x100);
+    fill(v4e2cf6881a, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_9 += serialize(Data, size_9, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_v290819c14b + 0x0, 0x100, (uint8_t *)v4e2cf6881a);
+    free(v4e2cf6881a);
+    uint8_t *v2a9ec86843 = (uint8_t *)malloc(0x4);
+    fill(v2a9ec86843, 0x4, (buffer_v290819c14b | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_9 += serialize(Data, size_9, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, rtl8139_tx_ring_desc_0 + 0x8, 0x4, (uint8_t *)v2a9ec86843);
+    free(v2a9ec86843);
+    uint8_t *v30fff4f668 = (uint8_t *)malloc(0x4);
+    fill(v30fff4f668, 0x4, 0x0, 0x4 > 0x4 ? 0x4 : 0x4);
+    size_9 += serialize(Data, size_9, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, rtl8139_tx_ring_desc_0 + 0xc, 0x4, (uint8_t *)v30fff4f668);
+    free(v30fff4f668);
+    uint64_t v17cd9a14eb = 0x4;
+    size_9 += serialize(Data, size_9, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0x37, 0x1, (uint8_t *)&v17cd9a14eb);
+    uint64_t v31f2c908e3 = rtl8139_tx_ring_desc_0;
+    size_9 += serialize(Data, size_9, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0x20, 0x4, (uint8_t *)&v31f2c908e3);
+    uint64_t vcaa2e10f4c = 0x0;
+    size_9 += serialize(Data, size_9, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0x24, 0x4, (uint8_t *)&vcaa2e10f4c);
+    goto vea9f3eb8dd_out;
+vea9f3eb8dd_out:;
+    return Data;
+}
+
+static size_t get_size_9() { return size_9;}
+
+// ==== hw/net/rtl8139.c:rtl8139_transmit_one:pci_dma_read( ============================
+size_t size_10 = 0;
+
+static uint64_t rtl8139_buffer_0 = 0;
+
+static uint8_t *get_data_10() {
+    size_10 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto v4d35f1f6d0_0; break;
+    }
+v4d35f1f6d0_0:;
+    stateful_free(rtl8139_buffer_0);
+    rtl8139_buffer_0 = stateful_malloc(0x2000, /*chained=*/false);
+    // printf("[+] rtl8139_buffer_0 = 0x%lx\n", rtl8139_buffer_0);
+    uint8_t *vaa30b1e143 = (uint8_t *)malloc(0x2000);
+    fill(vaa30b1e143, 0x2000, get_data_from_pool4(), 0x2000 > 0x4 ? 0x4 : 0x2000);
+    size_10 += serialize(Data, size_10, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, rtl8139_buffer_0 + 0x0, 0x2000, (uint8_t *)vaa30b1e143);
+    free(vaa30b1e143);
+    uint64_t v727201681f = rtl8139_buffer_0;
+    size_10 += serialize(Data, size_10, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0x20, 0x4, (uint8_t *)&v727201681f);
+    uint64_t v29bbd86ece = rtl8139_buffer_0;
+    size_10 += serialize(Data, size_10, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0x24, 0x4, (uint8_t *)&v29bbd86ece);
+    uint64_t v3c6c0da87f = rtl8139_buffer_0;
+    size_10 += serialize(Data, size_10, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0x28, 0x4, (uint8_t *)&v3c6c0da87f);
+    uint64_t v5a24e7864a = rtl8139_buffer_0;
+    size_10 += serialize(Data, size_10, CALLBACK_MAXSIZE, get_interface_id("rtl8139", EVENT_TYPE_PIO_WRITE), 0x2C, 0x4, (uint8_t *)&v5a24e7864a);
+    goto v4d35f1f6d0_out;
+v4d35f1f6d0_out:;
+    return Data;
+}
+
+static size_t get_size_10() { return size_10;}
+
 static Callback callbacks[] = { 
     [0] = {
         .id = 0,
@@ -7209,6 +7350,24 @@ static Callback callbacks[] = {
         .name = "e10001",
         .get_data = get_data_7,
         .get_size = get_size_7,
+    },
+    [8] = {
+        .id = 8,
+        .name = "rtl81390",
+        .get_data = get_data_8,
+        .get_size = get_size_8,
+    },
+    [9] = {
+        .id = 9,
+        .name = "rtl81391",
+        .get_data = get_data_9,
+        .get_size = get_size_9,
+    },
+    [10] = {
+        .id = 10,
+        .name = "rtl81392",
+        .get_data = get_data_10,
+        .get_size = get_size_10,
     },
 };
 
