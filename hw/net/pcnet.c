@@ -296,6 +296,8 @@ struct pcnet_RMD {
         GET_FIELD((R)->msg_length, RMDM, MCNT),         \
         GET_FIELD((R)->msg_length, RMDM, ZEROS))
 
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 static inline void pcnet_tmd_load(PCNetState *s, struct pcnet_TMD *tmd,
                                   hwaddr addr)
 {
@@ -777,8 +779,10 @@ static void pcnet_init(PCNetState *s)
 
     if (BCR_SSIZE32(s)) {
         struct pcnet_initblk32 initblk;
+        TraceStateCallback(11);
         s->phys_mem_read(s->dma_opaque, PHYSADDR(s,CSR_IADR(s)),
                 (uint8_t *)&initblk, sizeof(initblk), 0);
+        // printf("[-] addr11=0x%x\n", PHYSADDR(s, CSR_IADR(s)));
         mode = le16_to_cpu(initblk.mode);
         rlen = initblk.rlen >> 4;
         tlen = initblk.tlen >> 4;
@@ -793,8 +797,10 @@ static void pcnet_init(PCNetState *s)
         tdra = le32_to_cpu(initblk.tdra);
     } else {
         struct pcnet_initblk16 initblk;
+        TraceStateCallback(12);
         s->phys_mem_read(s->dma_opaque, PHYSADDR(s,CSR_IADR(s)),
                 (uint8_t *)&initblk, sizeof(initblk), 0);
+        // printf("[-] addr12=0x%x\n", PHYSADDR(s, CSR_IADR(s)));
         mode = le16_to_cpu(initblk.mode);
         ladrf[0] = le16_to_cpu(initblk.ladrf[0]);
         ladrf[1] = le16_to_cpu(initblk.ladrf[1]);
@@ -917,6 +923,7 @@ static void pcnet_rdte_poll(PCNetState *s)
         }
     }
 
+    // TraceStateCallback(14);
     if (CSR_CRDA(s)) {
         struct pcnet_RMD rmd;
         RMDLOAD(&rmd, PHYSADDR(s,CSR_CRDA(s)));
@@ -932,6 +939,7 @@ static void pcnet_rdte_poll(PCNetState *s)
         CSR_CRBC(s) = CSR_CRST(s) = 0;
     }
 
+    // TraceStateCallback(15);
     if (CSR_NRDA(s)) {
         struct pcnet_RMD rmd;
         RMDLOAD(&rmd, PHYSADDR(s,CSR_NRDA(s)));
@@ -970,6 +978,7 @@ static int pcnet_tdte_poll(PCNetState *s)
     if (CSR_CXDA(s)) {
         struct pcnet_TMD tmd;
 
+        // TraceStateCallback(13);
         TMDLOAD(&tmd, PHYSADDR(s,CSR_CXDA(s)));
 
         CSR_CXBC(s) = GET_FIELD(tmd.length, TMDL, BCNT);
@@ -1045,8 +1054,10 @@ ssize_t pcnet_receive(NetClientState *nc, const uint8_t *buf, size_t size_)
             s->csr[0] |= 0x1000; /* Set MISS flag */
             CSR_MISSC(s)++;
         } else {
+            TraceStateCallback(14);
             uint8_t *src = s->buffer;
             hwaddr crda = CSR_CRDA(s);
+            // printf("[-] addr14=0x%lx\n", crda);
             struct pcnet_RMD rmd;
             int pktcount = 0;
 
@@ -1103,7 +1114,9 @@ ssize_t pcnet_receive(NetClientState *nc, const uint8_t *buf, size_t size_)
             remaining = size;
             PCNET_RECV_STORE();
             if ((remaining > 0) && CSR_NRDA(s)) {
+                TraceStateCallback(15);
                 hwaddr nrda = CSR_NRDA(s);
+                printf("[-] addr15=0x%lx\n", nrda);
 #ifdef PCNET_DEBUG_RMD
                 PRINT_RMD(&rmd);
 #endif
@@ -1198,7 +1211,9 @@ txagain:
     if (pcnet_tdte_poll(s)) {
         struct pcnet_TMD tmd;
 
+        // TraceStateCallback(13);
         TMDLOAD(&tmd, PHYSADDR(s,CSR_CXDA(s)));
+        printf("[-] addr13=0x%x\n", PHYSADDR(s, CSR_CXDA(s)));
 
 #ifdef PCNET_DEBUG_TMD
         printf("  TMDLOAD 0x%08x\n", PHYSADDR(s,CSR_CXDA(s)));

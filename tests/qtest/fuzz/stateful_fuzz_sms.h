@@ -7302,6 +7302,401 @@ v4d35f1f6d0_out:;
 
 static size_t get_size_10() { return size_10;}
 
+// ==== hw/net/pcnet.c:pcnet_init:s->phys_mem_read ============================
+size_t size_11 = 0;
+
+static uint64_t pcnet_initblk32_0 = 0;
+
+static uint8_t *get_data_11() {
+    size_11 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto ve688f05e7e_0; break;
+    }
+ve688f05e7e_0:;
+    stateful_free(pcnet_initblk32_0);
+    pcnet_initblk32_0 = stateful_malloc(0x1c, /*chained=*/false);
+    // printf("[+] pcnet_initblk32_0 = 0x%lx\n", pcnet_initblk32_0);
+    uint8_t *v88e06c1982 = (uint8_t *)malloc(0x2);
+    fill(v88e06c1982, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x0, 0x2, (uint8_t *)v88e06c1982);
+    free(v88e06c1982);
+    uint8_t *v1b20bbf65e = (uint8_t *)malloc(0x1);
+    fill(v1b20bbf65e, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x2, 0x1, (uint8_t *)v1b20bbf65e);
+    free(v1b20bbf65e);
+    uint8_t *v5996c8b37f = (uint8_t *)malloc(0x1);
+    fill(v5996c8b37f, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x3, 0x1, (uint8_t *)v5996c8b37f);
+    free(v5996c8b37f);
+    uint8_t *v2f529eb616 = (uint8_t *)malloc(0x2);
+    fill(v2f529eb616, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x4, 0x2, (uint8_t *)v2f529eb616);
+    free(v2f529eb616);
+    uint8_t *v6f25cbe207 = (uint8_t *)malloc(0x2);
+    fill(v6f25cbe207, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x6, 0x2, (uint8_t *)v6f25cbe207);
+    free(v6f25cbe207);
+    uint8_t *v97bf86b357 = (uint8_t *)malloc(0x2);
+    fill(v97bf86b357, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x8, 0x2, (uint8_t *)v97bf86b357);
+    free(v97bf86b357);
+    uint8_t *vaf2dd8f01d = (uint8_t *)malloc(0x2);
+    fill(vaf2dd8f01d, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0xa, 0x2, (uint8_t *)vaf2dd8f01d);
+    free(vaf2dd8f01d);
+    uint8_t *v229edea18b = (uint8_t *)malloc(0x2);
+    fill(v229edea18b, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0xc, 0x2, (uint8_t *)v229edea18b);
+    free(v229edea18b);
+    uint8_t *va043594369 = (uint8_t *)malloc(0x2);
+    fill(va043594369, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0xe, 0x2, (uint8_t *)va043594369);
+    free(va043594369);
+    uint8_t *vb1e89782e2 = (uint8_t *)malloc(0x2);
+    fill(vb1e89782e2, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x10, 0x2, (uint8_t *)vb1e89782e2);
+    free(vb1e89782e2);
+    uint8_t *v5695ac3c0a = (uint8_t *)malloc(0x2);
+    fill(v5695ac3c0a, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x12, 0x2, (uint8_t *)v5695ac3c0a);
+    free(v5695ac3c0a);
+    uint8_t *v333ea67cc5 = (uint8_t *)malloc(0x4);
+    fill(v333ea67cc5, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x14, 0x4, (uint8_t *)v333ea67cc5);
+    free(v333ea67cc5);
+    uint8_t *v4937198de6 = (uint8_t *)malloc(0x4);
+    fill(v4937198de6, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk32_0 + 0x18, 0x4, (uint8_t *)v4937198de6);
+    free(v4937198de6);
+    uint64_t v84e2ca1701 = 0x10;
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&v84e2ca1701);
+    uint64_t vc7ff1f2188 = pcnet_initblk32_0;
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&vc7ff1f2188);
+    uint64_t v35006ba603 = 0x11;
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&v35006ba603);
+    uint64_t v641ff10686 = (pcnet_initblk32_0 >> 16);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&v641ff10686);
+    uint64_t vc03f003473 = 0x10;
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&vc03f003473);
+    uint64_t v822bbc3d71 = pcnet_initblk32_0;
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v822bbc3d71);
+    uint64_t v7bb8be9470 = 0x11;
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&v7bb8be9470);
+    uint64_t v109d5c8d45 = (pcnet_initblk32_0 >> 16);
+    size_11 += serialize(Data, size_11, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v109d5c8d45);
+    goto ve688f05e7e_out;
+ve688f05e7e_out:;
+    return Data;
+}
+
+static size_t get_size_11() { return size_11;}
+
+// ==== hw/net/pcnet.c:pcnet_init:s->phys_mem_read ============================
+size_t size_12 = 0;
+
+static uint64_t pcnet_initblk16_0 = 0;
+
+static uint8_t *get_data_12() {
+    size_12 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto vadf1c0a7e3_0; break;
+    }
+vadf1c0a7e3_0:;
+    stateful_free(pcnet_initblk16_0);
+    pcnet_initblk16_0 = stateful_malloc(0x18, /*chained=*/false);
+    // printf("[+] pcnet_initblk16_0 = 0x%lx\n", pcnet_initblk16_0);
+    uint8_t *v52c28839db = (uint8_t *)malloc(0x2);
+    fill(v52c28839db, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0x0, 0x2, (uint8_t *)v52c28839db);
+    free(v52c28839db);
+    uint8_t *vc9b7146ea9 = (uint8_t *)malloc(0x2);
+    fill(vc9b7146ea9, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0x2, 0x2, (uint8_t *)vc9b7146ea9);
+    free(vc9b7146ea9);
+    uint8_t *v70cef13775 = (uint8_t *)malloc(0x2);
+    fill(v70cef13775, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0x4, 0x2, (uint8_t *)v70cef13775);
+    free(v70cef13775);
+    uint8_t *v69fbdedcaa = (uint8_t *)malloc(0x2);
+    fill(v69fbdedcaa, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0x6, 0x2, (uint8_t *)v69fbdedcaa);
+    free(v69fbdedcaa);
+    uint8_t *v20cfbc0d66 = (uint8_t *)malloc(0x2);
+    fill(v20cfbc0d66, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0x8, 0x2, (uint8_t *)v20cfbc0d66);
+    free(v20cfbc0d66);
+    uint8_t *v170b9484f1 = (uint8_t *)malloc(0x2);
+    fill(v170b9484f1, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0xa, 0x2, (uint8_t *)v170b9484f1);
+    free(v170b9484f1);
+    uint8_t *v2bf28b9560 = (uint8_t *)malloc(0x2);
+    fill(v2bf28b9560, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0xc, 0x2, (uint8_t *)v2bf28b9560);
+    free(v2bf28b9560);
+    uint8_t *vf9b4657387 = (uint8_t *)malloc(0x2);
+    fill(vf9b4657387, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0xe, 0x2, (uint8_t *)vf9b4657387);
+    free(vf9b4657387);
+    uint8_t *v2dbca078e8 = (uint8_t *)malloc(0x4);
+    fill(v2dbca078e8, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0x10, 0x4, (uint8_t *)v2dbca078e8);
+    free(v2dbca078e8);
+    uint8_t *v2216e670b3 = (uint8_t *)malloc(0x4);
+    fill(v2216e670b3, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_initblk16_0 + 0x14, 0x4, (uint8_t *)v2216e670b3);
+    free(v2216e670b3);
+    uint64_t vf8a2279498 = 0x10;
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&vf8a2279498);
+    uint64_t v13bea22432 = pcnet_initblk16_0;
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&v13bea22432);
+    uint64_t v4ce8573005 = 0x11;
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&v4ce8573005);
+    uint64_t vaaf2264b04 = (pcnet_initblk16_0 >> 16);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&vaaf2264b04);
+    uint64_t v12602d108a = 0x10;
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&v12602d108a);
+    uint64_t v768ea5ba93 = pcnet_initblk16_0;
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v768ea5ba93);
+    uint64_t v8c49a512f5 = 0x11;
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&v8c49a512f5);
+    uint64_t ve66bc5a09d = (pcnet_initblk16_0 >> 16);
+    size_12 += serialize(Data, size_12, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&ve66bc5a09d);
+    goto vadf1c0a7e3_out;
+vadf1c0a7e3_out:;
+    return Data;
+}
+
+static size_t get_size_12() { return size_12;}
+
+// ==== hw/net/pcnet.c:pcnet_transmit:TMDLOAD ============================
+size_t size_13 = 0;
+
+static uint64_t pcnet_TMD_0 = 0;
+static uint64_t buffer_v6857548c9e = 0;
+
+static uint8_t *get_data_13() {
+    size_13 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto v62fce1b34e_0; break;
+    }
+v62fce1b34e_0:;
+    stateful_free(pcnet_TMD_0);
+    pcnet_TMD_0 = stateful_malloc(0x10, /*chained=*/false);
+    // printf("[+] pcnet_TMD_0 = 0x%lx\n", pcnet_TMD_0);
+    stateful_free(buffer_v6857548c9e);
+    buffer_v6857548c9e = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_v6857548c9e = 0x%lx\n", buffer_v6857548c9e);
+    uint8_t *v24b4aaafab = (uint8_t *)malloc(0x100);
+    fill(v24b4aaafab, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_v6857548c9e + 0x0, 0x100, (uint8_t *)v24b4aaafab);
+    free(v24b4aaafab);
+    uint8_t *vf14a58b3ee = (uint8_t *)malloc(0x4);
+    fill(vf14a58b3ee, 0x4, (buffer_v6857548c9e | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_TMD_0 + 0x0, 0x4, (uint8_t *)vf14a58b3ee);
+    free(vf14a58b3ee);
+    uint8_t *v19e0f5b764 = (uint8_t *)malloc(0x2);
+    fill(v19e0f5b764, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_TMD_0 + 0x4, 0x2, (uint8_t *)v19e0f5b764);
+    free(v19e0f5b764);
+    uint8_t *v4cfe1f8acc = (uint8_t *)malloc(0x2);
+    fill(v4cfe1f8acc, 0x2, (((get_data_from_pool4() & ((1 << (0x07 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x07) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x09) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0a) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0b) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0d) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x10 + 1)) - 1)) << 0x10)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_TMD_0 + 0x6, 0x2, (uint8_t *)v4cfe1f8acc);
+    free(v4cfe1f8acc);
+    uint8_t *v3ab319ae45 = (uint8_t *)malloc(0x4);
+    fill(v3ab319ae45, 0x4, (((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x0c + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1a) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1b) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1d) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x1f)), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_TMD_0 + 0x8, 0x4, (uint8_t *)v3ab319ae45);
+    free(v3ab319ae45);
+    uint8_t *v2c337ceea9 = (uint8_t *)malloc(0x4);
+    fill(v2c337ceea9, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_TMD_0 + 0xc, 0x4, (uint8_t *)v2c337ceea9);
+    free(v2c337ceea9);
+    uint64_t v5d88c5860f = 0x22;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&v5d88c5860f);
+    uint64_t v69c45171f0 = pcnet_TMD_0;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&v69c45171f0);
+    uint64_t v12d527a03c = 0x23;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&v12d527a03c);
+    uint64_t v2985c817a9 = (pcnet_TMD_0 >> 16);
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&v2985c817a9);
+    uint64_t v858f0cef7b = 0x11;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x4, (uint8_t *)&v858f0cef7b);
+    uint64_t va6d3b6c478 = 0x0;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&va6d3b6c478);
+    uint64_t ve9e0cd8b2d = 0x22;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&ve9e0cd8b2d);
+    uint64_t vb32d747134 = pcnet_TMD_0;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&vb32d747134);
+    uint64_t v6d4fda9921 = 0x23;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&v6d4fda9921);
+    uint64_t v8139bf93e5 = (pcnet_TMD_0 >> 16);
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v8139bf93e5);
+    uint64_t v77727399ce = 0x11;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&v77727399ce);
+    uint64_t v21811ff012 = 0x0;
+    size_13 += serialize(Data, size_13, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v21811ff012);
+    goto v62fce1b34e_out;
+v62fce1b34e_out:;
+    return Data;
+}
+
+static size_t get_size_13() { return size_13;}
+
+// ==== hw/net/pcnet.c:pcnet_rdte_poll:if (CSR_CRDA(s)) { ============================
+size_t size_14 = 0;
+
+static uint64_t pcnet_RMD0_0 = 0;
+static uint64_t buffer_v701b9ea6b8 = 0;
+
+static uint8_t *get_data_14() {
+    size_14 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto v1f15b76d87_0; break;
+    }
+v1f15b76d87_0:;
+    stateful_free(pcnet_RMD0_0);
+    pcnet_RMD0_0 = stateful_malloc(0x10, /*chained=*/false);
+    // printf("[+] pcnet_RMD0_0 = 0x%lx\n", pcnet_RMD0_0);
+    stateful_free(buffer_v701b9ea6b8);
+    buffer_v701b9ea6b8 = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_v701b9ea6b8 = 0x%lx\n", buffer_v701b9ea6b8);
+    uint8_t *v1d665a38c2 = (uint8_t *)malloc(0x100);
+    fill(v1d665a38c2, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_v701b9ea6b8 + 0x0, 0x100, (uint8_t *)v1d665a38c2);
+    free(v1d665a38c2);
+    uint8_t *vb140db0c10 = (uint8_t *)malloc(0x4);
+    fill(vb140db0c10, 0x4, (buffer_v701b9ea6b8 | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD0_0 + 0x0, 0x4, (uint8_t *)vb140db0c10);
+    free(vb140db0c10);
+    uint8_t *v5f82283e4d = (uint8_t *)malloc(0x2);
+    fill(v5f82283e4d, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD0_0 + 0x4, 0x2, (uint8_t *)v5f82283e4d);
+    free(v5f82283e4d);
+    uint8_t *v4be622a100 = (uint8_t *)malloc(0x2);
+    fill(v4be622a100, 0x2, (((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x06) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x07) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x09) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0a) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0b) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0d) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x10 + 1)) - 1)) << 0x10)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD0_0 + 0x6, 0x2, (uint8_t *)v4be622a100);
+    free(v4be622a100);
+    uint8_t *v3bef6eeff6 = (uint8_t *)malloc(0x4);
+    fill(v3bef6eeff6, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD0_0 + 0x8, 0x4, (uint8_t *)v3bef6eeff6);
+    free(v3bef6eeff6);
+    uint8_t *ve54425d51d = (uint8_t *)malloc(0x4);
+    fill(ve54425d51d, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD0_0 + 0xc, 0x4, (uint8_t *)ve54425d51d);
+    free(ve54425d51d);
+    uint64_t v2162113f82 = 0x1c;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&v2162113f82);
+    uint64_t v325659ab7a = pcnet_RMD0_0;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&v325659ab7a);
+    uint64_t v4d9f0dfa10 = 0x1d;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&v4d9f0dfa10);
+    uint64_t ve58cd63c7e = (pcnet_RMD0_0 >> 16);
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&ve58cd63c7e);
+    uint64_t vdcc3339446 = 0x11;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x4, (uint8_t *)&vdcc3339446);
+    uint64_t v8cf6963641 = 0x0;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v8cf6963641);
+    uint64_t vb782fe1ab9 = 0x1c;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&vb782fe1ab9);
+    uint64_t v114d1ad379 = pcnet_RMD0_0;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v114d1ad379);
+    uint64_t v5df270d255 = 0x1d;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&v5df270d255);
+    uint64_t vb95e9f6046 = (pcnet_RMD0_0 >> 16);
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&vb95e9f6046);
+    uint64_t v85325d464e = 0x11;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&v85325d464e);
+    uint64_t v3579404fb0 = 0x0;
+    size_14 += serialize(Data, size_14, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v3579404fb0);
+    goto v1f15b76d87_out;
+v1f15b76d87_out:;
+    return Data;
+}
+
+static size_t get_size_14() { return size_14;}
+
+// ==== hw/net/pcnet.c:pcnet_rdte_poll:if (CSR_NRDA(s)) { ============================
+size_t size_15 = 0;
+
+static uint64_t pcnet_RMD1_0 = 0;
+static uint64_t buffer_v2af139b559 = 0;
+
+static uint8_t *get_data_15() {
+    size_15 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto v2a6ba43a0e_0; break;
+    }
+v2a6ba43a0e_0:;
+    stateful_free(pcnet_RMD1_0);
+    pcnet_RMD1_0 = stateful_malloc(0x10, /*chained=*/false);
+    // printf("[+] pcnet_RMD1_0 = 0x%lx\n", pcnet_RMD1_0);
+    stateful_free(buffer_v2af139b559);
+    buffer_v2af139b559 = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_v2af139b559 = 0x%lx\n", buffer_v2af139b559);
+    uint8_t *v60e8610172 = (uint8_t *)malloc(0x100);
+    fill(v60e8610172, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_v2af139b559 + 0x0, 0x100, (uint8_t *)v60e8610172);
+    free(v60e8610172);
+    uint8_t *v6c3a6e0736 = (uint8_t *)malloc(0x4);
+    fill(v6c3a6e0736, 0x4, (buffer_v2af139b559 | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD1_0 + 0x0, 0x4, (uint8_t *)v6c3a6e0736);
+    free(v6c3a6e0736);
+    uint8_t *v688cd288d7 = (uint8_t *)malloc(0x2);
+    fill(v688cd288d7, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD1_0 + 0x4, 0x2, (uint8_t *)v688cd288d7);
+    free(v688cd288d7);
+    uint8_t *vc8bbea21dd = (uint8_t *)malloc(0x2);
+    fill(vc8bbea21dd, 0x2, (((get_data_from_pool4() & ((1 << (0x04 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x06) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x07) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x08) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x09) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0a) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0b) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0c) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0d) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0e) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x0f) | ((get_data_from_pool4() & ((1 << (0x10 + 1)) - 1)) << 0x10)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD1_0 + 0x6, 0x2, (uint8_t *)vc8bbea21dd);
+    free(vc8bbea21dd);
+    uint8_t *v1c4cd54536 = (uint8_t *)malloc(0x4);
+    fill(v1c4cd54536, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD1_0 + 0x8, 0x4, (uint8_t *)v1c4cd54536);
+    free(v1c4cd54536);
+    uint8_t *vbbd09a1cc3 = (uint8_t *)malloc(0x4);
+    fill(vbbd09a1cc3, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, pcnet_RMD1_0 + 0xc, 0x4, (uint8_t *)vbbd09a1cc3);
+    free(vbbd09a1cc3);
+    uint64_t v7b62caffaf = 0x1a;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&v7b62caffaf);
+    uint64_t v4733ef7da5 = pcnet_RMD1_0;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&v4733ef7da5);
+    uint64_t v940d10cdaf = 0x1b;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x2, (uint8_t *)&v940d10cdaf);
+    uint64_t va6aae7ad19 = (pcnet_RMD1_0 >> 16);
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x2, (uint8_t *)&va6aae7ad19);
+    uint64_t v965f5779e2 = 0x11;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x12, 0x4, (uint8_t *)&v965f5779e2);
+    uint64_t v67d7ff805f = 0x0;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v67d7ff805f);
+    uint64_t v6ce38dafc2 = 0x1a;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&v6ce38dafc2);
+    uint64_t v9e73026118 = pcnet_RMD1_0;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v9e73026118);
+    uint64_t vdfe68c5171 = 0x1b;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&vdfe68c5171);
+    uint64_t v1934c37730 = (pcnet_RMD1_0 >> 16);
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v1934c37730);
+    uint64_t v2a183608b3 = 0x11;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x14, 0x4, (uint8_t *)&v2a183608b3);
+    uint64_t v9fbe505bac = 0x0;
+    size_15 += serialize(Data, size_15, CALLBACK_MAXSIZE, get_interface_id("pcnet-io", EVENT_TYPE_PIO_WRITE), 0x10, 0x4, (uint8_t *)&v9fbe505bac);
+    goto v2a6ba43a0e_out;
+v2a6ba43a0e_out:;
+    return Data;
+}
+
+static size_t get_size_15() { return size_15;}
+
 static Callback callbacks[] = { 
     [0] = {
         .id = 0,
@@ -7368,6 +7763,36 @@ static Callback callbacks[] = {
         .name = "rtl81392",
         .get_data = get_data_10,
         .get_size = get_size_10,
+    },
+    [11] = {
+        .id = 11,
+        .name = "pcnet0",
+        .get_data = get_data_11,
+        .get_size = get_size_11,
+    },
+    [12] = {
+        .id = 12,
+        .name = "pcnet1",
+        .get_data = get_data_12,
+        .get_size = get_size_12,
+    },
+    [13] = {
+        .id = 13,
+        .name = "pcnet2",
+        .get_data = get_data_13,
+        .get_size = get_size_13,
+    },
+    [14] = {
+        .id = 14,
+        .name = "pcnet3",
+        .get_data = get_data_14,
+        .get_size = get_size_14,
+    },
+    [15] = {
+        .id = 15,
+        .name = "pcnet4",
+        .get_data = get_data_15,
+        .get_size = get_size_15,
     },
 };
 
