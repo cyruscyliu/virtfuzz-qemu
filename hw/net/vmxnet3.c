@@ -455,7 +455,8 @@ vmxnet3_setup_tx_offloads(VMXNET3State *s)
         break;
 
     default:
-        g_assert_not_reached();
+        // BUG
+        // g_assert_not_reached();
         return false;
     }
 
