@@ -1094,13 +1094,13 @@ static void vmsvga_value_write(void *opaque, uint32_t address, uint32_t value)
 
 static uint32_t vmsvga_bios_read(void *opaque, uint32_t address)
 {
-    printf("%s: what are we supposed to return?\n", __func__);
+    // printf("%s: what are we supposed to return?\n", __func__);
     return 0xcafe;
 }
 
 static void vmsvga_bios_write(void *opaque, uint32_t address, uint32_t data)
 {
-    printf("%s: what are we supposed to do with (%08x)?\n", __func__, data);
+    // printf("%s: what are we supposed to do with (%08x)?\n", __func__, data);
 }
 
 static inline void vmsvga_check_size(struct vmsvga_state_s *s)

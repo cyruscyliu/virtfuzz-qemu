@@ -18,14 +18,14 @@ bool StatefulFuzzer;
 static GHashTable *fuzzable_memoryregions;
 static GPtrArray *fuzzable_pci_devices;
 
-enum Sizes {Empty, Byte=1, Word=2, Long=4, Quad=8};
+enum Sizes {Empty, Byte0=1, Word=2, Long=4, Quad=8};
 
 /*
  * Generic MMIO Dispatcher.
  */
 static void dispatch_mmio_read(QTestState *s, uint64_t addr, uint32_t size) {
     switch (size) {
-        case Byte:
+        case Byte0:
             qtest_readb(s, addr);
             break;
         case Word:
@@ -48,7 +48,7 @@ static void dispatch_mmio_read(QTestState *s, uint64_t addr, uint32_t size) {
  */
 static void dispatch_pio_read(QTestState *s, uint64_t addr, uint32_t size) {
     switch (size) {
-        case Byte:
+        case Byte0:
             qtest_inb(s, addr);
             break;
         case Word:
@@ -75,7 +75,7 @@ static void dispatch_mem_read(QTestState *s, uint64_t addr, uint8_t *data, uint3
  */
 static void dispatch_mmio_write(QTestState *s, uint64_t addr, uint32_t size, uint64_t val) {
     switch (size) {
-        case Byte:
+        case Byte0:
             qtest_writeb(s, addr, val & 0xFF);
             break;
         case Word:
@@ -98,7 +98,7 @@ static void dispatch_mmio_write(QTestState *s, uint64_t addr, uint32_t size, uin
  */
 static void dispatch_pio_write(QTestState *s, uint64_t addr, uint32_t size, uint64_t val) {
     switch (size) {
-        case Byte:
+        case Byte0:
             qtest_outb(s, addr, val & 0xFF);
             break;
         case Word:
@@ -408,6 +408,9 @@ static void stateful_pre_fuzz(QTestState *s) {
 }
 
 static void stateful_fuzz(QTestState *s, const uint8_t *Data, size_t Size) {
+    if (vnc_client_needed && !vnc_client_initialized) {
+        init_vnc_client(s);
+    }
     // read Data to Input
     Input *input = init_input(Data, Size);
     if (!input)

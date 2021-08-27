@@ -8,6 +8,11 @@ specific_fuzz_ss.add(files('fuzz.c', 'fork_fuzz.c', 'qos_fuzz.c',
 # specific_fuzz_ss.add(when: 'CONFIG_VIRTIO_BLK', if_true: files('virtio_blk_fuzz.c'))
 # specific_fuzz_ss.add(files('generic_fuzz.c'))
 specific_fuzz_ss.add(files('stateful_fuzz.c'))
+vnc_client = declare_dependency(
+  link_args: config_host['FUZZ_EXE_LDFLAGS'].split() +
+             ['-lvncclient']
+)
+specific_fuzz_ss.add(vnc_client)
 
 fork_fuzz = declare_dependency(
   link_args: config_host['FUZZ_EXE_LDFLAGS'].split() +

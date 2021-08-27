@@ -20,6 +20,7 @@
 #include "fuzz.h"
 #include "tests/qtest/libqos/qos_external.h"
 #include "tests/qtest/libqos/qgraph_internal.h"
+#include <rfb/rfbclient.h>
 
 #define DEFAULT_TIMEOUT_US 100000
 #define USEC_IN_SEC 1000000000
@@ -37,6 +38,46 @@ static void init_sockets(void) {
     sockfds_initialized = true;
 }
 
+static rfbClient* client;
+static bool vnc_client_needed = false;
+static bool vnc_client_initialized = false;
+static void vnc_client_output(rfbClient* client, int x, int y, int w, int h) {}
+
+static int init_vnc_client(QTestState *s) {
+    client = rfbGetClient(8, 3, 4);
+    if (fork() == 0) {
+        client->GotFrameBufferUpdate = vnc_client_output;
+        if (!rfbInitClient(client, NULL, NULL)) {
+            _Exit(1);
+        }
+        while (1) {
+            if(WaitForMessage(client, 50) < 0)
+                break;
+            if(!HandleRFBServerMessage(client))
+                break;
+        }
+        rfbClientCleanup(client);
+        _Exit(0);
+    } else {
+        flush_events(s);
+    }
+    vnc_client_initialized = true;
+    return 0;
+}
+
+static void vnc_client_receive(void) {
+    while (1) {
+        if(WaitForMessage(client, 50) < 0)
+            break;
+        if(!HandleRFBServerMessage(client))
+            break;
+    }
+}
+
+static void uninit_vnc_client(void) {
+    rfbClientCleanup(client);
+}
+
 static inline void handle_timeout(int sig) {
     if (qtest_log_enabled) {
         fprintf(stderr, "[Timeout]\n");
@@ -51,6 +92,7 @@ typedef struct generic_fuzz_config {
     const char *arch, *name, *args, *objects, *mrnames, *file;
     gchar* (*argfunc)(void); /* Result must be freeable by g_free() */
     bool socket; /* Need support or not */
+    bool display; /* Need support or not */
 } generic_fuzz_config;
 
 typedef struct MemoryRegionPortioList {
@@ -80,6 +122,9 @@ static inline GString *generic_fuzz_predefined_config_cmdline(FuzzTarget *t)
     config = t->opaque;
     if (config->socket && !sockfds_initialized) {
         init_sockets();
+    }
+    if (config->display) {
+        vnc_client_needed = true;
     }
     setenv("QEMU_AVOID_DOUBLE_FETCH", "1", 1);
     if (config->argfunc) {
@@ -450,65 +495,78 @@ static const generic_fuzz_config predefined_configs[] = {
         // i386, mipsel and ppc
         .arch = "i386",
         .name = "ati",
-        .args = "-machine q35 -nodefaults "
-        "-device ati-vga,romfile=\"\"",
+        .args = "-machine q35 -nodefaults -device ati-vga,romfile=\"\" "
+        "-display vnc=localhost:0 -L ../pc-bios/",
         .objects = "*ati.mmregs*",
         .mrnames = "*ati.mmregs*",
         .file = "hw/display/ati.c",
         .socket = false,
+        .display = true,
     },{
         .arch = "i386",
         .name = "cirrus-vga",
-        .args = "-machine q35 -nodefaults -device cirrus-vga",
+        .args = "-machine q35 -nodefaults -device cirrus-vga "
+        "-display vnc=localhost:0 -L ../pc-bios/",
         .objects = "cirrus*",
         .mrnames = "*cirrus-io*,*cirrus-low-memory*,"
         "*cirrus-linear-io*,*cirrus-bitblt-mmio*,*cirrus-mmio*",
         .file = "hw/display/cirrus-vga.c",
         .socket = false,
+        .display = true,
     },{
         .arch = "i386",
         .name = "qxl",
-        .args = "-machine q35 -nodefaults -device qxl",
+        .args = "-machine q35 -nodefaults -device qxl "
+        "-display vnc=localhost:0 -L ../pc-bios/",
         .objects = "*qxl-ioports*",
         .mrnames = "*qxl-ioports*",
         .file = "hw/display/qxl.c",
         .socket = false,
+        .display = true,
     },{
         .arch = "i386",
         .name = "vmware-svga",
-        .args = "-machine q35 -nodefaults -device vmware-svga",
+        .args = "-machine q35 -nodefaults -device vmware-svga "
+        "-display vnc=localhost:0 -L ../pc-bios/",
         .objects = "*vmsvga-io*",
         .mrnames = "*vmsvga-io*",
         .file = "hw/display/vmware-svga.c",
         .socket = false,
+        .display = true,
     },{
         .arch = "i386",
         .name = "std-vga",
-        .args = "-machine q35 -nodefaults -device VGA",
+        .args = "-machine q35 -nodefaults -device VGA "
+        "-display vnc=localhost:0 -L ../pc-bios/",
         .objects = "*vga-lowmem*,*vga ioports remapped*,"
         "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .mrnames = "*vga-lowmem*,*vga ioports remapped*,"
         "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .file = "hw/display/vga.c",
         .socket = false,
+        .display = true,
     },{
         .arch = "i386",
         .name = "secondary-vga",
-        .args = "-machine q35 -nodefaults -device secondary-vga",
+        .args = "-machine q35 -nodefaults -device secondary-vga "
+        "-display vnc=localhost:0 -L ../pc-bios/",
         .objects = "*vga-lowmem*,*vga ioports remapped*,"
         "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .mrnames = "*vga-lowmem*,*vga ioports remapped*,"
         "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .file = "hw/display/vga.c",
         .socket = false,
+        .display = true,
     },{
         .arch = "i386",
         .name = "bochs-display",
-        .args = "-machine q35 -nodefaults -device bochs-display",
+        .args = "-machine q35 -nodefaults -device bochs-display "
+        "-display vnc=localhost:0 -L ../pc-bios/",
         .objects = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .mrnames = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .file = "hw/display/bochs-display.c",
         .socket = false,
+        .display = true,
     },{
         .arch = "i386",
         // the real thing we test is the fdc not the floopy
