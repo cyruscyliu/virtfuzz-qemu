@@ -5345,6 +5345,11 @@ static int nvme_start_ctrl(NvmeCtrl *n)
                     NVME_CAP_MPSMAX(n->bar.cap));
         return -1;
     }
+    // HACK
+    n->bar.cc |= 0x460000;
+    // printf("[+] bar.cc=0x%x\n", NVME_CC_IOCQES(n->bar.cc));
+    // printf("[+] cqes.min=0x%x\n", NVME_CTRL_CQES_MIN(n->id_ctrl.cqes));
+    // printf("[+] cqes.max=0x%x\n", NVME_CTRL_CQES_MAX(n->id_ctrl.cqes));
     if (unlikely(NVME_CC_IOCQES(n->bar.cc) <
                  NVME_CTRL_CQES_MIN(n->id_ctrl.cqes))) {
         trace_pci_nvme_err_startfail_cqent_too_small(

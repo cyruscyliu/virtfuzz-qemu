@@ -583,7 +583,8 @@ static const generic_fuzz_config predefined_configs[] = {
         .name = "nvme",
         .args = "-machine pc -nodefaults "
         "-drive id=nvm,file=null-co://,file.read-zeroes=on,if=none,format=raw "
-        "-device nvme,serial=deadbeef,drive=nvm",
+        "-object memory-backend-file,id=mb,share=on,mem-path=/tmp/nvm-mb,size=4096 "
+        "-device nvme,cmb_size_mb=32,serial=deadbeef,drive=nvm,pmrdev=mb",
         .objects = "*nvme*,*nvme-cmb*",
         .mrnames = "*nvme*,*nvme-cmb*",
         .file = "hw/block/nvme.c",
@@ -621,7 +622,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*ide*",
         .file = "hw/ide/qdev.c",
         .socket = false,
-    },{
+    },*/{
         .arch = "i386",
         .name = "ahci-hd",
         .args = "-machine q35 -nodefaults "
@@ -629,19 +630,19 @@ static const generic_fuzz_config predefined_configs[] = {
         "-device ide-hd,drive=disk0",
         .objects = "*ahci*",
         .mrnames = "*ahci*",
-        .file = "hw/ide/qdev.c",
+        .file = "hw/ide/ahci.c",
         .socket = false,
     },{
         .arch = "i386",
-        .name = "ahci-atapi",
+        .name = "ahci-cd",
         .args = "-machine q35 -nodefaults "
         "-drive file=null-co://,if=none,format=raw,id=disk0 "
         "-device ide-cd,drive=disk0",
         .objects = "*ahci*",
         .mrnames = "*ahci*",
-        .file = "hw/ide/qdev.c",
+        .file = "hw/ide/ahci.c",
         .socket = false,
-    },*/{
+    },/*{
         .arch = "i386",
         .name = "piix3-ide",
         // suitable for piix3-ide, piix4-ide and piix3-ide-xen
@@ -650,7 +651,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*piix-bmdma*,*bmdma*",
         .file = "hw/ide/piix.c",
         .socket = false,
-    },{
+    },*/{
         .arch = "i386",
         .name = "lsi53c895a",
         .args = "-machine q35 -nodefaults "

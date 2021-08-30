@@ -31,6 +31,60 @@ static void fill(uint8_t *dst, size_t dst_size, uint64_t filler, size_t filler_s
         dst[i] = filler_p[i % filler_size];
 }
 
+uint32_t mfi_frame4_opcode[0x32] = { 
+    0x0100e100,
+    0x01010000,
+    0x01020100,
+    0x01020200,
+    0x01030000,
+    0x01030100,
+    0x01030200,
+    0x01030300,
+    0x01030400,
+    0x01030500,
+    0x01040100,
+    0x01040200,
+    0x01040300,
+    0x01040400,
+    0x01040500,
+    0x01050000,
+    0x01060000,
+    0x01080101,
+    0x01080102,
+    0x010c0100,
+    0x010c0200,
+    0x010d0000,
+    0x010e0201,
+    0x010e0202,
+    0x01101000,
+    0x02010000,
+    0x02010100,
+    0x02020000,
+    0x02030100,
+    0x02040100,
+    0x02070100,
+    0x02070200,
+    0x03010000,
+    0x03010100,
+    0x03020000,
+    0x03030000,
+    0x03040000,
+    0x03090000,
+    0x04010000,
+    0x04020000,
+    0x04030000,
+    0x04060100,
+    0x04060400,
+    0x05010000,
+    0x05020000,
+    0x05030000,
+    0x05050100,
+    0x08000000,
+    0x08010100,
+    0x08010200,
+};
+
+
 #define CALLBACK_MAXSIZE 0x100000
 
 // ==== hw/usb/hcd-uhci.c:uhci_process_frame:frame_addr = ============================
@@ -7879,6 +7933,746 @@ vee8530d4af_out:;
 
 static size_t get_size_15() { return size_15;}
 
+// ==== hw/scsi/megasas.c:megasas_mmio_write:megasas_handle_frame:MFI_IQPH ============================
+size_t size_16 = 0;
+
+static uint64_t mfi_frame_0 = 0;
+static uint64_t mfi_frame_0_1 = 0;
+static uint64_t buffer_v500805e8e7 = 0;
+static uint64_t mfi_frame_0_1_2 = 0;
+static uint64_t buffer_v7d7d5c0a53 = 0;
+static uint64_t buffer_v9329393d9d = 0;
+static uint64_t mfi_frame_0_1_2_3 = 0;
+static uint64_t buffer_v1ac1a074b4 = 0;
+static uint64_t mfi_frame_0_1_2_3_4 = 0;
+static uint64_t mfi_frame_0_1_2_3_4_5 = 0;
+static uint64_t buffer_v99319c3fdd = 0;
+static uint64_t mfi_frame_0_1_2_3_4_5_6 = 0;
+static uint64_t mfi_frame_0_1_2_3_4_5_6_7 = 0;
+static uint64_t mfi_frame_0_1_2_3_4_5_6_7_8 = 0;
+static uint64_t mfi_frame_0_1_2_3_4_5_6_7_8_9 = 0;
+
+static uint8_t *get_data_16() {
+    size_16 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 10){ 
+        case 0: goto v8608927b52_0; break;
+        case 1: goto v8608927b52_1; break;
+        case 2: goto v8608927b52_2; break;
+        case 3: goto v8608927b52_3; break;
+        case 4: goto v8608927b52_4; break;
+        case 5: goto v8608927b52_5; break;
+        case 6: goto v8608927b52_6; break;
+        case 7: goto v8608927b52_7; break;
+        case 8: goto v8608927b52_8; break;
+        case 9: goto v8608927b52_9; break;
+    }
+v8608927b52_0:;
+    stateful_free(mfi_frame_0);
+    mfi_frame_0 = stateful_malloc(0x18, /*chained=*/false);
+    // printf("[+] mfi_frame_0 = 0x%lx\n", mfi_frame_0);
+    uint8_t *vd32f3c6844 = (uint8_t *)malloc(0x1);
+    fill(vd32f3c6844, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x0, 0x1, (uint8_t *)vd32f3c6844);
+    free(vd32f3c6844);
+    uint8_t *v3420824939 = (uint8_t *)malloc(0x1);
+    fill(v3420824939, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x1, 0x1, (uint8_t *)v3420824939);
+    free(v3420824939);
+    uint8_t *vc7fbc91049 = (uint8_t *)malloc(0x1);
+    fill(vc7fbc91049, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x2, 0x1, (uint8_t *)vc7fbc91049);
+    free(vc7fbc91049);
+    uint8_t *v76be813738 = (uint8_t *)malloc(0x1);
+    fill(v76be813738, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x3, 0x1, (uint8_t *)v76be813738);
+    free(v76be813738);
+    uint8_t *vc1921dc921 = (uint8_t *)malloc(0x1);
+    fill(vc1921dc921, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x4, 0x1, (uint8_t *)vc1921dc921);
+    free(vc1921dc921);
+    uint8_t *va604f9cc61 = (uint8_t *)malloc(0x1);
+    fill(va604f9cc61, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x5, 0x1, (uint8_t *)va604f9cc61);
+    free(va604f9cc61);
+    uint8_t *vc614d73ce0 = (uint8_t *)malloc(0x1);
+    fill(vc614d73ce0, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x6, 0x1, (uint8_t *)vc614d73ce0);
+    free(vc614d73ce0);
+    uint8_t *veb3b42b4c3 = (uint8_t *)malloc(0x1);
+    fill(veb3b42b4c3, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x7, 0x1, (uint8_t *)veb3b42b4c3);
+    free(veb3b42b4c3);
+    uint8_t *va752692af5 = (uint8_t *)malloc(0x8);
+    fill(va752692af5, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x8, 0x8, (uint8_t *)va752692af5);
+    free(va752692af5);
+    uint8_t *ve7d6a5cc4d = (uint8_t *)malloc(0x2);
+    fill(ve7d6a5cc4d, 0x2, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x06)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x10, 0x2, (uint8_t *)ve7d6a5cc4d);
+    free(ve7d6a5cc4d);
+    uint8_t *v6164f1a731 = (uint8_t *)malloc(0x2);
+    fill(v6164f1a731, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x12, 0x2, (uint8_t *)v6164f1a731);
+    free(v6164f1a731);
+    uint8_t *vcf923e491a = (uint8_t *)malloc(0x4);
+    fill(vcf923e491a, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0 + 0x14, 0x4, (uint8_t *)vcf923e491a);
+    free(vcf923e491a);
+    uint64_t v55fd0bb851 = (mfi_frame_0 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&v55fd0bb851);
+    goto v8608927b52_out;
+v8608927b52_1:;
+    stateful_free(mfi_frame_0_1);
+    mfi_frame_0_1 = stateful_malloc(0x40, /*chained=*/false);
+    // printf("[+] mfi_frame_0_1 = 0x%lx\n", mfi_frame_0_1);
+    uint8_t *va97d97a613 = (uint8_t *)malloc(0x1);
+    fill(va97d97a613, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x0, 0x1, (uint8_t *)va97d97a613);
+    free(va97d97a613);
+    uint8_t *vd7d5a664eb = (uint8_t *)malloc(0x1);
+    fill(vd7d5a664eb, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x1, 0x1, (uint8_t *)vd7d5a664eb);
+    free(vd7d5a664eb);
+    uint8_t *v2b56cdb2f7 = (uint8_t *)malloc(0x1);
+    fill(v2b56cdb2f7, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x2, 0x1, (uint8_t *)v2b56cdb2f7);
+    free(v2b56cdb2f7);
+    uint8_t *v431c912fc1 = (uint8_t *)malloc(0x1);
+    fill(v431c912fc1, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x3, 0x1, (uint8_t *)v431c912fc1);
+    free(v431c912fc1);
+    uint8_t *v6a07a3b5b3 = (uint8_t *)malloc(0x1);
+    fill(v6a07a3b5b3, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x4, 0x1, (uint8_t *)v6a07a3b5b3);
+    free(v6a07a3b5b3);
+    uint8_t *v15e658812b = (uint8_t *)malloc(0x1);
+    fill(v15e658812b, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x5, 0x1, (uint8_t *)v15e658812b);
+    free(v15e658812b);
+    uint8_t *v2066cae8f3 = (uint8_t *)malloc(0x1);
+    fill(v2066cae8f3, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x6, 0x1, (uint8_t *)v2066cae8f3);
+    free(v2066cae8f3);
+    uint8_t *v6368a6111c = (uint8_t *)malloc(0x1);
+    fill(v6368a6111c, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x7, 0x1, (uint8_t *)v6368a6111c);
+    free(v6368a6111c);
+    uint8_t *v29ec182431 = (uint8_t *)malloc(0x8);
+    fill(v29ec182431, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x8, 0x8, (uint8_t *)v29ec182431);
+    free(v29ec182431);
+    uint8_t *v1acaa9719f = (uint8_t *)malloc(0x2);
+    fill(v1acaa9719f, 0x2, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x06)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x10, 0x2, (uint8_t *)v1acaa9719f);
+    free(v1acaa9719f);
+    uint8_t *vda2a6cb968 = (uint8_t *)malloc(0x2);
+    fill(vda2a6cb968, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x12, 0x2, (uint8_t *)vda2a6cb968);
+    free(vda2a6cb968);
+    uint8_t *vf4b41cb341 = (uint8_t *)malloc(0x4);
+    fill(vf4b41cb341, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x14, 0x4, (uint8_t *)vf4b41cb341);
+    free(vf4b41cb341);
+    stateful_free(buffer_v500805e8e7);
+    buffer_v500805e8e7 = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_v500805e8e7 = 0x%lx\n", buffer_v500805e8e7);
+    uint8_t *vfa5601db11 = (uint8_t *)malloc(0x100);
+    fill(vfa5601db11, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_v500805e8e7 + 0x0, 0x100, (uint8_t *)vfa5601db11);
+    free(vfa5601db11);
+    uint8_t *vcd6a2e6a08 = (uint8_t *)malloc(0x4);
+    fill(vcd6a2e6a08, 0x4, (buffer_v500805e8e7 | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x18, 0x4, (uint8_t *)vcd6a2e6a08);
+    free(vcd6a2e6a08);
+    uint8_t *v82eaae3a10 = (uint8_t *)malloc(0x4);
+    fill(v82eaae3a10, 0x4, 0x0, 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x1c, 0x4, (uint8_t *)v82eaae3a10);
+    free(v82eaae3a10);
+    uint8_t *v4e18adf19e = (uint8_t *)malloc(0x4);
+    fill(v4e18adf19e, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x20, 0x4, (uint8_t *)v4e18adf19e);
+    free(v4e18adf19e);
+    uint8_t *v82c0777ef0 = (uint8_t *)malloc(0x4);
+    fill(v82c0777ef0, 0x4, 0x0, 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x24, 0x4, (uint8_t *)v82c0777ef0);
+    free(v82c0777ef0);
+    uint8_t *vd070edb769 = (uint8_t *)malloc(0x18);
+    fill(vd070edb769, 0x18, get_data_from_pool4(), 0x18 > 0x4 ? 0x4 : 0x18);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1 + 0x28, 0x18, (uint8_t *)vd070edb769);
+    free(vd070edb769);
+    uint64_t v2ca222fdcb = (mfi_frame_0_1 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&v2ca222fdcb);
+    goto v8608927b52_out;
+v8608927b52_2:;
+    stateful_free(mfi_frame_0_1_2);
+    mfi_frame_0_1_2 = stateful_malloc(0x38, /*chained=*/false);
+    // printf("[+] mfi_frame_0_1_2 = 0x%lx\n", mfi_frame_0_1_2);
+    uint8_t *ve512563382 = (uint8_t *)malloc(0x1);
+    fill(ve512563382, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x0, 0x1, (uint8_t *)ve512563382);
+    free(ve512563382);
+    uint8_t *v9cc6d3515f = (uint8_t *)malloc(0x1);
+    fill(v9cc6d3515f, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x1, 0x1, (uint8_t *)v9cc6d3515f);
+    free(v9cc6d3515f);
+    uint8_t *v346d439831 = (uint8_t *)malloc(0x1);
+    fill(v346d439831, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x2, 0x1, (uint8_t *)v346d439831);
+    free(v346d439831);
+    uint8_t *v9ff3c8b230 = (uint8_t *)malloc(0x1);
+    fill(v9ff3c8b230, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x3, 0x1, (uint8_t *)v9ff3c8b230);
+    free(v9ff3c8b230);
+    uint8_t *v447dc5a832 = (uint8_t *)malloc(0x1);
+    fill(v447dc5a832, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x4, 0x1, (uint8_t *)v447dc5a832);
+    free(v447dc5a832);
+    uint8_t *v3cdcb82ec0 = (uint8_t *)malloc(0x1);
+    fill(v3cdcb82ec0, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x5, 0x1, (uint8_t *)v3cdcb82ec0);
+    free(v3cdcb82ec0);
+    uint8_t *vcc28ae3d9d = (uint8_t *)malloc(0x1);
+    fill(vcc28ae3d9d, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x6, 0x1, (uint8_t *)vcc28ae3d9d);
+    free(vcc28ae3d9d);
+    uint8_t *v7c926c46ae = (uint8_t *)malloc(0x1);
+    fill(v7c926c46ae, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x7, 0x1, (uint8_t *)v7c926c46ae);
+    free(v7c926c46ae);
+    uint8_t *va4f8b34207 = (uint8_t *)malloc(0x8);
+    fill(va4f8b34207, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x8, 0x8, (uint8_t *)va4f8b34207);
+    free(va4f8b34207);
+    uint8_t *v2edee8e667 = (uint8_t *)malloc(0x2);
+    fill(v2edee8e667, 0x2, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x06)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x10, 0x2, (uint8_t *)v2edee8e667);
+    free(v2edee8e667);
+    uint8_t *v8bee994081 = (uint8_t *)malloc(0x2);
+    fill(v8bee994081, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x12, 0x2, (uint8_t *)v8bee994081);
+    free(v8bee994081);
+    uint8_t *v38c8e97cb6 = (uint8_t *)malloc(0x4);
+    fill(v38c8e97cb6, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x14, 0x4, (uint8_t *)v38c8e97cb6);
+    free(v38c8e97cb6);
+    stateful_free(buffer_v7d7d5c0a53);
+    buffer_v7d7d5c0a53 = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_v7d7d5c0a53 = 0x%lx\n", buffer_v7d7d5c0a53);
+    uint8_t *v67db8350b3 = (uint8_t *)malloc(0x100);
+    fill(v67db8350b3, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_v7d7d5c0a53 + 0x0, 0x100, (uint8_t *)v67db8350b3);
+    free(v67db8350b3);
+    uint8_t *va4e115ddd8 = (uint8_t *)malloc(0x4);
+    fill(va4e115ddd8, 0x4, (buffer_v7d7d5c0a53 | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x18, 0x4, (uint8_t *)va4e115ddd8);
+    free(va4e115ddd8);
+    uint8_t *ve16589247f = (uint8_t *)malloc(0x4);
+    fill(ve16589247f, 0x4, 0x0, 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x1c, 0x4, (uint8_t *)ve16589247f);
+    free(ve16589247f);
+    stateful_free(buffer_v9329393d9d);
+    buffer_v9329393d9d = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_v9329393d9d = 0x%lx\n", buffer_v9329393d9d);
+    uint8_t *v83f5df7733 = (uint8_t *)malloc(0x100);
+    fill(v83f5df7733, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_v9329393d9d + 0x0, 0x100, (uint8_t *)v83f5df7733);
+    free(v83f5df7733);
+    uint8_t *v54cd927eab = (uint8_t *)malloc(0x4);
+    fill(v54cd927eab, 0x4, (buffer_v9329393d9d | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x20, 0x4, (uint8_t *)v54cd927eab);
+    free(v54cd927eab);
+    uint8_t *v82ac0ab411 = (uint8_t *)malloc(0x4);
+    fill(v82ac0ab411, 0x4, 0x0, 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x24, 0x4, (uint8_t *)v82ac0ab411);
+    free(v82ac0ab411);
+    uint8_t *v49d1d42494 = (uint8_t *)malloc(0x8);
+    fill(v49d1d42494, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x28, 0x8, (uint8_t *)v49d1d42494);
+    free(v49d1d42494);
+    uint8_t *vf55953f41a = (uint8_t *)malloc(0x4);
+    fill(vf55953f41a, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x30, 0x4, (uint8_t *)vf55953f41a);
+    free(vf55953f41a);
+    uint8_t *vd7ee33d76d = (uint8_t *)malloc(0x4);
+    fill(vd7ee33d76d, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2 + 0x34, 0x4, (uint8_t *)vd7ee33d76d);
+    free(vd7ee33d76d);
+    uint64_t v577352bbea = (mfi_frame_0_1_2 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&v577352bbea);
+    goto v8608927b52_out;
+v8608927b52_3:;
+    stateful_free(mfi_frame_0_1_2_3);
+    mfi_frame_0_1_2_3 = stateful_malloc(0x40, /*chained=*/false);
+    // printf("[+] mfi_frame_0_1_2_3 = 0x%lx\n", mfi_frame_0_1_2_3);
+    uint8_t *vc05bb2644c = (uint8_t *)malloc(0x1);
+    fill(vc05bb2644c, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x0, 0x1, (uint8_t *)vc05bb2644c);
+    free(vc05bb2644c);
+    uint8_t *v7164775dfd = (uint8_t *)malloc(0x1);
+    fill(v7164775dfd, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x1, 0x1, (uint8_t *)v7164775dfd);
+    free(v7164775dfd);
+    uint8_t *v5bc700fd3e = (uint8_t *)malloc(0x1);
+    fill(v5bc700fd3e, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x2, 0x1, (uint8_t *)v5bc700fd3e);
+    free(v5bc700fd3e);
+    uint8_t *v2207c8f5a2 = (uint8_t *)malloc(0x1);
+    fill(v2207c8f5a2, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x3, 0x1, (uint8_t *)v2207c8f5a2);
+    free(v2207c8f5a2);
+    uint8_t *v59e0cba212 = (uint8_t *)malloc(0x1);
+    fill(v59e0cba212, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x4, 0x1, (uint8_t *)v59e0cba212);
+    free(v59e0cba212);
+    uint8_t *vbb5cac482b = (uint8_t *)malloc(0x1);
+    fill(vbb5cac482b, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x5, 0x1, (uint8_t *)vbb5cac482b);
+    free(vbb5cac482b);
+    uint8_t *vdfea9ee12e = (uint8_t *)malloc(0x1);
+    fill(vdfea9ee12e, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x6, 0x1, (uint8_t *)vdfea9ee12e);
+    free(vdfea9ee12e);
+    uint8_t *vf278d163d3 = (uint8_t *)malloc(0x1);
+    fill(vf278d163d3, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x7, 0x1, (uint8_t *)vf278d163d3);
+    free(vf278d163d3);
+    uint8_t *v1836a8c6de = (uint8_t *)malloc(0x8);
+    fill(v1836a8c6de, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x8, 0x8, (uint8_t *)v1836a8c6de);
+    free(v1836a8c6de);
+    uint8_t *vb58dc25f39 = (uint8_t *)malloc(0x2);
+    fill(vb58dc25f39, 0x2, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x06)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x10, 0x2, (uint8_t *)vb58dc25f39);
+    free(vb58dc25f39);
+    uint8_t *vbda3235ae1 = (uint8_t *)malloc(0x2);
+    fill(vbda3235ae1, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x12, 0x2, (uint8_t *)vbda3235ae1);
+    free(vbda3235ae1);
+    uint8_t *v5ab4f9c6d0 = (uint8_t *)malloc(0x4);
+    fill(v5ab4f9c6d0, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x14, 0x4, (uint8_t *)v5ab4f9c6d0);
+    free(v5ab4f9c6d0);
+    stateful_free(buffer_v1ac1a074b4);
+    buffer_v1ac1a074b4 = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_v1ac1a074b4 = 0x%lx\n", buffer_v1ac1a074b4);
+    uint8_t *v3adf6a11c6 = (uint8_t *)malloc(0x100);
+    fill(v3adf6a11c6, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_v1ac1a074b4 + 0x0, 0x100, (uint8_t *)v3adf6a11c6);
+    free(v3adf6a11c6);
+    uint8_t *ve39fbc2da8 = (uint8_t *)malloc(0x4);
+    fill(ve39fbc2da8, 0x4, (buffer_v1ac1a074b4 | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x18, 0x4, (uint8_t *)ve39fbc2da8);
+    free(ve39fbc2da8);
+    uint8_t *vd7139e6dc2 = (uint8_t *)malloc(0x4);
+    fill(vd7139e6dc2, 0x4, 0x0, 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x1c, 0x4, (uint8_t *)vd7139e6dc2);
+    free(vd7139e6dc2);
+    uint8_t *vc10314f981 = (uint8_t *)malloc(0x10);
+    fill(vc10314f981, 0x10, get_data_from_pool4(), 0x10 > 0x4 ? 0x4 : 0x10);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x20, 0x10, (uint8_t *)vc10314f981);
+    free(vc10314f981);
+    uint8_t *v62b0107827 = (uint8_t *)malloc(0x8);
+    fill(v62b0107827, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x30, 0x8, (uint8_t *)v62b0107827);
+    free(v62b0107827);
+    uint8_t *va99298b647 = (uint8_t *)malloc(0x4);
+    fill(va99298b647, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x38, 0x4, (uint8_t *)va99298b647);
+    free(va99298b647);
+    uint8_t *v6156d6904c = (uint8_t *)malloc(0x4);
+    fill(v6156d6904c, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3 + 0x3c, 0x4, (uint8_t *)v6156d6904c);
+    free(v6156d6904c);
+    uint64_t v5ab11c748e = (mfi_frame_0_1_2_3 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&v5ab11c748e);
+    goto v8608927b52_out;
+v8608927b52_4:;
+    stateful_free(mfi_frame_0_1_2_3_4);
+    mfi_frame_0_1_2_3_4 = stateful_malloc(0x38, /*chained=*/false);
+    // printf("[+] mfi_frame_0_1_2_3_4 = 0x%lx\n", mfi_frame_0_1_2_3_4);
+    uint8_t *v8e0e8df688 = (uint8_t *)malloc(0x1);
+    fill(v8e0e8df688, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x0, 0x1, (uint8_t *)v8e0e8df688);
+    free(v8e0e8df688);
+    uint8_t *v3c14e766f4 = (uint8_t *)malloc(0x1);
+    fill(v3c14e766f4, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x1, 0x1, (uint8_t *)v3c14e766f4);
+    free(v3c14e766f4);
+    uint8_t *vb3f0522fe4 = (uint8_t *)malloc(0x1);
+    fill(vb3f0522fe4, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x2, 0x1, (uint8_t *)vb3f0522fe4);
+    free(vb3f0522fe4);
+    uint8_t *vf6e65494bd = (uint8_t *)malloc(0x1);
+    fill(vf6e65494bd, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x3, 0x1, (uint8_t *)vf6e65494bd);
+    free(vf6e65494bd);
+    uint8_t *v4f2a354644 = (uint8_t *)malloc(0x1);
+    fill(v4f2a354644, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x4, 0x1, (uint8_t *)v4f2a354644);
+    free(v4f2a354644);
+    uint8_t *v4d2e173e9d = (uint8_t *)malloc(0x1);
+    fill(v4d2e173e9d, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x5, 0x1, (uint8_t *)v4d2e173e9d);
+    free(v4d2e173e9d);
+    uint8_t *v8cdcc2ce4b = (uint8_t *)malloc(0x1);
+    fill(v8cdcc2ce4b, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x6, 0x1, (uint8_t *)v8cdcc2ce4b);
+    free(v8cdcc2ce4b);
+    uint8_t *v6b250adbf2 = (uint8_t *)malloc(0x1);
+    fill(v6b250adbf2, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x7, 0x1, (uint8_t *)v6b250adbf2);
+    free(v6b250adbf2);
+    uint8_t *v37b2185d17 = (uint8_t *)malloc(0x8);
+    fill(v37b2185d17, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x8, 0x8, (uint8_t *)v37b2185d17);
+    free(v37b2185d17);
+    uint8_t *vbb79a78f03 = (uint8_t *)malloc(0x2);
+    fill(vbb79a78f03, 0x2, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x06)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x10, 0x2, (uint8_t *)vbb79a78f03);
+    free(vbb79a78f03);
+    uint8_t *v312ad63448 = (uint8_t *)malloc(0x2);
+    fill(v312ad63448, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x12, 0x2, (uint8_t *)v312ad63448);
+    free(v312ad63448);
+    uint8_t *v65fdb2b976 = (uint8_t *)malloc(0x4);
+    fill(v65fdb2b976, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x14, 0x4, (uint8_t *)v65fdb2b976);
+    free(v65fdb2b976);
+    uint8_t *v4127ce5b03 = (uint8_t *)malloc(0x4);
+    fill(v4127ce5b03, 0x4, mfi_frame4_opcode[rand() % (sizeof(mfi_frame4_opcode) / 4)], 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x18, 0x4, (uint8_t *)v4127ce5b03);
+    free(v4127ce5b03);
+    uint8_t *ved8f302ed3 = (uint8_t *)malloc(0xc);
+    fill(ved8f302ed3, 0xc, get_data_from_pool4(), 0xc > 0x4 ? 0x4 : 0xc);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x1c, 0xc, (uint8_t *)ved8f302ed3);
+    free(ved8f302ed3);
+    uint8_t *v7a6cb906ea = (uint8_t *)malloc(0x8);
+    fill(v7a6cb906ea, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x28, 0x8, (uint8_t *)v7a6cb906ea);
+    free(v7a6cb906ea);
+    uint8_t *vdc4f9b599e = (uint8_t *)malloc(0x4);
+    fill(vdc4f9b599e, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x30, 0x4, (uint8_t *)vdc4f9b599e);
+    free(vdc4f9b599e);
+    uint8_t *v101ad1f39a = (uint8_t *)malloc(0x4);
+    fill(v101ad1f39a, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4 + 0x34, 0x4, (uint8_t *)v101ad1f39a);
+    free(v101ad1f39a);
+    uint64_t v3862cbe202 = (mfi_frame_0_1_2_3_4 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&v3862cbe202);
+    goto v8608927b52_out;
+v8608927b52_5:;
+    stateful_free(mfi_frame_0_1_2_3_4_5);
+    mfi_frame_0_1_2_3_4_5 = stateful_malloc(0x40, /*chained=*/false);
+    // printf("[+] mfi_frame_0_1_2_3_4_5 = 0x%lx\n", mfi_frame_0_1_2_3_4_5);
+    uint8_t *v48757d8753 = (uint8_t *)malloc(0x1);
+    fill(v48757d8753, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x0, 0x1, (uint8_t *)v48757d8753);
+    free(v48757d8753);
+    uint8_t *v6806643ba4 = (uint8_t *)malloc(0x1);
+    fill(v6806643ba4, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x1, 0x1, (uint8_t *)v6806643ba4);
+    free(v6806643ba4);
+    uint8_t *v29a6bc7440 = (uint8_t *)malloc(0x1);
+    fill(v29a6bc7440, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x2, 0x1, (uint8_t *)v29a6bc7440);
+    free(v29a6bc7440);
+    uint8_t *v2f8894833c = (uint8_t *)malloc(0x1);
+    fill(v2f8894833c, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x3, 0x1, (uint8_t *)v2f8894833c);
+    free(v2f8894833c);
+    uint8_t *vc9665aa519 = (uint8_t *)malloc(0x1);
+    fill(vc9665aa519, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x4, 0x1, (uint8_t *)vc9665aa519);
+    free(vc9665aa519);
+    uint8_t *v10f143e21a = (uint8_t *)malloc(0x1);
+    fill(v10f143e21a, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x5, 0x1, (uint8_t *)v10f143e21a);
+    free(v10f143e21a);
+    uint8_t *v9d91e4c07b = (uint8_t *)malloc(0x1);
+    fill(v9d91e4c07b, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x6, 0x1, (uint8_t *)v9d91e4c07b);
+    free(v9d91e4c07b);
+    uint8_t *vf4d204762f = (uint8_t *)malloc(0x1);
+    fill(vf4d204762f, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x7, 0x1, (uint8_t *)vf4d204762f);
+    free(vf4d204762f);
+    uint8_t *v7ca0d4f36f = (uint8_t *)malloc(0x8);
+    fill(v7ca0d4f36f, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x8, 0x8, (uint8_t *)v7ca0d4f36f);
+    free(v7ca0d4f36f);
+    uint8_t *v488dcd7a23 = (uint8_t *)malloc(0x2);
+    fill(v488dcd7a23, 0x2, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x06)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x10, 0x2, (uint8_t *)v488dcd7a23);
+    free(v488dcd7a23);
+    uint8_t *v1da17e1ad9 = (uint8_t *)malloc(0x2);
+    fill(v1da17e1ad9, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x12, 0x2, (uint8_t *)v1da17e1ad9);
+    free(v1da17e1ad9);
+    uint8_t *v97017fd0fd = (uint8_t *)malloc(0x4);
+    fill(v97017fd0fd, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x14, 0x4, (uint8_t *)v97017fd0fd);
+    free(v97017fd0fd);
+    uint8_t *v2b9b12ad40 = (uint8_t *)malloc(0x8);
+    fill(v2b9b12ad40, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x18, 0x8, (uint8_t *)v2b9b12ad40);
+    free(v2b9b12ad40);
+    stateful_free(buffer_v99319c3fdd);
+    buffer_v99319c3fdd = stateful_malloc(0x100, /*chained=*/false);
+    // printf("[+] buffer_v99319c3fdd = 0x%lx\n", buffer_v99319c3fdd);
+    uint8_t *v6fcc0c18d1 = (uint8_t *)malloc(0x100);
+    fill(v6fcc0c18d1, 0x100, get_data_from_pool4(), 0x100 > 0x4 ? 0x4 : 0x100);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, buffer_v99319c3fdd + 0x0, 0x100, (uint8_t *)v6fcc0c18d1);
+    free(v6fcc0c18d1);
+    uint8_t *v7f079d7d05 = (uint8_t *)malloc(0x4);
+    fill(v7f079d7d05, 0x4, (buffer_v99319c3fdd | 0x0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x20, 0x4, (uint8_t *)v7f079d7d05);
+    free(v7f079d7d05);
+    uint8_t *v5edbd437a3 = (uint8_t *)malloc(0x4);
+    fill(v5edbd437a3, 0x4, 0x0, 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x24, 0x4, (uint8_t *)v5edbd437a3);
+    free(v5edbd437a3);
+    uint8_t *vc70c348875 = (uint8_t *)malloc(0x18);
+    fill(vc70c348875, 0x18, get_data_from_pool4(), 0x18 > 0x4 ? 0x4 : 0x18);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5 + 0x28, 0x18, (uint8_t *)vc70c348875);
+    free(vc70c348875);
+    uint64_t v470df9e6a5 = (mfi_frame_0_1_2_3_4_5 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&v470df9e6a5);
+    goto v8608927b52_out;
+v8608927b52_6:;
+    stateful_free(mfi_frame_0_1_2_3_4_5_6);
+    mfi_frame_0_1_2_3_4_5_6 = stateful_malloc(0x38, /*chained=*/false);
+    // printf("[+] mfi_frame_0_1_2_3_4_5_6 = 0x%lx\n", mfi_frame_0_1_2_3_4_5_6);
+    uint8_t *v2587c46a78 = (uint8_t *)malloc(0x1);
+    fill(v2587c46a78, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x0, 0x1, (uint8_t *)v2587c46a78);
+    free(v2587c46a78);
+    uint8_t *vdaac9599ed = (uint8_t *)malloc(0x1);
+    fill(vdaac9599ed, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x1, 0x1, (uint8_t *)vdaac9599ed);
+    free(vdaac9599ed);
+    uint8_t *v775390d347 = (uint8_t *)malloc(0x1);
+    fill(v775390d347, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x2, 0x1, (uint8_t *)v775390d347);
+    free(v775390d347);
+    uint8_t *v8b51f270d4 = (uint8_t *)malloc(0x1);
+    fill(v8b51f270d4, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x3, 0x1, (uint8_t *)v8b51f270d4);
+    free(v8b51f270d4);
+    uint8_t *v6a615a6e81 = (uint8_t *)malloc(0x1);
+    fill(v6a615a6e81, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x4, 0x1, (uint8_t *)v6a615a6e81);
+    free(v6a615a6e81);
+    uint8_t *v82d6d502fa = (uint8_t *)malloc(0x1);
+    fill(v82d6d502fa, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x5, 0x1, (uint8_t *)v82d6d502fa);
+    free(v82d6d502fa);
+    uint8_t *v90645d7202 = (uint8_t *)malloc(0x1);
+    fill(v90645d7202, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x6, 0x1, (uint8_t *)v90645d7202);
+    free(v90645d7202);
+    uint8_t *vdad39cfeff = (uint8_t *)malloc(0x1);
+    fill(vdad39cfeff, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x7, 0x1, (uint8_t *)vdad39cfeff);
+    free(vdad39cfeff);
+    uint8_t *v4975c699e7 = (uint8_t *)malloc(0x8);
+    fill(v4975c699e7, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x8, 0x8, (uint8_t *)v4975c699e7);
+    free(v4975c699e7);
+    uint8_t *v99d8bfd370 = (uint8_t *)malloc(0x2);
+    fill(v99d8bfd370, 0x2, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x06)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x10, 0x2, (uint8_t *)v99d8bfd370);
+    free(v99d8bfd370);
+    uint8_t *v362bf934ca = (uint8_t *)malloc(0x2);
+    fill(v362bf934ca, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x12, 0x2, (uint8_t *)v362bf934ca);
+    free(v362bf934ca);
+    uint8_t *v21c415791f = (uint8_t *)malloc(0x4);
+    fill(v21c415791f, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x14, 0x4, (uint8_t *)v21c415791f);
+    free(v21c415791f);
+    uint8_t *v69241cb83f = (uint8_t *)malloc(0x8);
+    fill(v69241cb83f, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x18, 0x8, (uint8_t *)v69241cb83f);
+    free(v69241cb83f);
+    uint8_t *vc96f1cb38b = (uint8_t *)malloc(0x8);
+    fill(vc96f1cb38b, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x20, 0x8, (uint8_t *)vc96f1cb38b);
+    free(vc96f1cb38b);
+    uint8_t *vbc0041679d = (uint8_t *)malloc(0x4);
+    fill(vbc0041679d, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x28, 0x4, (uint8_t *)vbc0041679d);
+    free(vbc0041679d);
+    uint8_t *vae6f1a15cf = (uint8_t *)malloc(0x8);
+    fill(vae6f1a15cf, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x2c, 0x8, (uint8_t *)vae6f1a15cf);
+    free(vae6f1a15cf);
+    uint8_t *v94ee035c6e = (uint8_t *)malloc(0x4);
+    fill(v94ee035c6e, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6 + 0x34, 0x4, (uint8_t *)v94ee035c6e);
+    free(v94ee035c6e);
+    uint64_t veb687a5ecf = (mfi_frame_0_1_2_3_4_5_6 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&veb687a5ecf);
+    goto v8608927b52_out;
+v8608927b52_7:;
+    stateful_free(mfi_frame_0_1_2_3_4_5_6_7);
+    mfi_frame_0_1_2_3_4_5_6_7 = stateful_malloc(0x30, /*chained=*/false);
+    // printf("[+] mfi_frame_0_1_2_3_4_5_6_7 = 0x%lx\n", mfi_frame_0_1_2_3_4_5_6_7);
+    uint8_t *vd2fcfbfd0b = (uint8_t *)malloc(0x1);
+    fill(vd2fcfbfd0b, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x0, 0x1, (uint8_t *)vd2fcfbfd0b);
+    free(vd2fcfbfd0b);
+    uint8_t *v56d7027b5c = (uint8_t *)malloc(0x1);
+    fill(v56d7027b5c, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x1, 0x1, (uint8_t *)v56d7027b5c);
+    free(v56d7027b5c);
+    uint8_t *v35ea89b3dc = (uint8_t *)malloc(0x1);
+    fill(v35ea89b3dc, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x2, 0x1, (uint8_t *)v35ea89b3dc);
+    free(v35ea89b3dc);
+    uint8_t *vf593d4be25 = (uint8_t *)malloc(0x1);
+    fill(vf593d4be25, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x3, 0x1, (uint8_t *)vf593d4be25);
+    free(vf593d4be25);
+    uint8_t *v5ad854ae26 = (uint8_t *)malloc(0x1);
+    fill(v5ad854ae26, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x4, 0x1, (uint8_t *)v5ad854ae26);
+    free(v5ad854ae26);
+    uint8_t *vdd79270b07 = (uint8_t *)malloc(0x1);
+    fill(vdd79270b07, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x5, 0x1, (uint8_t *)vdd79270b07);
+    free(vdd79270b07);
+    uint8_t *v45f7ea98d2 = (uint8_t *)malloc(0x1);
+    fill(v45f7ea98d2, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x6, 0x1, (uint8_t *)v45f7ea98d2);
+    free(v45f7ea98d2);
+    uint8_t *vdfa7239992 = (uint8_t *)malloc(0x1);
+    fill(vdfa7239992, 0x1, get_data_from_pool1(), 0x1 > 0x4 ? 0x4 : 0x1);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x7, 0x1, (uint8_t *)vdfa7239992);
+    free(vdfa7239992);
+    uint8_t *v249984fe50 = (uint8_t *)malloc(0x8);
+    fill(v249984fe50, 0x8, get_data_from_pool4(), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x8, 0x8, (uint8_t *)v249984fe50);
+    free(v249984fe50);
+    uint8_t *v36261b4783 = (uint8_t *)malloc(0x2);
+    fill(v36261b4783, 0x2, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x06)), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x10, 0x2, (uint8_t *)v36261b4783);
+    free(v36261b4783);
+    uint8_t *va2d9b7068d = (uint8_t *)malloc(0x2);
+    fill(va2d9b7068d, 0x2, get_data_from_pool2(), 0x2 > 0x4 ? 0x4 : 0x2);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x12, 0x2, (uint8_t *)va2d9b7068d);
+    free(va2d9b7068d);
+    uint8_t *v4af05b76d6 = (uint8_t *)malloc(0x4);
+    fill(v4af05b76d6, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x14, 0x4, (uint8_t *)v4af05b76d6);
+    free(v4af05b76d6);
+    uint8_t *v9d7a774cbc = (uint8_t *)malloc(0x14);
+    fill(v9d7a774cbc, 0x14, get_data_from_pool4(), 0x14 > 0x4 ? 0x4 : 0x14);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x18, 0x14, (uint8_t *)v9d7a774cbc);
+    free(v9d7a774cbc);
+    uint8_t *vd55bcf6830 = (uint8_t *)malloc(0x4);
+    fill(vd55bcf6830, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7 + 0x2c, 0x4, (uint8_t *)vd55bcf6830);
+    free(vd55bcf6830);
+    uint64_t v2c650537b5 = (mfi_frame_0_1_2_3_4_5_6_7 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&v2c650537b5);
+    goto v8608927b52_out;
+v8608927b52_8:;
+    stateful_free(mfi_frame_0_1_2_3_4_5_6_7_8);
+    mfi_frame_0_1_2_3_4_5_6_7_8 = stateful_malloc(0x40, /*chained=*/false);
+    // printf("[+] mfi_frame_0_1_2_3_4_5_6_7_8 = 0x%lx\n", mfi_frame_0_1_2_3_4_5_6_7_8);
+    uint8_t *vd7f0495a94 = (uint8_t *)malloc(0x40);
+    fill(vd7f0495a94, 0x40, get_data_from_pool4(), 0x40 > 0x4 ? 0x4 : 0x40);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7_8 + 0x0, 0x40, (uint8_t *)vd7f0495a94);
+    free(vd7f0495a94);
+    uint64_t v6d13929117 = (mfi_frame_0_1_2_3_4_5_6_7_8 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&v6d13929117);
+    goto v8608927b52_out;
+v8608927b52_9:;
+    stateful_free(mfi_frame_0_1_2_3_4_5_6_7_8_9);
+    mfi_frame_0_1_2_3_4_5_6_7_8_9 = stateful_malloc(0x40, /*chained=*/false);
+    // printf("[+] mfi_frame_0_1_2_3_4_5_6_7_8_9 = 0x%lx\n", mfi_frame_0_1_2_3_4_5_6_7_8_9);
+    uint8_t *v8c16567f26 = (uint8_t *)malloc(0x40);
+    fill(v8c16567f26, 0x40, get_data_from_pool4(), 0x40 > 0x4 ? 0x4 : 0x40);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, mfi_frame_0_1_2_3_4_5_6_7_8_9 + 0x0, 0x40, (uint8_t *)v8c16567f26);
+    free(v8c16567f26);
+    uint64_t vbb8bfcbd74 = (mfi_frame_0_1_2_3_4_5_6_7_8_9 & 0xffffffe0);
+    size_16 += serialize(Data, size_16, CALLBACK_MAXSIZE, get_interface_id("megasas-mmio", EVENT_TYPE_MMIO_WRITE), 0x40, 0x4, (uint8_t *)&vbb8bfcbd74);
+    goto v8608927b52_out;
+v8608927b52_out:;
+    return Data;
+}
+
+static size_t get_size_16() { return size_16;}
+
+// ==== hw/scsi/lsi53c895a:lsi_reg_writeb:CASE_SET_REG32(dsps, 0x30) ============================
+size_t size_17 = 0;
+
+static uint64_t lsi_dsp_0 = 0;
+
+static uint8_t *get_data_17() {
+    size_17 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto v3567741279_0; break;
+    }
+v3567741279_0:;
+    stateful_free(lsi_dsp_0);
+    lsi_dsp_0 = stateful_malloc(0x100000, /*chained=*/false);
+    // printf("[+] lsi_dsp_0 = 0x%lx\n", lsi_dsp_0);
+    uint8_t *vf69a7fa038 = (uint8_t *)malloc(0x100000);
+    fill(vf69a7fa038, 0x100000, get_data_from_pool4(), 0x100000 > 0x4 ? 0x4 : 0x100000);
+    size_17 += serialize(Data, size_17, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, lsi_dsp_0 + 0x0, 0x100000, (uint8_t *)vf69a7fa038);
+    free(vf69a7fa038);
+    uint64_t v8d3fc6e0ca = (lsi_dsp_0 >> 0);
+    size_17 += serialize(Data, size_17, CALLBACK_MAXSIZE, get_interface_id("lsi-mmio", EVENT_TYPE_MMIO_WRITE), 0x2c, 0x1, (uint8_t *)&v8d3fc6e0ca);
+    uint64_t vbb3dffe11a = (lsi_dsp_0 >> 8);
+    size_17 += serialize(Data, size_17, CALLBACK_MAXSIZE, get_interface_id("lsi-mmio", EVENT_TYPE_MMIO_WRITE), 0x2d, 0x1, (uint8_t *)&vbb3dffe11a);
+    uint64_t v9ea91fe149 = (lsi_dsp_0 >> 16);
+    size_17 += serialize(Data, size_17, CALLBACK_MAXSIZE, get_interface_id("lsi-mmio", EVENT_TYPE_MMIO_WRITE), 0x2e, 0x1, (uint8_t *)&v9ea91fe149);
+    uint64_t vd8d0b8c830 = (lsi_dsp_0 >> 24);
+    size_17 += serialize(Data, size_17, CALLBACK_MAXSIZE, get_interface_id("lsi-mmio", EVENT_TYPE_MMIO_WRITE), 0x2f, 0x1, (uint8_t *)&vd8d0b8c830);
+    goto v3567741279_out;
+v3567741279_out:;
+    return Data;
+}
+
+static size_t get_size_17() { return size_17;}
+
+// ==== hw/ide/ahci.c: ============================
+size_t size_18 = 0;
+
+static uint64_t ahci_0 = 0;
+
+static uint8_t *get_data_18() {
+    size_18 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto v6ec1b7b019_0; break;
+    }
+v6ec1b7b019_0:;
+    stateful_free(ahci_0);
+    ahci_0 = stateful_malloc(0x80, /*chained=*/false);
+    // printf("[+] ahci_0 = 0x%lx\n", ahci_0);
+    uint8_t *v7f82dcafc8 = (uint8_t *)malloc(0x80);
+    fill(v7f82dcafc8, 0x80, get_data_from_pool4(), 0x80 > 0x4 ? 0x4 : 0x80);
+    size_18 += serialize(Data, size_18, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, ahci_0 + 0x0, 0x80, (uint8_t *)v7f82dcafc8);
+    free(v7f82dcafc8);
+    uint64_t v54135521fc = ahci_0;
+    size_18 += serialize(Data, size_18, CALLBACK_MAXSIZE, get_interface_id("ahci", EVENT_TYPE_MMIO_WRITE), 0x100, 0x4, (uint8_t *)&v54135521fc);
+    uint64_t v80521e37dd = 0x0;
+    size_18 += serialize(Data, size_18, CALLBACK_MAXSIZE, get_interface_id("ahci", EVENT_TYPE_MMIO_WRITE), 0x104, 0x4, (uint8_t *)&v80521e37dd);
+    goto v6ec1b7b019_out;
+v6ec1b7b019_out:;
+    return Data;
+}
+
+static size_t get_size_18() { return size_18;}
+
 static Callback callbacks[] = { 
     [0] = {
         .id = 0,
@@ -7975,6 +8769,24 @@ static Callback callbacks[] = {
         .name = "pcnet4",
         .get_data = get_data_15,
         .get_size = get_size_15,
+    },
+    [16] = {
+        .id = 16,
+        .name = "megasas",
+        .get_data = get_data_16,
+        .get_size = get_size_16,
+    },
+    [17] = {
+        .id = 17,
+        .name = "lsi53c895a",
+        .get_data = get_data_17,
+        .get_size = get_size_17,
+    },
+    [18] = {
+        .id = 18,
+        .name = "ahci",
+        .get_data = get_data_18,
+        .get_size = get_size_18,
     },
 };
 

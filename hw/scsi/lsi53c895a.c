@@ -621,6 +621,8 @@ static void lsi_do_dma(LSIState *s, int out)
     dma_addr_t addr;
     SCSIDevice *dev;
 
+    if (s->current == NULL)
+        return;
     assert(s->current);
     if (!s->current->dma_len) {
         /* Wait until data is available.  */
@@ -1151,6 +1153,7 @@ again:
         trace_lsi_execute_script_stop();
         return;
     }
+    // printf("[-] s->dsp = 0x%x\n", s->dsp);
     insn = read_dword(s, s->dsp);
     if (!insn) {
         /* If we receive an empty opcode increment the DSP by 4 bytes
@@ -1835,6 +1838,21 @@ static uint8_t lsi_reg_readb(LSIState *s, int offset)
     return ret;
 }
 
+static bool check_current_before_executing_script(LSIState *s) {
+    switch (s->sstat1 & 0x7) {
+        case PHASE_DO:
+        case PHASE_DI:
+            // printf("s->current1 is %p\n", s->current);
+            // return s->current != NULL;
+            return true;
+        default:
+            // printf("s->current2 is %p\n", s->current);
+            return true;
+    }
+}
+
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
 {
 #define CASE_SET_REG24(name, addr) \
@@ -1919,10 +1937,8 @@ static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
             lsi_update_irq(s);
         }
         if (s->waiting == LSI_WAIT_RESELECT && val & LSI_ISTAT0_SIGP) {
-            if (!(((((s->sstat1 & 0x7) == PHASE_DO)
-                    || (s->sstat1 & 0x7) == PHASE_DI))
-                    && s->current))
-                break;
+            // if (!check_current_before_executing_script(s))
+            //     break;
             trace_lsi_awoken();
             s->waiting = LSI_NOWAIT;
             s->dsp = s->dnad;
@@ -1985,10 +2001,8 @@ static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
          */
         if ((s->dmode & LSI_DMODE_MAN) == 0
                 && (s->istat1 & LSI_ISTAT1_SRUN) == 0) {
-            if (!(((((s->sstat1 & 0x7) == PHASE_DO)
-                    || (s->sstat1 & 0x7) == PHASE_DI))
-                    && s->current))
-                break;
+            // if (!check_current_before_executing_script(s))
+            //     break;
             lsi_execute_script(s);
         }
         break;
@@ -2011,10 +2025,8 @@ static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
          * instruction.  Is this correct?
          */
         if ((val & LSI_DCNTL_STD) && (s->istat1 & LSI_ISTAT1_SRUN) == 0) {
-            if (!(((((s->sstat1 & 0x7) == PHASE_DO)
-                    || (s->sstat1 & 0x7) == PHASE_DI))
-                    && s->current))
-                break;
+            // if (!check_current_before_executing_script(s))
+            //    break;
             lsi_execute_script(s);
         }
         break;
@@ -2096,6 +2108,7 @@ static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
                           offset < ARRAY_SIZE(names) ? names[offset] : "???",
                           offset, val);
         }
+        TraceStateCallback(17);
     }
 #undef CASE_SET_REG24
 #undef CASE_SET_REG32

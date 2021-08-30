@@ -264,6 +264,8 @@ static void map_page(AddressSpace *as, uint8_t **ptr, uint64_t addr,
  *
  * @return 0 on success, -1 on error.
  */
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 static int ahci_cond_start_engines(AHCIDevice *ad)
 {
     AHCIPortRegs *pr = &ad->port_regs;
@@ -275,8 +277,8 @@ static int ahci_cond_start_engines(AHCIDevice *ad)
     if (cmd_start && !cmd_on) {
         if (!ahci_map_clb_address(ad)) {
             pr->cmd &= ~PORT_CMD_START;
-            error_report("AHCI: Failed to start DMA engine: "
-                         "bad command list buffer address");
+            // error_report("AHCI: Failed to start DMA engine: "
+            //              "bad command list buffer address");
             return -1;
         }
     } else if (!cmd_start && cmd_on) {
@@ -286,8 +288,8 @@ static int ahci_cond_start_engines(AHCIDevice *ad)
     if (fis_start && !fis_on) {
         if (!ahci_map_fis_address(ad)) {
             pr->cmd &= ~PORT_CMD_FIS_RX;
-            error_report("AHCI: Failed to start FIS receive engine: "
-                         "bad FIS receive buffer address");
+            // error_report("AHCI: Failed to start FIS receive engine: "
+            //              "bad FIS receive buffer address");
             return -1;
         }
     } else if (!fis_start && fis_on) {
@@ -514,6 +516,7 @@ static void ahci_mem_write(void *opaque, hwaddr addr,
         ahci_port_write(s, (addr - AHCI_PORT_REGS_START_ADDR) >> 7,
                         addr & AHCI_PORT_ADDR_OFFSET_MASK, val);
     } else {
+        TraceStateCallback(18);
         qemu_log_mask(LOG_UNIMP, "Attempted write to unimplemented register: "
                       "AHCI global register at offset 0x%"PRIx64": 0x%"PRIx64,
                       addr, val);

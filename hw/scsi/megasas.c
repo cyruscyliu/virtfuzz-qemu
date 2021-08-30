@@ -2044,6 +2044,8 @@ static uint64_t megasas_mmio_read(void *opaque, hwaddr addr,
 
 static int adp_reset_seq[] = {0x00, 0x04, 0x0b, 0x02, 0x07, 0x0d};
 
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 static void megasas_mmio_write(void *opaque, hwaddr addr,
                                uint64_t val, unsigned size)
 {
@@ -2110,6 +2112,7 @@ static void megasas_mmio_write(void *opaque, hwaddr addr,
         trace_megasas_mmio_writel("MFI_IQPH", val);
         /* Received high 32 bits of a 64 bit MFI frame address */
         s->frame_hi = val;
+        TraceStateCallback(16);
         break;
     case MFI_IQPL:
         trace_megasas_mmio_writel("MFI_IQPL", val);

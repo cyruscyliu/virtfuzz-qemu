@@ -305,7 +305,7 @@ static void locate_fuzzable_objects(Object *obj, char *mrname) {
                         mr->ops->impl.max_access_size == 0 && mrpl) {
                     min = 1;
                     max = (((MemoryRegionPortio *)((MemoryRegionPortioList *)mr->opaque)->ports)[0]).size;
-                    if (max == 0) { max = 4; }
+                    if (max == 0 || max > 4) { max = 4; }
                 } else {
                     min = MAX(mr->ops->valid.min_access_size, mr->ops->impl.min_access_size);
                     max = MAX(mr->ops->valid.max_access_size, mr->ops->impl.max_access_size);
