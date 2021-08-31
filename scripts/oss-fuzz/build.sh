@@ -80,7 +80,7 @@ FUZZ_TARGET_LIST=$(echo $TARGET_LIST | sed "s/-softmmu//g" | \
 # Build once to get the list of dynamic lib paths, and copy them over
 ../configure --disable-werror --cc="$CC" --cxx="$CXX" --enable-fuzzing \
     --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
-    --extra-cflags="$EXTRA_CFLAGS" --target-list="i386-softmmu" --enable-spice
+    --extra-cflags="$EXTRA_CFLAGS" --target-list="i386-softmmu"
 
 if ! make "-j$(nproc)" qemu-fuzz-i386; then
     fatal "Build failed. Please specify a compiler with fuzzing support"\
@@ -97,7 +97,7 @@ rm qemu-fuzz-i386
 ../configure --disable-werror --cc="$CC" --cxx="$CXX" --enable-fuzzing \
     --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
     --extra-cflags="$EXTRA_CFLAGS" --extra-ldflags="-Wl,-rpath,\$ORIGIN/lib" \
-    --target-list="$TARGET_LIST" --enable-spice
+    --target-list="$TARGET_LIST"
 make "-j$(nproc)" $FUZZ_TARGET_LIST V=1
 
 # Copy over the datadir
