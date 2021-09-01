@@ -93,6 +93,7 @@ typedef struct generic_fuzz_config {
     gchar* (*argfunc)(void); /* Result must be freeable by g_free() */
     bool socket; /* Need support or not */
     bool display; /* Need support or not */
+    bool byte_address; /* Need support or not */
 } generic_fuzz_config;
 
 typedef struct MemoryRegionPortioList {
@@ -125,6 +126,9 @@ static inline GString *generic_fuzz_predefined_config_cmdline(FuzzTarget *t)
     }
     if (config->display) {
         vnc_client_needed = true;
+    }
+    if (config->byte_address) {
+        setenv("QEMU_BYTE_ADDRESS", "1", 1);
     }
     setenv("QEMU_AVOID_DOUBLE_FETCH", "1", 1);
     if (config->argfunc) {
@@ -329,6 +333,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*ne2000*",
         .file = "hw/net/ne2000.c",
         .socket = true,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "pcnet",
@@ -338,6 +343,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*pcnet-mmio*,*pcnet-io*",
         .file = "hw/net/pcnet-pci.c",
         .socket = true,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "rtl8139",
@@ -513,6 +519,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/display/cirrus-vga.c",
         .socket = false,
         .display = true,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "qxl",
@@ -533,6 +540,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .file = "hw/display/vmware-svga.c",
         .socket = false,
         .display = true,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "std-vga",
@@ -664,6 +672,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*lsi-mmio*,*lsi-ram*,*lsi-io*",
         .file = "hw/scsi/lsi53c895a.c",
         .socket = false,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "mptsas1068",
