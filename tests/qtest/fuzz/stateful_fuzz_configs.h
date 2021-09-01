@@ -817,7 +817,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*npcm7xx-emc*",
         .file = "hw/net/npcm7xx_emc.c",
         .socket = false,
-    },{
+    },/*{
         .arch = "arm",
         .name = "msf2-emac",
         .args= "-machine emcraft-sf2",
@@ -825,7 +825,7 @@ static const generic_fuzz_config predefined_configs[] = {
         .mrnames = "*msf2-emac*",
         .file = "hw/net/msf2-emac.c",
         .socket = false,
-    },{
+    },*/{
         .arch = "arm",
         .name = "lan9118",
         .args = "-machine smdkc210",
