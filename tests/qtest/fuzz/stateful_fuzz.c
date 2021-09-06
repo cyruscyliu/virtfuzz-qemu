@@ -473,6 +473,10 @@ static void stateful_fuzz(QTestState *s, const uint8_t *Data, size_t Size) {
         // issue event one by one
         Event *event = input->events;
         for (int i = 0; event != NULL; i++) {
+            if (getenv("PRINT_EVENT")) {
+                fprintf(stderr, "%d ", i);
+                printf_event(event);
+            }
             dispatch_event(event, s);
             flush_events(s);
             event = event->next;
