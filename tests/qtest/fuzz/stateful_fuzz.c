@@ -130,7 +130,20 @@ static void dispatch_clock_step(QTestState *s, uint64_t val) {
 /*
  * Generic socket write dispatcher
  */
+#define FMT_timeval "%ld.%06ld"
+void qtest_get_time(qemu_timeval *tv);
+static void printf_qtest_prefix()
+{
+    qemu_timeval tv;
+    qtest_get_time(&tv);
+    printf("[R +" FMT_timeval "] ",
+            (long) tv.tv_sec, (long) tv.tv_usec);
+}
+
 static void dispatch_socket_write(QTestState *s, const void *data, uint32_t size) {
+    const uint8_t *ptr = data;
+    char *enc;
+    uint32_t i;
     if (!sockfds_initialized)
         return;
     uint8_t D[SOCKET_WRITE_MAX_SIZE + 4];
@@ -141,7 +154,12 @@ static void dispatch_socket_write(QTestState *s, const void *data, uint32_t size
     memcpy(D + 4, data, size);
     int ignore = write(sockfds[0], D, size + 4);
     if (getenv("FUZZ_SERIALIZE_QTEST")) {
-        printf("[W] sock: %d, 0x%x bytes -> %d\n", sockfds[0], size, ignore);
+        enc = g_malloc(2 * size + 1);
+        for (i = 0; i < size; i++) {
+            sprintf(&enc[i * 2], "%02x", ptr[i]);
+        }
+        printf_qtest_prefix();
+        printf("sock %d 0x%x 0x%s\n", sockfds[0], size, enc);
     }
     (void) ignore;
     return;
@@ -218,6 +236,10 @@ void TraceStateCallback(uint8_t id) {
     counter++;
     deserialize(input, /*indexer=*/false);
     // issue event one by one
+    if (getenv("FUZZ_SERIALIZE_QTEST")) {
+        printf_qtest_prefix();
+        printf("trace_state_callback start\n");
+    }
     Event *event = input->events;
     QTestState *s = get_qtest_state();
     for (int i = 0; event != NULL; i++) {
@@ -231,6 +253,10 @@ void TraceStateCallback(uint8_t id) {
     }
     // free Input
     free_input(input, /*indexer=*/false);
+    if (getenv("FUZZ_SERIALIZE_QTEST")) {
+        printf_qtest_prefix();
+        printf("trace_state_callback end\n");
+    }
 }
 
 #define INVLID_ADDRESS 0
