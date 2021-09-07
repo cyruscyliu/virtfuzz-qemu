@@ -515,7 +515,10 @@ size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
     g_assert(data_pool_event->id == INTERFACE_DATA_POOL);
     set_data_pool(data_pool_event);
     size_t DataPoolOffset = data_pool_event->offset;
-    size_t NewDataPoolSize = LLVMFuzzerMutate(data_pool.Data, data_pool.Size, DATA_POOL_MAXSIZE);
+    size_t NewDataPoolSize = data_pool.Size;
+    for (int i = 0; i < 10; i++) {
+        NewDataPoolSize = LLVMFuzzerMutate(data_pool.Data, NewDataPoolSize, DATA_POOL_MAXSIZE);
+    }
     if (!NewDataPoolSize) {
         reset_data_pool();
         free_input(input, /*indexer=*/true);

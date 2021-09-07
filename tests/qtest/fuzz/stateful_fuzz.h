@@ -417,11 +417,13 @@ static DataPool data_pool = {
 
 static uint32_t get_data_from_pool(int size) { 
     // make it a circle
-    // uint32_t ret = 0;
-    // for (int i = 0; i < size; i++) {
-    //     ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
-    // }
-    // data_pool.index += size;
+    uint32_t ret = 0;
+    for (int i = 0; i < size; i++) {
+        ret |= data_pool.Data[(data_pool.index + i) % data_pool.Size] << (8 * i);
+    }
+    data_pool.index += size;
+    return ret;
+    /*
     uint32_t ret = (uint32_t)rand();
     switch (size) {
         case 1:
@@ -434,6 +436,7 @@ static uint32_t get_data_from_pool(int size) {
             fprintf(stderr, "Wrong size of get_data_from_pool: %d\n", size);
             return 0xffffffff;
     }
+    */
 }
 
 static uint32_t get_data_from_pool4(void) {
