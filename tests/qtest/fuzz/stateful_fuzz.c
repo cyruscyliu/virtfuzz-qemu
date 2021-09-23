@@ -219,6 +219,9 @@ void LLVMFuzzerTraceStateCallback(
 */
 extern void TraceStateCallback(uint8_t id);
 void TraceStateCallback(uint8_t id) {
+    return;
+    if (!StatefulFuzzer)
+        return;
     Callback *callback = &callbacks[id];
     // read Data to Input
     uint8_t *Data = callback->get_data();

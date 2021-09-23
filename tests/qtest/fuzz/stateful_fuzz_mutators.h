@@ -391,22 +391,22 @@ static size_t Mutate_ChangeValue(Input *input, uint8_t *Data,
     }
 }
 
-#define N_MUTATORS 15
+#define N_MUTATORS 7
 static size_t (* CustomMutators[])(Input *input, uint8_t *Data,
         size_t Size, size_t MaxSize) = {
-    Mutate_EraseFragment, // 1
-    Mutate_InsertFragment,
-    // Mutate_CopyPartOfFragment,
-    Mutate_ShuffleFragments,
-    // Mutate_CrossOverFragments,
-    Mutate_AddFragmentFromManualDictionary, // 6
-    Mutate_AddFragmentFromPersistentAutoDictionary,
+    // Mutate_EraseFragment, // 1*
+    // Mutate_InsertFragment, // *
+    // // Mutate_CopyPartOfFragment, // *
+    // Mutate_ShuffleFragments, // *
+    // // Mutate_CrossOverFragments, // *
+    // Mutate_AddFragmentFromManualDictionary, // 6*
+    // Mutate_AddFragmentFromPersistentAutoDictionary, // *
     Mutate_EraseEvent,
     Mutate_InsertEvent,
     Mutate_InsertRepeatedEvent,
-    Mutate_ShuffleEvents, // 11
-    Mutate_AddEventFromManualDictionary,
-    Mutate_AddEventFromPersistentAutoDictionary,
+    // Mutate_ShuffleEvents, // 11*
+    // Mutate_AddEventFromManualDictionary,
+    // Mutate_AddEventFromPersistentAutoDictionary,
     Mutate_ChangeId,
     Mutate_ChangeAddr,
     Mutate_ChangeSize, // 16
@@ -414,19 +414,19 @@ static size_t (* CustomMutators[])(Input *input, uint8_t *Data,
 };
 
 const char *CustomMutatorNames[N_MUTATORS] = {
-    "Mutate_EraseFragment",
-    "Mutate_InsertFragment",
-    // "Mutate_CopyPartOfFragment",
-    "Mutate_ShuffleFragments",
-    // "Mutate_CrossOverFragments",
-    "Mutate_AddFragmentFromManualDictionary",
-    "Mutate_AddFragmentFromPersistentAutoDictionary",
+    // "Mutate_EraseFragment",
+    // "Mutate_InsertFragment",
+    // // "Mutate_CopyPartOfFragment",
+    // "Mutate_ShuffleFragments",
+    // // "Mutate_CrossOverFragments",
+    // "Mutate_AddFragmentFromManualDictionary",
+    // "Mutate_AddFragmentFromPersistentAutoDictionary",
     "Mutate_EraseEvent",
     "Mutate_InsertEvent",
     "Mutate_InsertRepeatedEvent",
-    "Mutate_ShuffleEvents",
-    "Mutate_AddEventFromManualDictionary",
-    "Mutate_AddEventFromPersistentAutoDictionary",
+    // "Mutate_ShuffleEvents",
+    // "Mutate_AddEventFromManualDictionary",
+    // "Mutate_AddEventFromPersistentAutoDictionary",
     "Mutate_ChangeId",
     "Mutate_ChangeAddr",
     "Mutate_ChangeSize",
