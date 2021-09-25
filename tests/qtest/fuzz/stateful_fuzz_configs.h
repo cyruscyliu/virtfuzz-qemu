@@ -88,13 +88,13 @@ static inline void handle_timeout(int sig) {
 
 static useconds_t timeout = DEFAULT_TIMEOUT_US;
 
-typedef struct generic_fuzz_config {
+typedef struct stateful_fuzz_config {
     const char *arch, *name, *args, *objects, *mrnames, *file;
     gchar* (*argfunc)(void); /* Result must be freeable by g_free() */
     bool socket; /* Need support or not */
     bool display; /* Need support or not */
     bool byte_address; /* Need support or not */
-} generic_fuzz_config;
+} stateful_fuzz_config;
 
 typedef struct MemoryRegionPortioList {
     MemoryRegion mr;
@@ -102,7 +102,7 @@ typedef struct MemoryRegionPortioList {
     MemoryRegionPortio ports[];
 } MemoryRegionPortioList;
 
-static inline GString *generic_fuzz_cmdline(FuzzTarget *t)
+static inline GString *stateful_fuzz_cmdline(FuzzTarget *t)
 {
     GString *cmd_line = g_string_new(TARGET_NAME);
     if (!getenv("QEMU_FUZZ_ARGS")) {
@@ -114,10 +114,10 @@ static inline GString *generic_fuzz_cmdline(FuzzTarget *t)
     return cmd_line;
 }
 
-static inline GString *generic_fuzz_predefined_config_cmdline(FuzzTarget *t)
+static inline GString *stateful_fuzz_predefined_config_cmdline(FuzzTarget *t)
 {
     GString *args = g_string_new(NULL);
-    const generic_fuzz_config *config;
+    const stateful_fuzz_config *config;
     g_assert(t->opaque);
 
     config = t->opaque;
@@ -145,7 +145,7 @@ static inline GString *generic_fuzz_predefined_config_cmdline(FuzzTarget *t)
 
     setenv("QEMU_FUZZ_OBJECTS", config->objects, 1);
     setenv("QEMU_FUZZ_MRNAME", config->mrnames, 1);
-    return generic_fuzz_cmdline(t);
+    return stateful_fuzz_cmdline(t);
 }
 
 static inline void pci_enum(gpointer pcidev, gpointer bus)
@@ -198,7 +198,7 @@ static inline gchar *generic_fuzzer_virtio_9p_args(void){
     "-usb " \
     "-device usb-kbd "
 
-static const generic_fuzz_config predefined_configs[] = {
+static const stateful_fuzz_config predefined_configs[] = {
     /* {
         .name = "virtio-net-pci-slirp",
         .args = "-M q35 -nodefaults "

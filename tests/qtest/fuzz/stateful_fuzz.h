@@ -71,14 +71,14 @@ typedef enum {                          //DMIP
 
 const char *EventTypeNames[12] = {
     "EVENT_TYPE_MMIO_READ", // 0
-    "EVENT_TYPE_MMIO_WRITE", 
+    "EVENT_TYPE_MMIO_WRITE",
     "EVENT_TYPE_PIO_READ", // 2
     "EVENT_TYPE_PIO_WRITE",
     "EVENT_TYPE_CLOCK_STEP",
     "EVENT_TYPE_SOCKET_WRITE", // 5
     "EVENT_TYPE_INT",
     "EVNET_NONE",
-    "EVENT_TYPE_MEM_READ", // 8 
+    "EVENT_TYPE_MEM_READ", // 8
     "EVENT_TYPE_MEM_WRITE",
     "EVENT_NONE",
     "EVENT_TYPE_DATA_POOL", // 11
@@ -293,7 +293,7 @@ static uint8_t around_event_type(uint8_t raw_type) {
     return raw_type % N_VALID_TYPES;
 }
 
-static uint32_t serialize(uint8_t *Data, size_t Offset, size_t MaxSize, 
+static uint32_t serialize(uint8_t *Data, size_t Offset, size_t MaxSize,
         uint8_t id, uint64_t addr, uint32_t size, uint8_t *val) {
     uint8_t type;
     InterfaceDescription ed = Id_Description[id];
@@ -415,7 +415,7 @@ static DataPool data_pool = {
     .index = 0,
 };
 
-static uint32_t get_data_from_pool(int size) { 
+static uint32_t get_data_from_pool(int size) {
     // make it a circle
     uint32_t ret = 0;
     for (int i = 0; i < size; i++) {
@@ -447,7 +447,7 @@ static uint16_t get_data_from_pool2(void) {
     return (uint16_t)get_data_from_pool(2);
 }
 
-static uint8_t get_data_from_pool1(void) { 
+static uint8_t get_data_from_pool1(void) {
     return (uint8_t)get_data_from_pool(1);
 }
 
@@ -811,7 +811,7 @@ static bool stateful_lock(uint64_t addr, size_t size) {
     chained_buffer->lock_size = size;
     if (chained_buffer->dirty_size < size)
         chained_buffer->dirty_size = size;
-    return true; 
+    return true;
 }
 
 static uint64_t stateful_require(size_t size) {

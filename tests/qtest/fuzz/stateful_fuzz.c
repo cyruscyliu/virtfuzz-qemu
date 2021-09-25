@@ -219,7 +219,6 @@ void LLVMFuzzerTraceStateCallback(
 */
 extern void TraceStateCallback(uint8_t id);
 void TraceStateCallback(uint8_t id) {
-    return;
     if (!StatefulFuzzer)
         return;
     Callback *callback = &callbacks[id];
@@ -532,7 +531,8 @@ size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
     input->n_events--;
     // Mutate other events
     for (int i = 0; i < 100; i++) {
-        size_t aaaaaaa = rand() % N_MUTATORS;
+        // weighted
+        size_t aaaaaaa = select_mutators(rand());
         // printf("%s\n", CustomMutatorNames[aaaaaaa]);
         size_t NewSize = CustomMutators[aaaaaaa](input, Data, DataPoolOffset, MaxSize);
         if (NewSize) {
@@ -568,16 +568,16 @@ static void register_stateful_fuzz_targets(void) {
     fuzz_add_target(&(FuzzTarget){
             .name = "stateful-fuzz",
             .description = "Fuzz based on any qemu command-line args. ",
-            .get_init_cmdline = generic_fuzz_cmdline,
+            .get_init_cmdline = stateful_fuzz_cmdline,
             .pre_fuzz = stateful_pre_fuzz,
             .fuzz = stateful_fuzz,
     });
 
     GString *name;
-    const generic_fuzz_config *config;
+    const stateful_fuzz_config *config;
 
     for (int i = 0;
-         i < sizeof(predefined_configs) / sizeof(generic_fuzz_config);
+         i < sizeof(predefined_configs) / sizeof(stateful_fuzz_config);
          i++) {
         config = predefined_configs + i;
         if (strcmp(TARGET_NAME, config->arch) != 0)
@@ -587,7 +587,7 @@ static void register_stateful_fuzz_targets(void) {
         fuzz_add_target(&(FuzzTarget){
                 .name = name->str,
                 .description = "Predefined stateful-fuzz config.",
-                .get_init_cmdline = generic_fuzz_predefined_config_cmdline,
+                .get_init_cmdline = stateful_fuzz_predefined_config_cmdline,
                 .pre_fuzz = stateful_pre_fuzz,
                 .fuzz = stateful_fuzz,
                 .opaque = (void *)config

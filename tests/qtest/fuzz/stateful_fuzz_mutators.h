@@ -130,6 +130,7 @@ static size_t CopyPartof(Input *input, uint8_t *Data, size_t Size, size_t MaxSiz
 // Size++||--
 static size_t Mutate_CopyPartOfFragment(Input *input, uint8_t *Data,
         size_t Size, size_t MaxSize) { // override
+    return 0;
     if (Size >= MaxSize) return 0;
     if (input->n_events == 1) return 0;
     size_t Idx = (rand() % input->n_events) / 2 + 1;
@@ -143,6 +144,7 @@ static size_t Mutate_CopyPartOfFragment(Input *input, uint8_t *Data,
 // Size||
 static size_t Mutate_CrossOverFragments(Input *input, uint8_t *Data,
         size_t Size, size_t MaxSize) { // crossover
+    return 0;
     if (Size >= MaxSize) return 0;
     if (input->n_events <= 2) return 0;
     size_t Idx = (rand() % input->n_events) / 2 + 1;
@@ -391,45 +393,60 @@ static size_t Mutate_ChangeValue(Input *input, uint8_t *Data,
     }
 }
 
-#define N_MUTATORS 7
+static int select_mutators(int rand) {
+    return rand % 11;
+}
+
+static int select_weighted_mutators(int rand) {
+    int t = 6 * 1 + 7 * 4;
+    rand = rand % t;
+
+    if (rand < 6) {
+        return rand;
+    } else {
+        return 6 + (rand - 6) / 4;
+    }
+}
+
+#define N_MUTATORS 17
 static size_t (* CustomMutators[])(Input *input, uint8_t *Data,
         size_t Size, size_t MaxSize) = {
-    // Mutate_EraseFragment, // 1*
-    // Mutate_InsertFragment, // *
-    // // Mutate_CopyPartOfFragment, // *
-    // Mutate_ShuffleFragments, // *
-    // // Mutate_CrossOverFragments, // *
-    // Mutate_AddFragmentFromManualDictionary, // 6*
-    // Mutate_AddFragmentFromPersistentAutoDictionary, // *
-    Mutate_EraseEvent,
-    Mutate_InsertEvent,
-    Mutate_InsertRepeatedEvent,
-    // Mutate_ShuffleEvents, // 11*
-    // Mutate_AddEventFromManualDictionary,
-    // Mutate_AddEventFromPersistentAutoDictionary,
-    Mutate_ChangeId,
-    Mutate_ChangeAddr,
-    Mutate_ChangeSize, // 16
-    Mutate_ChangeValue,
+    Mutate_EraseFragment, // * 0
+    Mutate_InsertFragment, // * 1
+    Mutate_ShuffleFragments, // * 2
+    Mutate_ShuffleEvents, // * 3
+    Mutate_EraseEvent, // 0
+    Mutate_InsertEvent, // 1
+    Mutate_InsertRepeatedEvent, // 2
+    Mutate_ChangeId, // 3
+    Mutate_ChangeAddr, // 4
+    Mutate_ChangeSize, // 5
+    Mutate_ChangeValue, // 6
+    Mutate_CopyPartOfFragment, // * 4
+    Mutate_CrossOverFragments, // * 5
+    Mutate_AddFragmentFromManualDictionary, // * 0
+    Mutate_AddFragmentFromPersistentAutoDictionary, // * 1
+    Mutate_AddEventFromManualDictionary, // 2
+    Mutate_AddEventFromPersistentAutoDictionary, // 3
 };
 
 const char *CustomMutatorNames[N_MUTATORS] = {
-    // "Mutate_EraseFragment",
-    // "Mutate_InsertFragment",
-    // // "Mutate_CopyPartOfFragment",
-    // "Mutate_ShuffleFragments",
-    // // "Mutate_CrossOverFragments",
-    // "Mutate_AddFragmentFromManualDictionary",
-    // "Mutate_AddFragmentFromPersistentAutoDictionary",
+    "Mutate_EraseFragment",
+    "Mutate_InsertFragment",
+    "Mutate_ShuffleFragments",
+    "Mutate_ShuffleEvents",
     "Mutate_EraseEvent",
     "Mutate_InsertEvent",
     "Mutate_InsertRepeatedEvent",
-    // "Mutate_ShuffleEvents",
-    // "Mutate_AddEventFromManualDictionary",
-    // "Mutate_AddEventFromPersistentAutoDictionary",
     "Mutate_ChangeId",
     "Mutate_ChangeAddr",
     "Mutate_ChangeSize",
     "Mutate_ChangeValue",
+    "Mutate_CopyPartOfFragment",
+    "Mutate_CrossOverFragments",
+    "Mutate_AddFragmentFromManualDictionary",
+    "Mutate_AddFragmentFromPersistentAutoDictionary",
+    "Mutate_AddEventFromManualDictionary",
+    "Mutate_AddEventFromPersistentAutoDictionary",
 };
 #endif /* STATEFUL_FUZZ_MUTATORS_H */

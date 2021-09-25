@@ -673,12 +673,12 @@ static void generic_fuzz(QTestState *s, const unsigned char *Data, size_t Size)
         // if (timeout) {
             // struct sigaction sact;
             // struct itimerval timer;
-// 
+
             // sigemptyset(&sact.sa_mask);
             // sact.sa_flags   = SA_NODEFER;
             // sact.sa_handler = handle_timeout;
             // sigaction(SIGALRM, &sact, NULL);
-// 
+
             // memset(&timer, 0, sizeof(timer));
             // timer.it_value.tv_sec = timeout / USEC_IN_SEC;
             // timer.it_value.tv_usec = timeout % USEC_IN_SEC;
