@@ -4,7 +4,7 @@
  * Copyright Red Hat Inc., 2020
  *
  * Authors:
- *  Qiang Liu <qiangliu@zju.edu.cn>
+ *  Qiang Liu <cyruscyliu@gmail.com>
  *
  * This work is licensed under the terms of the GNU GPL, version 2 or later.
  * See the COPYING file in the top-level directory.
@@ -14,9 +14,6 @@
 #define STATEFUL_FUZZ_MUTATORS_H
 
 #include "stateful_fuzz.h"
-
-extern size_t LLVMFuzzerMutate(uint8_t *Data, size_t Size,
-        size_t MaxSize);
 
 // Discard fragment [e1, e2][e3, e4, e5] -> [e1, e2]
 // Size--
@@ -449,4 +446,64 @@ const char *CustomMutatorNames[N_MUTATORS] = {
     "Mutate_AddEventFromManualDictionary",
     "Mutate_AddEventFromPersistentAutoDictionary",
 };
+
+size_t LLVMFuzzerCustomMutator(uint8_t *Data, size_t Size,
+        size_t MaxSize, unsigned int Seed) {
+    // for generic fuzz targets
+    if (!StatefulFuzzer)
+        return LLVMFuzzerMutate(Data, Size, MaxSize);
+
+    Input *input = init_input(Data, Size);
+    if (!input) {
+        return reset_data(Data, MaxSize);
+    }
+    // deserialize Data to Events
+    // If the input is too short to contain longer event, stop early.
+    Size = deserialize(input, /*indexer=*/true);
+    if (Size == 0) {
+        free_input(input, /*indexer=*/true);
+        return reset_data(Data, MaxSize);
+    }
+    // Keep the EVENT_TYPE_DATA_POOL
+    Event *data_pool_event = get_event(input, input->n_events - 1);
+    g_assert(data_pool_event->id == INTERFACE_DATA_POOL);
+    set_data_pool(data_pool_event);
+    size_t DataPoolOffset = data_pool_event->offset;
+    size_t NewDataPoolSize = data_pool.Size;
+    for (int i = 0; i < 100; i++) {
+        NewDataPoolSize = LLVMFuzzerMutate(data_pool.Data, NewDataPoolSize, DATA_POOL_MAXSIZE);
+    }
+    if (!NewDataPoolSize) {
+        reset_data_pool();
+        free_input(input, /*indexer=*/true);
+        return reset_data(Data, MaxSize);
+    }
+    data_pool.Size = NewDataPoolSize;
+    // Note that EVENT_TYPE_DATA_POOL should not be aware
+    input->n_events--;
+    // Mutate other events
+    for (int i = 0; i < 100; i++) {
+        // weighted
+        size_t aaaaaaa = select_mutators(rand());
+        // printf("%s\n", CustomMutatorNames[aaaaaaa]);
+        size_t NewSize = CustomMutators[aaaaaaa](input, Data, DataPoolOffset, MaxSize);
+        if (NewSize) {
+            size_t bbbbbbb = serialize(Data, NewSize, MaxSize,
+                INTERFACE_DATA_POOL, 0, data_pool.Size, data_pool.Data);
+            if (!bbbbbbb) {
+                reset_data_pool();
+                free_input(input, /*indexer=*/true);
+                return reset_data(Data, MaxSize);
+            }
+            NewSize += bbbbbbb;
+            reset_data_pool();
+            free_input(input, /*indexer=*/true);
+            return NewSize;
+        }
+    }
+    reset_data_pool();
+    free_input(input, /*indexer=*/true);
+    return reset_data(Data, MaxSize); // Fallback, should not happen frequently.
+}
+
 #endif /* STATEFUL_FUZZ_MUTATORS_H */

@@ -5,7 +5,7 @@
  *
  * Authors:
  *  Alexander Bulekov   <alxndr@bu.edu>
- *  Qiang Liu <qiangliu@zju.edu.cn>
+ *  Qiang Liu <cyruscyliu@gmail.com>
  *
  * This work is licensed under the terms of the GNU GPL, version 2 or later.
  * See the COPYING file in the top-level directory.
@@ -21,12 +21,6 @@
 #include "tests/qtest/libqos/qos_external.h"
 #include "tests/qtest/libqos/qgraph_internal.h"
 #include <rfb/rfbclient.h>
-
-#define DEFAULT_TIMEOUT_US 100000
-#define USEC_IN_SEC 1000000000
-
-static void usage(void);
-static bool qtest_log_enabled;
 
 static int sockfds[2];
 static bool sockfds_initialized = false;
@@ -77,16 +71,6 @@ static void vnc_client_receive(void) {
 static void uninit_vnc_client(void) {
     rfbClientCleanup(client);
 }
-
-static inline void handle_timeout(int sig) {
-    if (qtest_log_enabled) {
-        fprintf(stderr, "[Timeout]\n");
-        fflush(stderr);
-    }
-    _Exit(0);
-}
-
-static useconds_t timeout = DEFAULT_TIMEOUT_US;
 
 typedef struct stateful_fuzz_config {
     const char *arch, *name, *args, *objects, *mrnames, *file;
@@ -146,23 +130,6 @@ static inline GString *stateful_fuzz_predefined_config_cmdline(FuzzTarget *t)
     setenv("QEMU_FUZZ_OBJECTS", config->objects, 1);
     setenv("QEMU_FUZZ_MRNAME", config->mrnames, 1);
     return stateful_fuzz_cmdline(t);
-}
-
-static inline void pci_enum(gpointer pcidev, gpointer bus)
-{
-    PCIDevice *dev = pcidev;
-    QPCIDevice *qdev;
-    int i;
-
-    qdev = qpci_device_find(bus, dev->devfn);
-    g_assert(qdev != NULL);
-    for (i = 0; i < 6; i++) {
-        if (dev->io_regions[i].size) {
-            qpci_iomap(qdev, i, NULL);
-        }
-    }
-    qpci_device_enable(qdev);
-    g_free(qdev);
 }
 
 static QGuestAllocator *get_stateful_alloc(QTestState *qts) {

@@ -44,7 +44,6 @@ tests = {
   'test-uuid': [],
   'ptimer-test': ['ptimer-test-stubs.c', meson.source_root() / 'hw/core/ptimer.c'],
   'test-qapi-util': [],
-  'test-stateful-fuzz': ['../qtest/libqos/malloc.c'],
 }
 
 if have_system or have_tools

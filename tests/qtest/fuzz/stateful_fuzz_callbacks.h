@@ -4,7 +4,7 @@
  * Copyright Red Hat Inc., 2020
  *
  * Authors:
- *  Qiang Liu <qiangliu@zju.edu.cn>
+ *  Qiang Liu <cyruscyliu@gmail.com>
  *
  * This work is licensed under the terms of the GNU GPL, version 2 or later.
  * See the COPYING file in the top-level directory.
