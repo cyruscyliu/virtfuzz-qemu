@@ -16,6 +16,9 @@
 #include "stateful_fuzz_dispatch.h"
 #include "stateful_fuzz_mutators.h"
 #include "stateful_fuzz_callbacks.h"
+#ifdef CLANG_COV_DUMP
+#include "clangcovdump.h"
+#endif
 
 /* initializing flow */
 static void stateful_pre_fuzz(QTestState *s) {
@@ -76,6 +79,10 @@ static void stateful_pre_fuzz(QTestState *s) {
 
     stateful_alloc = get_stateful_alloc(s);
     counter_shm_init();
+
+#ifdef CLANG_COV_DUMP
+    llvm_profile_initialize_file();
+#endif
 }
 
 /* fuzzing flow */

@@ -176,11 +176,13 @@ extern "C" {
  * submit patches to remove any side-effects inside an assertion, or
  * fixing error handling that should use Error instead of assert.
  */
+#ifndef CLANG_COV_DUMP
 #ifdef NDEBUG
 #error building with NDEBUG is not supported
 #endif
 #ifdef G_DISABLE_ASSERT
 #error building with G_DISABLE_ASSERT is not supported
+#endif
 #endif
 
 #ifndef O_LARGEFILE
