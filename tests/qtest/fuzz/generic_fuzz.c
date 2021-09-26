@@ -183,6 +183,8 @@ static int memory_access_size(MemoryRegion *mr, unsigned l, hwaddr addr)
  */
 void fuzz_dma_read_cb(size_t addr, size_t len, MemoryRegion *mr)
 {
+    if (getenv("DISABLE_DMA_PATTERN"))
+        return;
     /* Are we in the generic-fuzzer or are we using another fuzz-target? */
     if (!qts_global) {
         return;
@@ -546,7 +548,8 @@ static void op_pci_write(QTestState *s, const unsigned char * data, size_t len)
 static void op_add_dma_pattern(QTestState *s,
                                const unsigned char *data, size_t len)
 {
-    return;
+    if (getenv("DISABLE_DMA_PATTERN"))
+        return;
     struct {
         /*
          * index and stride can be used to increment the index-th byte of the
@@ -569,6 +572,8 @@ static void op_add_dma_pattern(QTestState *s,
 static void op_clear_dma_patterns(QTestState *s,
                                   const unsigned char *data, size_t len)
 {
+    if (getenv("DISABLE_DMA_PATTERN"))
+        return;
     g_array_set_size(dma_patterns, 0);
     dma_pattern_index = 0;
 }

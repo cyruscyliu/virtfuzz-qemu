@@ -146,6 +146,8 @@ static void stateful_fuzz(QTestState *s, const uint8_t *Data, size_t Size) {
 void TraceStateCallback(uint8_t id) {
     if (!StatefulFuzzer)
         return;
+    if (getenv("DISABLE_STRUCTURAL_BUFFER"))
+        return;
     Callback *callback = &callbacks[id];
     // read Data to Input
     uint8_t *Data = callback->get_data();
