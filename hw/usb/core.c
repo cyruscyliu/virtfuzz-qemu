@@ -597,9 +597,11 @@ void usb_packet_copy(USBPacket *p, void *ptr, size_t bytes)
     case USB_TOKEN_IN:
         iov_from_buf(iov->iov, iov->niov, p->actual_length, ptr, bytes);
         break;
+#ifdef CLANG_COV_DUMP
     default:
         fprintf(stderr, "%s: invalid pid: %x\n", __func__, p->pid);
         abort();
+#endif
     }
     p->actual_length += bytes;
 }
