@@ -164,6 +164,15 @@ extern int daemon(int, int);
 #error building with G_DISABLE_ASSERT is not supported
 #endif
 
+#ifdef CLANG_COV_DUMP
+#undef assert
+#define assert(x)
+#undef g_assert
+#define g_assert(x)
+#undef g_assert_not_reached
+#define g_assert_not_reached()
+#endif
+
 #ifndef O_LARGEFILE
 #define O_LARGEFILE 0
 #endif
