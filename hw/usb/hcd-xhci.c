@@ -38,8 +38,12 @@
 #else
 #define DPRINTF(...) do {} while (0)
 #endif
+#ifdef CLANG_COV_DUMP
+#define FIXME(_msg)
+#else
 #define FIXME(_msg) do { fprintf(stderr, "FIXME %s:%d %s\n", \
                                  __func__, __LINE__, _msg); abort(); } while (0)
+#endif
 
 #define TRB_LINK_LIMIT  32
 #define COMMAND_LIMIT   256

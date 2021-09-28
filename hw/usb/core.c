@@ -623,7 +623,9 @@ void usb_packet_copy(USBPacket *p, void *ptr, size_t bytes)
         break;
     default:
         fprintf(stderr, "%s: invalid pid: %x\n", __func__, p->pid);
+#ifndef CLANG_COV_DUMP
         abort();
+#endif
     }
     p->actual_length += bytes;
 }

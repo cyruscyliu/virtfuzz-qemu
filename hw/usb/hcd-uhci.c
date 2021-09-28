@@ -851,8 +851,10 @@ static int uhci_handle_td(UHCIState *s, UHCIQueue *q, uint32_t qh_addr,
         usb_handle_packet(q->ep->dev, &async->packet);
         break;
 
+#ifndef CLANG_COV_DUMP
     default:
         abort(); /* Never to execute */
+#endif
     }
 
     if (async->packet.status == USB_RET_ASYNC) {
