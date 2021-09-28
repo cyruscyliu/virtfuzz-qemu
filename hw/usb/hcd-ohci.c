@@ -1272,7 +1272,7 @@ static void ohci_frame_boundary(void *opaque)
     hcca.frame = cpu_to_le16(ohci->frame_number);
 
     if (ohci->done_count == 0 && !(ohci->intr_status & OHCI_INTR_WD)) {
-#ifdef CLANG_COV_DUMP
+#ifndef CLANG_COV_DUMP
         if (!ohci->done)
             abort();
 #endif

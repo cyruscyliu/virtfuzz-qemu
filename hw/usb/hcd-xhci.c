@@ -45,10 +45,10 @@ void TraceStateCallback(uint8_t id) {}
 #define DPRINTF(...) do {} while (0)
 #endif
 #ifdef CLANG_COV_DUMP
+#define FIXME(_msg)
+#else
 #define FIXME(_msg) do { fprintf(stderr, "FIXME %s:%d %s\n", \
                                  __func__, __LINE__, _msg); abort(); } while (0)
-#else
-#define FIXME(_msg)
 #endif
 
 #define TRB_LINK_LIMIT  32
