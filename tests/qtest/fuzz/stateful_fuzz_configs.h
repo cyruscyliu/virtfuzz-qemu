@@ -16,7 +16,7 @@
 
 #include "exec/ioport.h"
 #include "tests/qtest/libqos/pci-pc.h"
-#include "tests/qtest/libqos/libqtest.h"
+#include "tests/qtest/libqtest.h"
 #include "fuzz.h"
 #include "tests/qtest/libqos/qos_external.h"
 #include "tests/qtest/libqos/qgraph_internal.h"
