@@ -39,6 +39,8 @@
 #include "trace.h"
 #include "qemu/main-loop.h"
 #include "qemu/module.h"
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 
 #define FRAME_TIMER_FREQ 1000
 

@@ -36,6 +36,8 @@
 #include "qemu/error-report.h"
 #include "qemu/main-loop.h"
 #include "sysemu/runstate.h"
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 
 #define FRAME_TIMER_FREQ 1000
 #define FRAME_TIMER_NS   (NANOSECONDS_PER_SECOND / FRAME_TIMER_FREQ)
