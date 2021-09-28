@@ -2480,6 +2480,7 @@ static void xhci_process_commands(XHCIState *xhci)
 
     xhci->crcr_low |= CRCR_CRR;
 
+    TraceStateCallback(5);
     while ((type = xhci_ring_fetch(xhci, &xhci->cmd_ring, &trb, &addr))) {
         event.ptr = addr;
         switch (type) {

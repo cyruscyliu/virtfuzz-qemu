@@ -1006,6 +1006,7 @@ static void uhci_queue_fill(UHCIQueue *q, UHCI_TD *td)
 
 static void uhci_process_frame(UHCIState *s)
 {
+    TraceStateCallback(0);
     uint32_t frame_addr, link, old_td_ctrl, val, int_mask;
     uint32_t curr_qh, td_count = 0;
     int cnt, ret;
