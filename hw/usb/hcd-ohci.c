@@ -37,6 +37,8 @@
 #include "hw/qdev-properties.h"
 #include "trace.h"
 #include "hcd-ohci.h"
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 
 /* This causes frames to occur 1000x slower */
 //#define OHCI_TIME_WARP 1

@@ -33,6 +33,8 @@
 #include "qapi/error.h"
 
 #include "hcd-xhci.h"
+void TraceStateCallback(uint8_t id) __attribute__((weak));
+void TraceStateCallback(uint8_t id) {}
 
 //#define DEBUG_XHCI
 //#define DEBUG_DATA
