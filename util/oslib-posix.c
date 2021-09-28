@@ -366,8 +366,6 @@ void qemu_init_exec_dir(const char *argv0)
     char *p = NULL;
     char buf[PATH_MAX];
 
-    assert(!exec_dir[0]);
-
 #if defined(__linux__)
     {
         int len;
