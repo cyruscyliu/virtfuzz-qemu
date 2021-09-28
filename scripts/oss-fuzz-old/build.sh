@@ -66,23 +66,8 @@ fi
 
 mkdir -p "$DEST_DIR/lib/"  # Copy the shared libraries here
 
-# If not necessary, use TARGET_LIST_32 for speed
-TARGET_LIST_64="aarch64-softmmu mips64-softmmu mips64el-softmmu \
-    ppc64-softmmu riscv64-softmmu sparc64-softmmu x86_64-softmmu"
-TARGET_LIST_64_NECESSARY=aarch64-softmmu
-TARGET_LIST_32="i386-softmmu arm-softmmu" # \
-    # alpha-softmmu avr-softmmu cris-softmmu \
-    # hppa-softmmu m68k-softmmu microblaze-softmmu \
-    # microblazeel-softmmu mips-softmmu mipsel-softmmu moxie-softmmu \
-    # nios2-softmmu or1k-softmmu ppc-softmmu riscv32-softmmu rx-softmmu \
-    # s390x-softmmu sh4-softmmu sh4eb-softmmu sparc-softmmu tricore-softmmu \
-    # xtensa-softmmu xtensaeb-softmmu"
-TARGET_LIST="$TARGET_LIST_32 $TARGET_LIST_64_NECESSARY"
-FUZZ_TARGET_LIST=$(echo $TARGET_LIST | sed "s/-softmmu/-softmmu\/fuzz/g")
-
 # Build once to get the list of dynamic lib paths, and copy them over
 ../configure --disable-werror --cc="$CC" --cxx="$CXX" \
-    --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
     --extra-cflags="$EXTRA_CFLAGS" --target-list="i386-softmmu"
 
 if ! make CONFIG_FUZZ=y CFLAGS="$LIB_FUZZING_ENGINE" "-j$(nproc)" \
@@ -99,35 +84,21 @@ done
 rm ./i386-softmmu/qemu-fuzz-i386
 
 # Build a second time to build the final binary with correct rpath
-../configure --disable-werror --cc="$CC" --cxx="$CXX" --enable-fuzzing \
-    --prefix="$DEST_DIR" --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" \
-    --extra-cflags="$EXTRA_CFLAGS" --extra-ldflags="-Wl,-rpath,\$ORIGIN/lib" \
-    --target-list="$TARGET_LIST"
-make CONFIG_FUZZ=y CFLAGS="$LIB_FUZZING_ENGINE" "-j$(nproc)" $FUZZ_TARGET_LIST V=1
+../configure --bindir="$DEST_DIR" --datadir="$DEST_DIR/data/" --disable-werror \
+    --cc="$CC" --cxx="$CXX" --extra-cflags="$EXTRA_CFLAGS" \
+    --extra-ldflags="-Wl,-rpath,'\$\$ORIGIN/lib'"
+make CONFIG_FUZZ=y CFLAGS="$LIB_FUZZING_ENGINE" "-j$(nproc)" i386-softmmu/fuzz
 
 # Copy over the datadir
 cp  -r ../pc-bios/ "$DEST_DIR/pc-bios"
 
-for arch in $(echo $TARGET_LIST | sed "s/-softmmu//g"); do
-    targets=$(./$arch-softmmu/qemu-fuzz-$arch | awk '$1 ~ /\*/  {print $2}')
-    base_copy="$DEST_DIR/qemu-fuzz-$arch-target-$(echo "$targets" | head -n 1)"
-
-    cp "./$arch-softmmu/qemu-fuzz-$arch" "$base_copy"
-
-    # Run the fuzzer with no arguments, to print the help-string and get the list
-    # of available fuzz-targets. Copy over the qemu-fuzz-i386, naming it according
-    # to each available fuzz target (See 05509c8e6d fuzz: select fuzz target using
-    # executable name)
-    for target in $(echo "$targets" | tail -n +2); do
-        # Ignore the generic-fuzz target, as it requires some environment variables
-        # to be configured. We have some generic-fuzz-{pc-q35, floppy, ...} targets
-        # that are thin wrappers around this target that set the required
-        # environment variables according to predefined configs.
-        if [ "$target" != "generic-fuzz"  ] && [ "$target" != "stateful-fuzz" ]; then
-            ln -f $base_copy \
-                "$DEST_DIR/qemu-fuzz-$arch-target-$target"
-        fi
-    done
+# Run the fuzzer with no arguments, to print the help-string and get the list
+# of available fuzz-targets. Copy over the qemu-fuzz-i386, naming it according
+# to each available fuzz target (See 05509c8e6d fuzz: select fuzz target using
+# executable name)
+for target in $(./i386-softmmu/qemu-fuzz-i386 | awk '$1 ~ /\*/  {print $2}');
+do
+    cp ./i386-softmmu/qemu-fuzz-i386 "$DEST_DIR/qemu-fuzz-i386-target-$target"
 done
 
 echo "Done. The fuzzers are located in $DEST_DIR"
