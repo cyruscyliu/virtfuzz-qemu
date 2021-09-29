@@ -17,14 +17,17 @@
 #ifndef CLANG_COV_DUMP_H
 #define CLANG_COV_DUMP_H
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <signal.h>
 #include <unistd.h>
 
 #define DEFAULT_PROFILE "clangcovdump.profraw"
+static int duration = 0;
 static char* llvm_profile_file = (char *)DEFAULT_PROFILE;
 static int coverage_dump_precision = 1;
+static int coverage_dump_precision_th = 600;
 #ifdef __cplusplus
 extern "C" int __llvm_profile_runtime;
 extern "C" void __llvm_profile_initialize_file(void);
@@ -52,28 +55,33 @@ static void sig_handler(int signum) {
     case SIGALRM:
         // following dump
         llvm_profile_dump();
+        duration += coverage_dump_precision;
+        if (duration > coverage_dump_precision_th && \
+                duration <= coverage_dump_precision_th + coverage_dump_precision) {
+            coverage_dump_precision = coverage_dump_precision_th;
+        }
         alarm(coverage_dump_precision);
         break;
     }
 }
 
-static void llvm_profile_initialize_file() {
+static void llvm_profile_initialize_file(bool periodic) {
     static int init = 0;
 
     if (!init) {
         __llvm_profile_initialize_file();
         char *f = getenv("LLVM_PROFILE_FILE");
-        if (f) {
-            llvm_profile_file = f;
-	}
+        if (f) { llvm_profile_file = f; }
         char *p = getenv("COVEARGE_DUMP_PRECISION");
-        if (p) {
-            coverage_dump_precision = atoi(p);
-        }
-	// first dump
+        if (p) { coverage_dump_precision = atoi(p); }
+        char *t = getenv("COVERAGE_DUMP_PRECISION_TH");
+        if (t) { coverage_dump_precision_th = atoi(t); }
+        // first dump
         llvm_profile_dump();
-	signal(SIGALRM, sig_handler);
-        alarm(coverage_dump_precision);
+        if (periodic) {
+            signal(SIGALRM, sig_handler);
+            alarm(coverage_dump_precision);
+        }
         init = 1;
     }
 }
