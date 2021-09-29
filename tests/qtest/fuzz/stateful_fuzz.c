@@ -81,7 +81,7 @@ static void stateful_pre_fuzz(QTestState *s) {
     counter_shm_init();
 
 #ifdef CLANG_COV_DUMP
-    llvm_profile_initialize_file();
+    llvm_profile_initialize_file(true);
 #endif
 }
 
