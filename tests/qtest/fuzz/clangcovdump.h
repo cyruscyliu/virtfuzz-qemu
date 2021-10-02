@@ -29,12 +29,10 @@ static char* llvm_profile_file = (char *)DEFAULT_PROFILE;
 static int coverage_dump_precision = 1;
 static int coverage_dump_precision_th = 600;
 #ifdef __cplusplus
-extern "C" int __llvm_profile_runtime;
 extern "C" void __llvm_profile_initialize_file(void);
 extern "C" void __llvm_profile_set_filename(char *);
 extern "C" int __llvm_profile_write_file(void);
 #else
-int __llvm_profile_runtime;
 void __llvm_profile_initialize_file(void);
 void __llvm_profile_set_filename(char *);
 int __llvm_profile_write_file(void);

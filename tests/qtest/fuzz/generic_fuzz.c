@@ -29,6 +29,9 @@
 #include "hw/boards.h"
 #include "generic_fuzz_configs.h"
 #include "hw/mem/sparse-mem.h"
+#ifdef CLANG_COV_DUMP
+#include "clangcovdump.h"
+#endif
 
 /*
  * SEPARATOR is used to separate "operations" in the fuzz input
@@ -864,6 +867,10 @@ static void generic_pre_fuzz(QTestState *s)
     qpci_free_pc(pcibus);
 
     counter_shm_init();
+
+#ifdef CLANG_COV_DUMP
+    llvm_profile_initialize_file(true);
+#endif
 }
 
 /*

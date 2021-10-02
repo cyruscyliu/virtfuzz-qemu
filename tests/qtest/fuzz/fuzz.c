@@ -25,6 +25,14 @@
 #include "tests/qtest/libqos/qgraph.h"
 #include "fuzz.h"
 
+#ifdef CLANG_COV_DUMP
+#ifdef __cplusplus
+extern "C" int __llvm_profile_runtime;
+#else
+int __llvm_profile_runtime;
+#endif
+#endif
+
 #define MAX_EVENT_LOOPS 10
 
 typedef struct FuzzTargetState {
