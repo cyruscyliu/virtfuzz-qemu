@@ -706,7 +706,7 @@ static inline FlatView *address_space_to_flatview(AddressSpace *as)
     return atomic_rcu_read(&as->current_map);
 }
 
-typedef int (*flatview_cb)(Int128 start,
+typedef bool (*flatview_cb)(Int128 start,
                            Int128 len,
                            const MemoryRegion*, void*);
 
