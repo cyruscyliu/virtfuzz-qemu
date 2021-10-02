@@ -204,6 +204,13 @@ const generic_fuzz_config predefined_configs[] = {
         .args = "-machine q35 -nodefaults  -device pci-ohci -device usb-kbd",
         .objects = "*usb* *ohci*",
     },{
+        .name = "uhci",
+        // suitable for piix3-usb-uhci, piix4-usb-uhci, ich9-usb-uchi[1-6]
+        .args = "-machine q35 -nodefaults -device piix3-usb-uhci,id=uhci,addr=1d.0 "
+        "-drive id=drive0,if=none,file=null-co://,file.read-zeroes=on,format=raw "
+        "-device usb-tablet,bus=uhci.0,port=1",
+        .objects = "*uhci*",
+    },{
         .name = "megaraid",
         .args = "-machine q35 -nodefaults -device megasas -device scsi-cd,drive=null0 "
         "-blockdev driver=null-co,read-zeroes=on,node-name=null0",
