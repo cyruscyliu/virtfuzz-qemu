@@ -668,27 +668,27 @@ static void generic_fuzz(QTestState *s, const unsigned char *Data, size_t Size)
     size_t cmd_len;
     uint8_t op;
 
-    // if (fork() == 0) {
+    if (fork() == 0) {
         /*
          * Sometimes the fuzzer will find inputs that take quite a long time to
          * process. Often times, these inputs do not result in new coverage.
          * Even if these inputs might be interesting, they can slow down the
          * fuzzer, overall. Set a timeout to avoid hurting performance, too much
          */
-        // if (timeout) {
-            // struct sigaction sact;
-            // struct itimerval timer;
+        if (timeout) {
+            struct sigaction sact;
+            struct itimerval timer;
 
-            // sigemptyset(&sact.sa_mask);
-            // sact.sa_flags   = SA_NODEFER;
-            // sact.sa_handler = handle_timeout;
-            // sigaction(SIGALRM, &sact, NULL);
+            sigemptyset(&sact.sa_mask);
+            sact.sa_flags   = SA_NODEFER;
+            sact.sa_handler = handle_timeout;
+            sigaction(SIGALRM, &sact, NULL);
 
-            // memset(&timer, 0, sizeof(timer));
-            // timer.it_value.tv_sec = timeout / USEC_IN_SEC;
-            // timer.it_value.tv_usec = timeout % USEC_IN_SEC;
-            // setitimer(ITIMER_VIRTUAL, &timer, NULL);
-        // }
+            memset(&timer, 0, sizeof(timer));
+            timer.it_value.tv_sec = timeout / USEC_IN_SEC;
+            timer.it_value.tv_usec = timeout % USEC_IN_SEC;
+            setitimer(ITIMER_VIRTUAL, &timer, NULL);
+        }
 
         op_clear_dma_patterns(s, NULL, 0);
         pci_disabled = false;
@@ -711,11 +711,11 @@ static void generic_fuzz(QTestState *s, const unsigned char *Data, size_t Size)
             Size = Size - (cmd_len + sizeof(SEPARATOR) - 1);
             g_array_set_size(dma_regions, 0);
         }
-        // _Exit(0);
-    // } else {
-      //   flush_events(s);
-        // wait(0);
-    // }
+        _Exit(0);
+    } else {
+        flush_events(s);
+        wait(0);
+    }
 }
 
 static void usage(void)
