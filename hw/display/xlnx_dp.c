@@ -467,7 +467,7 @@ static uint8_t xlnx_dp_aux_pop_tx_fifo(XlnxDPState *s)
 
     if (fifo8_is_empty(&s->tx_fifo)) {
         error_report("%s: TX_FIFO underflow", __func__);
-        abort();
+        return 0;
     }
     ret = fifo8_pop(&s->tx_fifo);
     DPRINTF("pop 0x%2.2X from tx_fifo.\n", ret);
@@ -527,7 +527,6 @@ static void xlnx_dp_aux_set_command(XlnxDPState *s, uint32_t value)
         break;
     default:
         error_report("%s: invalid command: %u", __func__, cmd);
-        abort();
     }
 
     s->core_registers[DP_INTERRUPT_SIGNAL_STATE] |= 0x04;
@@ -614,7 +613,7 @@ static void xlnx_dp_recreate_surface(XlnxDPState *s)
 /*
  * Change the graphic format of the surface.
  */
-static void xlnx_dp_change_graphic_fmt(XlnxDPState *s)
+static int xlnx_dp_change_graphic_fmt(XlnxDPState *s)
 {
     switch (s->avbufm_registers[AV_BUF_FORMAT] & DP_GRAPHIC_MASK) {
     case DP_GRAPHIC_RGBA8888:
@@ -635,7 +634,7 @@ static void xlnx_dp_change_graphic_fmt(XlnxDPState *s)
     default:
         error_report("%s: unsupported graphic format %u", __func__,
                      s->avbufm_registers[AV_BUF_FORMAT] & DP_GRAPHIC_MASK);
-        abort();
+        return EDP_GRAPHIC;
     }
 
     switch (s->avbufm_registers[AV_BUF_FORMAT] & DP_NL_VID_FMT_MASK) {
@@ -651,10 +650,11 @@ static void xlnx_dp_change_graphic_fmt(XlnxDPState *s)
     default:
         error_report("%s: unsupported video format %u", __func__,
                      s->avbufm_registers[AV_BUF_FORMAT] & DP_NL_VID_FMT_MASK);
-        abort();
+        return EDP_NL_VID_FMT;
     }
 
     xlnx_dp_recreate_surface(s);
+    return 0;
 }
 
 static void xlnx_dp_update_irq(XlnxDPState *s)
@@ -1018,6 +1018,7 @@ static void xlnx_dp_avbufm_write(void *opaque, hwaddr offset, uint64_t value,
                                  unsigned size)
 {
     XlnxDPState *s = XLNX_DP(opaque);
+    uint32_t old_av_buf_format;
 
     DPRINTF("avbufm: write @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
                                                                (uint32_t)value);
@@ -1025,8 +1026,10 @@ static void xlnx_dp_avbufm_write(void *opaque, hwaddr offset, uint64_t value,
 
     switch (offset) {
     case AV_BUF_FORMAT:
+        old_av_buf_format = s->avbufm_registers[offset];
         s->avbufm_registers[offset] = value & 0x00000FFF;
-        xlnx_dp_change_graphic_fmt(s);
+        if (xlnx_dp_change_graphic_fmt(s))
+            s->avbufm_registers[offset] = old_av_buf_format;
         break;
     case AV_CHBUF0:
     case AV_CHBUF1:
