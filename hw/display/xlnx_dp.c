@@ -998,6 +998,8 @@ static uint64_t xlnx_dp_vblend_read(void *opaque, hwaddr offset,
 
     DPRINTF("vblend: read @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
             s->vblend_registers[offset >> 2]);
+    if (offset >> 2 >= 119)
+        return 0;
     return s->vblend_registers[offset >> 2];
 }
 
