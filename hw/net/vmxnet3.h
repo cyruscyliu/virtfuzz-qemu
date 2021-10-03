@@ -176,7 +176,7 @@ enum {
 #define VMXNET3_IO_REG(addr)            ((addr) & 0xFFFFFF)
 
 enum {
-    VMXNET3_CMD_FIRST_SET = 0xCAFE0000,
+    VMXNET3_CMD_FIRST_SET = 0x00000000,
     VMXNET3_CMD_ACTIVATE_DEV = VMXNET3_CMD_FIRST_SET, /* 0xCAFE0000 */
     VMXNET3_CMD_QUIESCE_DEV,                          /* 0xCAFE0001 */
     VMXNET3_CMD_RESET_DEV,                            /* 0xCAFE0002 */
@@ -189,7 +189,7 @@ enum {
     VMXNET3_CMD_UPDATE_FEATURE,                       /* 0xCAFE0009 */
     VMXNET3_CMD_LOAD_PLUGIN,                          /* 0xCAFE000A */
 
-    VMXNET3_CMD_FIRST_GET = 0xF00D0000,
+    VMXNET3_CMD_FIRST_GET = 0x00000010,
     VMXNET3_CMD_GET_QUEUE_STATUS = VMXNET3_CMD_FIRST_GET, /* 0xF00D0000 */
     VMXNET3_CMD_GET_STATS,                                /* 0xF00D0001 */
     VMXNET3_CMD_GET_LINK,                                 /* 0xF00D0002 */
