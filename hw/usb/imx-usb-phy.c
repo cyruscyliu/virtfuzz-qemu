@@ -91,7 +91,11 @@ static uint64_t imx_usbphy_read(void *opaque, hwaddr offset, unsigned size)
         value = s->usbphy[index - 3];
         break;
     default:
+    if (index > 32) {
+        value = 0;
+    } else {
         value = s->usbphy[index];
+    }
         break;
     }
     return (uint64_t)value;
