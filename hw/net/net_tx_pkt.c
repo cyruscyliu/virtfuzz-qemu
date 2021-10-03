@@ -68,7 +68,7 @@ void net_tx_pkt_init(struct NetTxPkt **pkt, PCIDevice *pci_dev,
     if (max_frags > 256) {
         max_frags = 256;
     }
-    
+
     p->vec = g_new(struct iovec, max_frags + NET_TX_PKT_PL_START_FRAG);
 
     p->raw = g_new(struct iovec, max_frags);
@@ -454,11 +454,13 @@ void net_tx_pkt_reset(struct NetTxPkt *pkt)
     pkt->payload_len = 0;
     pkt->payload_frags = 0;
 
-    assert(pkt->raw);
-    for (i = 0; i < pkt->raw_frags; i++) {
-        assert(pkt->raw[i].iov_base);
-        pci_dma_unmap(pkt->pci_dev, pkt->raw[i].iov_base, pkt->raw[i].iov_len,
-                      DMA_DIRECTION_TO_DEVICE, 0);
+    if (pkt->max_raw_frags > 0) {
+        assert(pkt->raw);
+        for (i = 0; i < pkt->raw_frags; i++) {
+            assert(pkt->raw[i].iov_base);
+            pci_dma_unmap(pkt->pci_dev, pkt->raw[i].iov_base,
+                          pkt->raw[i].iov_len, DMA_DIRECTION_TO_DEVICE, 0);
+        }
     }
     pkt->raw_frags = 0;
 
