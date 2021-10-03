@@ -918,7 +918,7 @@ static uint64_t xilinx_spips_read(void *opaque, hwaddr addr,
                         cpu_to_be32(*(uint32_t *)rx_buf) :
                         cpu_to_le32(*(uint32_t *)rx_buf);
         if (!(s->regs[R_CONFIG] & R_CONFIG_ENDIAN)) {
-            ret <<= 8 * shortfall;
+            ret <<= ((8 * shortfall) % 32);
         }
         DB_PRINT_L(0, "addr=" TARGET_FMT_plx " = %x\n", addr * 4, ret);
         xilinx_spips_check_flush(s);
