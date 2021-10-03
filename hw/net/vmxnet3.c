@@ -1348,12 +1348,14 @@ static bool vmxnet3_verify_intx(VMXNET3State *s, int intx)
         || intx == pci_get_byte(s->parent_obj.config + PCI_INTERRUPT_PIN) - 1;
 }
 
-static void vmxnet3_validate_interrupt_idx(bool is_msix, int idx)
+static bool vmxnet3_validate_interrupt_idx(bool is_msix, int idx)
 {
     int max_ints = is_msix ? VMXNET3_MAX_INTRS : VMXNET3_MAX_NMSIX_INTRS;
     if (idx >= max_ints) {
-        hw_error("Bad interrupt index: %d\n", idx);
+        // hw_error("Bad interrupt index: %d\n", idx);
+        return false;
     }
+    return true;
 }
 
 static void vmxnet3_validate_interrupts(VMXNET3State *s)
@@ -1385,11 +1387,13 @@ static void vmxnet3_validate_queues(VMXNET3State *s)
     */
 
     if (s->txq_num > VMXNET3_DEVICE_MAX_TX_QUEUES) {
-        hw_error("Bad TX queues number: %d\n", s->txq_num);
+         // hw_error("Bad TX queues number: %d\n", s->txq_num);
+         s->txq_num = VMXNET3_DEVICE_MAX_TX_QUEUES;
     }
 
     if (s->rxq_num > VMXNET3_DEVICE_MAX_RX_QUEUES) {
-        hw_error("Bad RX queues number: %d\n", s->rxq_num);
+        // hw_error("Bad RX queues number: %d\n", s->rxq_num);
+        s->rxq_num = VMXNET3_DEVICE_MAX_RX_QUEUES;
     }
 }
 
