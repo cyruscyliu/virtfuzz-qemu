@@ -65,6 +65,10 @@ void net_tx_pkt_init(struct NetTxPkt **pkt, PCIDevice *pci_dev,
 
     p->pci_dev = pci_dev;
 
+    if (max_frags > 256) {
+        max_frags = 256;
+    }
+    
     p->vec = g_new(struct iovec, max_frags + NET_TX_PKT_PL_START_FRAG);
 
     p->raw = g_new(struct iovec, max_frags);
