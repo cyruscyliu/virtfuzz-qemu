@@ -43,7 +43,8 @@ void fifo8_push_all(Fifo8 *fifo, const uint8_t *data, uint32_t num)
     uint32_t start, avail;
 
     if (fifo->num + num > fifo->capacity) {
-        abort();
+        // abort();
+        return;
     }
 
     start = (fifo->head + fifo->num) % fifo->capacity;
