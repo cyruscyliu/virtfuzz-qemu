@@ -177,6 +177,8 @@ static void uart_parameters_setup(CadenceUARTState *s)
     input_clk = clock_get_hz(s->refclk);
 
     baud_rate = (s->r[R_MR] & UART_MR_CLKS) ? input_clk / 8 : input_clk;
+    if ((s->r[R_BRGR] * (s->r[R_BDIV] + 1)) == 0)
+        return;
     baud_rate /= (s->r[R_BRGR] * (s->r[R_BDIV] + 1));
     trace_cadence_uart_baudrate(baud_rate);
 
