@@ -740,11 +740,11 @@ void usb_ep_dump(USBDevice *dev)
 
 struct USBEndpoint *usb_ep_get(USBDevice *dev, int pid, int ep)
 {
-    // printf("pid=%d ep=%d\n", pid, ep);
+    printf("pid=%d ep=%d\n", pid, ep);
     struct USBEndpoint *eps;
 
     assert(dev != NULL);
-    if (ep == 0) {
+    if (ep == 0 || pid == 0 || pid == USB_TOKEN_SETUP) {
         return &dev->ep_ctl;
     }
     assert(pid == USB_TOKEN_IN || pid == USB_TOKEN_OUT);
