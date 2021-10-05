@@ -21,6 +21,7 @@
 #include "tests/qtest/libqos/qos_external.h"
 #include "tests/qtest/libqos/qgraph_internal.h"
 #include <rfb/rfbclient.h>
+#include <sys/socket.h>
 
 static int sockfds[2];
 static bool sockfds_initialized = false;
@@ -37,11 +38,50 @@ static bool vnc_client_needed = false;
 static bool vnc_client_initialized = false;
 static void vnc_client_output(rfbClient* client, int x, int y, int w, int h) {}
 
+static int vnc_port;
+
+/*
+ * FindFreeTcpPort tries to find unused TCP port in the range
+ * (SERVER_PORT_OFFSET, SERVER_PORT_OFFSET + 99]. Returns 0 on failure.
+ */
+static int FindFreeTcpPort1(void) {
+  int sock, port;
+  struct sockaddr_in addr;
+
+  addr.sin_family = AF_INET;
+  addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
+  sock = socket(AF_INET, SOCK_STREAM, 0);
+  if (sock < 0) {
+    rfbClientErr(": FindFreeTcpPort: socket\n");
+    return 0;
+  }
+
+  for (port = SERVER_PORT_OFFSET + 99; port > SERVER_PORT_OFFSET; port--) {
+    addr.sin_port = htons((unsigned short)port);
+    if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) == 0) {
+      close(sock);
+      return port;
+    }
+  }
+
+  close(sock);
+  return 0;
+}
+
+static void init_vnc(void) {
+    vnc_port = FindFreeTcpPort1();
+    if (!vnc_port) {
+        _Exit(1);
+    }
+}
+
 static int init_vnc_client(QTestState *s) {
     client = rfbGetClient(8, 3, 4);
     if (fork() == 0) {
         client->GotFrameBufferUpdate = vnc_client_output;
-        if (!rfbInitClient(client, NULL, NULL)) {
+        client->serverPort = vnc_port;
+        if(!rfbInitClient(client, NULL, NULL)) {
             _Exit(1);
         }
         while (1) {
@@ -103,13 +143,17 @@ static inline GString *stateful_fuzz_predefined_config_cmdline(FuzzTarget *t)
     GString *args = g_string_new(NULL);
     const stateful_fuzz_config *config;
     g_assert(t->opaque);
+    int port = 0;
 
     config = t->opaque;
     if (config->socket && !sockfds_initialized) {
         init_sockets();
+        port = sockfds[1];
     }
     if (config->display) {
+        init_vnc();
         vnc_client_needed = true;
+        port = vnc_port - SERVER_PORT_OFFSET;
     }
     if (config->byte_address) {
         setenv("QEMU_BYTE_ADDRESS", "1", 1);
@@ -117,11 +161,11 @@ static inline GString *stateful_fuzz_predefined_config_cmdline(FuzzTarget *t)
     setenv("QEMU_AVOID_DOUBLE_FETCH", "1", 1);
     if (config->argfunc) {
         gchar *t = config->argfunc();
-        g_string_append_printf(args, t, sockfds[1]);
+        g_string_append_printf(args, t, port);
         g_free(t);
     } else {
         g_assert_nonnull(config->args);
-        g_string_append_printf(args, config->args, sockfds[1]);
+        g_string_append_printf(args, config->args, port);
     }
     gchar *args_str = g_string_free(args, FALSE);
     setenv("QEMU_FUZZ_ARGS", args_str, 1);
@@ -469,7 +513,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "ati",
         .args = "-machine q35 -nodefaults -device ati-vga,romfile=\"\" "
-        "-display vnc=localhost:0 -L ../pc-bios/",
+        "-display vnc=localhost:%d -L ../pc-bios/",
         .objects = "*ati.mmregs*",
         .mrnames = "*ati.mmregs*",
         .file = "hw/display/ati.c",
@@ -479,7 +523,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "cirrus-vga",
         .args = "-machine q35 -nodefaults -device cirrus-vga "
-        "-display vnc=localhost:0 -L ../pc-bios/",
+        "-display vnc=localhost:%d -L ../pc-bios/",
         .objects = "cirrus*",
         .mrnames = "*cirrus-io*,*cirrus-low-memory*,"
         "*cirrus-linear-io*,*cirrus-bitblt-mmio*,*cirrus-mmio*",
@@ -491,7 +535,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "qxl",
         .args = "-machine q35 -nodefaults -device qxl "
-        "-display vnc=localhost:0 -L ../pc-bios/",
+        "-display vnc=localhost:%d -L ../pc-bios/",
         .objects = "*qxl-ioports*",
         .mrnames = "*qxl-ioports*",
         .file = "hw/display/qxl.c",
@@ -501,7 +545,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "vmware-svga",
         .args = "-machine q35 -nodefaults -device vmware-svga "
-        "-display vnc=localhost:0 -L ../pc-bios/",
+        "-display vnc=localhost:%d -L ../pc-bios/",
         .objects = "*vmsvga-io*",
         .mrnames = "*vmsvga-io*",
         .file = "hw/display/vmware-svga.c",
@@ -512,7 +556,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "std-vga",
         .args = "-machine q35 -nodefaults -device VGA "
-        "-display vnc=localhost:0 -L ../pc-bios/",
+        "-display vnc=localhost:%d -L ../pc-bios/",
         .objects = "*vga-lowmem*,*vga ioports remapped*,"
         "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .mrnames = "*vga-lowmem*,*vga ioports remapped*,"
@@ -524,7 +568,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "secondary-vga",
         .args = "-machine q35 -nodefaults -device secondary-vga "
-        "-display vnc=localhost:0 -L ../pc-bios/",
+        "-display vnc=localhost:%d -L ../pc-bios/",
         .objects = "*vga-lowmem*,*vga ioports remapped*,"
         "*bochs dispi interface*,*qemu extended regs*,*vga.mmio*",
         .mrnames = "*vga-lowmem*,*vga ioports remapped*,"
@@ -536,7 +580,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         .arch = "i386",
         .name = "bochs-display",
         .args = "-machine q35 -nodefaults -device bochs-display "
-        "-display vnc=localhost:0 -L ../pc-bios/",
+        "-display vnc=localhost:%d -L ../pc-bios/",
         .objects = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .mrnames = "*bochs dispi interface*,*qemu extended regs*,*bochs-display-mmio*",
         .file = "hw/display/bochs-display.c",
