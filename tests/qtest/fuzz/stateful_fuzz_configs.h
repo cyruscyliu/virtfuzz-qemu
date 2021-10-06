@@ -453,7 +453,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         .mrnames = "*ac97-nam*,*ac97-nabm*",
         .file = "hw/audio/ac97.c",
         .socket = false,
-    },/*{
+    },{
         .arch = "i386",
         .name = "cs4231a",
         .args = "-machine q35 -nodefaults "
@@ -462,7 +462,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         .mrnames = "*cs4231a*",
         .file = "hw/audio/cs4231a.c",
         .socket = false,
-    },*/{
+    },{
         .arch = "i386",
         .name = "cs4231",
         .args = "-machine q35 -nodefaults "
