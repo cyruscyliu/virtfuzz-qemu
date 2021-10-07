@@ -246,6 +246,10 @@ const generic_fuzz_config predefined_configs[] = {
         .args = "-machine q35 -nodefaults "
         "-parallel file:/dev/null",
         .objects = "parallel*",
+    },{
+        .name = "ati",
+        .args = "-machine q35 -nodefaults -device ati-vga,romfile=\"\" ",
+        .objects = "ati.mmregs*",
     }
 };
 
