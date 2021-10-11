@@ -2035,6 +2035,7 @@ static TRBCCode xhci_enable_slot(XHCIState *xhci, unsigned int slotid)
 {
     trace_usb_xhci_slot_enable(slotid);
     assert(slotid >= 1 && slotid <= xhci->numslots);
+    printf("[-] %d is enabled\n", slotid - 1);
     xhci->slots[slotid-1].enabled = 1;
     xhci->slots[slotid-1].uport = NULL;
     memset(xhci->slots[slotid-1].eps, 0, sizeof(XHCIEPContext*)*31);
@@ -2044,6 +2045,7 @@ static TRBCCode xhci_enable_slot(XHCIState *xhci, unsigned int slotid)
 
 static TRBCCode xhci_disable_slot(XHCIState *xhci, unsigned int slotid)
 {
+    return CC_SUCCESS;
     int i;
 
     trace_usb_xhci_slot_disable(slotid);
@@ -3091,6 +3093,8 @@ static void xhci_runtime_write(void *ptr, hwaddr reg,
         break;
     case 0x08: /* ERSTSZ */
         intr->erstsz = val & 0xffff;
+        if (intr->erstsz == 1)
+            TraceStateCallback(19);
         break;
     case 0x10: /* ERSTBA low */
         if (xhci->nec_quirks) {

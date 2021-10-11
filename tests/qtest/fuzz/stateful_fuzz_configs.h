@@ -283,7 +283,7 @@ static const stateful_fuzz_config predefined_configs[] = {
         "-device usb-kbd -device usb-mouse -device usb-serial,chardev=cd1 "
         "-device usb-tablet -device usb-wacom-tablet -device usb-audio",
         .objects = "*usb* *uhci* *xhci*",
-        .mrnames = "*capabilities*,*operational*,*runtime*,*doorbell*",
+        .mrnames = "*capabilities*,*operational*,*runtime*,*doorbell*,*usb2 port*,*usb3 port*",
         .file = "hw/usb/hcd-xhci.c",
         .socket = false,
     },{

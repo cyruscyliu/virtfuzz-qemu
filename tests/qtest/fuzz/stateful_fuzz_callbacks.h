@@ -8675,6 +8675,71 @@ v6ec1b7b019_out:;
 
 static size_t get_size_18() { return size_18;}
 
+// ====  ============================
+size_t size_19 = 0;
+
+static uint64_t xhci_ev_ring_seg_0 = 0;
+static uint64_t XHCITRB_v5fd65f49d3 = 0;
+
+static uint8_t *get_data_19() {
+    size_19 = 0;
+    uint8_t *Data = (uint8_t *)malloc(CALLBACK_MAXSIZE);
+    
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto v225ea8449c_0; break;
+    }
+v225ea8449c_0:;
+    stateful_free(xhci_ev_ring_seg_0);
+    xhci_ev_ring_seg_0 = stateful_malloc(0x10, /*chained=*/false);
+    // printf("[+] xhci_ev_ring_seg_0 = 0x%lx\n", xhci_ev_ring_seg_0);
+    switch (get_data_from_pool4() % 1){ 
+        case 0: goto vbcd4823aed_0; break;
+    }
+vbcd4823aed_0:;
+    stateful_free(XHCITRB_v5fd65f49d3);
+    XHCITRB_v5fd65f49d3 = stateful_malloc(0x10, /*chained=*/false);
+    // printf("[+] XHCITRB_v5fd65f49d3 = 0x%lx\n", XHCITRB_v5fd65f49d3);
+    uint8_t *v952a4ff52d = (uint8_t *)malloc(0x8);
+    fill(v952a4ff52d, 0x8, (XHCITRB_v5fd65f49d3 & 0xffffffc0), 0x8 > 0x4 ? 0x4 : 0x8);
+    size_19 += serialize(Data, size_19, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, XHCITRB_v5fd65f49d3 + 0x0, 0x8, (uint8_t *)v952a4ff52d);
+    free(v952a4ff52d);
+    uint8_t *vce5000d3ea = (uint8_t *)malloc(0x4);
+    fill(vce5000d3ea, 0x4, (((get_data_from_pool4() & ((1 << (0x10 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x06 + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x0a + 1)) - 1)) << 0x16)), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_19 += serialize(Data, size_19, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, XHCITRB_v5fd65f49d3 + 0x8, 0x4, (uint8_t *)vce5000d3ea);
+    free(vce5000d3ea);
+    uint8_t *vb2cbcafea5 = (uint8_t *)malloc(0x4);
+    fill(vb2cbcafea5, 0x4, (((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x00) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x01) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x02) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x03) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x04) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x05) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x06) | ((get_data_from_pool4() & ((1 << (0x02 + 1)) - 1)) << 0x07) | ((get_data_from_pool4() & ((1 << (0x01 + 1)) - 1)) << 0x09) | ((get_data_from_pool4() & ((1 << (0x06 + 1)) - 1)) << 0x0a) | ((get_data_from_pool4() & ((1 << (0x05 + 1)) - 1)) << 0x10) | ((get_data_from_pool4() & ((1 << (0x03 + 1)) - 1)) << 0x15) | ((get_data_from_pool4() & ((1 << (0x08 + 1)) - 1)) << 0x18)), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_19 += serialize(Data, size_19, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, XHCITRB_v5fd65f49d3 + 0xc, 0x4, (uint8_t *)vb2cbcafea5);
+    free(vb2cbcafea5);
+    uint8_t *v7e40d229d9 = (uint8_t *)malloc(0x4);
+    fill(v7e40d229d9, 0x4, (XHCITRB_v5fd65f49d3 & 0xffffffc0), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_19 += serialize(Data, size_19, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, xhci_ev_ring_seg_0 + 0x0, 0x4, (uint8_t *)v7e40d229d9);
+    free(v7e40d229d9);
+    goto vbcd4823aed_out;
+vbcd4823aed_out:;
+    uint8_t *v947115e58d = (uint8_t *)malloc(0x4);
+    fill(v947115e58d, 0x4, 0x0, 0x4 > 0x4 ? 0x4 : 0x4);
+    size_19 += serialize(Data, size_19, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, xhci_ev_ring_seg_0 + 0x4, 0x4, (uint8_t *)v947115e58d);
+    free(v947115e58d);
+    uint8_t *v820297b12b = (uint8_t *)malloc(0x4);
+    fill(v820297b12b, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_19 += serialize(Data, size_19, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, xhci_ev_ring_seg_0 + 0x8, 0x4, (uint8_t *)v820297b12b);
+    free(v820297b12b);
+    uint8_t *v7b1922568c = (uint8_t *)malloc(0x4);
+    fill(v7b1922568c, 0x4, get_data_from_pool4(), 0x4 > 0x4 ? 0x4 : 0x4);
+    size_19 += serialize(Data, size_19, CALLBACK_MAXSIZE, INTERFACE_MEM_WRITE, xhci_ev_ring_seg_0 + 0xc, 0x4, (uint8_t *)v7b1922568c);
+    free(v7b1922568c);
+    uint64_t v954af019a0 = xhci_ev_ring_seg_0;
+    size_19 += serialize(Data, size_19, CALLBACK_MAXSIZE, get_interface_id("runtime", EVENT_TYPE_MMIO_WRITE), 0x10, 0x4, (uint8_t *)&v954af019a0);
+    uint64_t vf3dacf7258 = 0x0;
+    size_19 += serialize(Data, size_19, CALLBACK_MAXSIZE, get_interface_id("runtime", EVENT_TYPE_MMIO_WRITE), 0x14, 0x4, (uint8_t *)&vf3dacf7258);
+    goto v225ea8449c_out;
+v225ea8449c_out:;
+    return Data;
+}
+
+static size_t get_size_19() { return size_19;}
+
 static Callback callbacks[] = { 
     [0] = {
         .id = 0,
@@ -8789,6 +8854,12 @@ static Callback callbacks[] = {
         .name = "ahci",
         .get_data = get_data_18,
         .get_size = get_size_18,
+    },
+    [19] = {
+        .id = 19,
+        .name = "xhci1",
+        .get_data = get_data_19,
+        .get_size = get_size_19,
     },
 };
 
