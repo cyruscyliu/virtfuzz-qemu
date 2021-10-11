@@ -459,9 +459,10 @@ static const stateful_fuzz_config predefined_configs[] = {
         .args = "-machine q35 -nodefaults "
         "-device cs4231a,audiodev=snd0 -audiodev none,id=snd0 -nodefaults",
         .objects = "cs4231a* i8257*",
-        .mrnames = "*cs4231a*",
+        .mrnames = "*cs4231a*,*dma-chan*,*dma-page*,*dma-pageh*,*dma-cont*",
         .file = "hw/audio/cs4231a.c",
         .socket = false,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "cs4231",
