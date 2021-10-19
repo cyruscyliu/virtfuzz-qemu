@@ -44,7 +44,7 @@ void TraceStateCallback(uint8_t id) {}
 #else
 #define DPRINTF(...) do {} while (0)
 #endif
-#ifdef CLANG_COV_DUMP
+#ifdef VIRTFUZZ_LESS_CRASHES
 #define FIXME(_msg)
 #else
 #define FIXME(_msg) do { fprintf(stderr, "FIXME %s:%d %s\n", \

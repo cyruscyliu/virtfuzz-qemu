@@ -597,7 +597,7 @@ void usb_packet_copy(USBPacket *p, void *ptr, size_t bytes)
     case USB_TOKEN_IN:
         iov_from_buf(iov->iov, iov->niov, p->actual_length, ptr, bytes);
         break;
-#ifndef CLANG_COV_DUMP
+#ifndef VIRTFUZZ_LESS_CRASHES
     default:
         fprintf(stderr, "%s: invalid pid: %x\n", __func__, p->pid);
         abort();

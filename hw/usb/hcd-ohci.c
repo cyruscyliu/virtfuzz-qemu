@@ -1162,11 +1162,11 @@ static int ohci_service_ed_list(OHCIState *ohci, uint32_t head, int completion)
             continue;
         }
 
-#ifdef CLANG_COV_DUMP
+#ifdef VIRTFUZZ_LESS_CRASHES
         static int counter = 0;
 #endif
         while ((ed.head & OHCI_DPTR_MASK) != ed.tail) {
-#ifdef CLANG_COV_DUMP
+#ifdef VIRTFUZZ_LESS_CRASHES
             counter++;
             if (counter > 1000)
                 break;
@@ -1281,7 +1281,7 @@ static void ohci_frame_boundary(void *opaque)
     hcca.frame = cpu_to_le16(ohci->frame_number);
 
     if (ohci->done_count == 0 && !(ohci->intr_status & OHCI_INTR_WD)) {
-#ifndef CLANG_COV_DUMP
+#ifndef VIRTFUZZ_LESS_CRASHES
         if (!ohci->done)
             abort();
 #endif

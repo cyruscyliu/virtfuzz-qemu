@@ -901,7 +901,7 @@ static int uhci_handle_td(UHCIState *s, UHCIQueue *q, uint32_t qh_addr,
         usb_handle_packet(q->ep->dev, &async->packet);
         break;
 
-#ifndef CLANG_COV_DUMP
+#ifndef VIRTFUZZ_LESS_CRASHES
     default:
         abort(); /* Never to execute */
 #endif
