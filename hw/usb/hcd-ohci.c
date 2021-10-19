@@ -1168,16 +1168,12 @@ static int ohci_service_ed_list(OHCIState *ohci, uint32_t head, int completion)
             continue;
         }
 
-#ifdef VIRTFUZZ_LESS_CRASHES
         static int counter;
         counter = 0;
-#endif
         while ((ed.head & OHCI_DPTR_MASK) != ed.tail) {
-#ifdef VIRTFUZZ_LESS_CRASHES
             counter++;
             if (counter > 1)
                 break;
-#endif
 
             trace_usb_ohci_ed_pkt(cur, (ed.head & OHCI_ED_H) != 0,
                     (ed.head & OHCI_ED_C) != 0, ed.head & OHCI_DPTR_MASK,
