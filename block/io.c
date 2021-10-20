@@ -1916,7 +1916,9 @@ bdrv_co_write_req_prepare(BdrvChild *child, int64_t offset, uint64_t bytes,
         if (flags & BDRV_REQ_WRITE_UNCHANGED) {
             assert(child->perm & (BLK_PERM_WRITE_UNCHANGED | BLK_PERM_WRITE));
         } else {
-            assert(child->perm & BLK_PERM_WRITE);
+            // assert(child->perm & BLK_PERM_WRITE);
+            if (!(child->perm & BLK_PERM_WRITE))
+                return 0;
         }
         return notifier_with_return_list_notify(&bs->before_write_notifiers,
                                                 req);
