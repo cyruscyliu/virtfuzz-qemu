@@ -23,18 +23,21 @@
 
 void tpm_ppi_reset(TPMPPI *tpmppi)
 {
-    if (tpmppi->buf[0x15a /* movv, docs/specs/tpm.txt */] & 0x1) {
+    if (tpmppi->buf[0x15a /* movv, docs/specs/tpm.rst */] & 0x1) {
         GuestPhysBlockList guest_phys_blocks;
         GuestPhysBlock *block;
 
         guest_phys_blocks_init(&guest_phys_blocks);
         guest_phys_blocks_append(&guest_phys_blocks);
         QTAILQ_FOREACH(block, &guest_phys_blocks.head, next) {
+            hwaddr mr_offs = block->host_addr -
+                             (uint8_t *)memory_region_get_ram_ptr(block->mr);
+
             trace_tpm_ppi_memset(block->host_addr,
                                  block->target_end - block->target_start);
             memset(block->host_addr, 0,
                    block->target_end - block->target_start);
-            memory_region_set_dirty(block->mr, 0,
+            memory_region_set_dirty(block->mr, mr_offs,
                                     block->target_end - block->target_start);
         }
         guest_phys_blocks_free(&guest_phys_blocks);

@@ -18,22 +18,55 @@
 #include "hw/virtio/vhost-backend.h"
 #include "hw/virtio/virtio-net.h"
 #include "hw/virtio/vhost-vdpa.h"
+#include "exec/address-spaces.h"
 #include "qemu/main-loop.h"
 #include "cpu.h"
 #include "trace.h"
 #include "qemu-common.h"
 
-static bool vhost_vdpa_listener_skipped_section(MemoryRegionSection *section)
+/*
+ * Return one past the end of the end of section. Be careful with uint64_t
+ * conversions!
+ */
+static Int128 vhost_vdpa_section_end(const MemoryRegionSection *section)
 {
-    return (!memory_region_is_ram(section->mr) &&
-            !memory_region_is_iommu(section->mr)) ||
-           /*
-            * Sizing an enabled 64-bit BAR can cause spurious mappings to
-            * addresses in the upper part of the 64-bit address space.  These
-            * are never accessed by the CPU and beyond the address width of
-            * some IOMMU hardware.  TODO: VDPA should tell us the IOMMU width.
-            */
-           section->offset_within_address_space & (1ULL << 63);
+    Int128 llend = int128_make64(section->offset_within_address_space);
+    llend = int128_add(llend, section->size);
+    llend = int128_and(llend, int128_exts64(TARGET_PAGE_MASK));
+
+    return llend;
+}
+
+static bool vhost_vdpa_listener_skipped_section(MemoryRegionSection *section,
+                                                uint64_t iova_min,
+                                                uint64_t iova_max)
+{
+    Int128 llend;
+
+    if ((!memory_region_is_ram(section->mr) &&
+         !memory_region_is_iommu(section->mr)) ||
+        memory_region_is_protected(section->mr) ||
+        /* vhost-vDPA doesn't allow MMIO to be mapped  */
+        memory_region_is_ram_device(section->mr)) {
+        return true;
+    }
+
+    if (section->offset_within_address_space < iova_min) {
+        error_report("RAM section out of device range (min=0x%" PRIx64
+                     ", addr=0x%" HWADDR_PRIx ")",
+                     iova_min, section->offset_within_address_space);
+        return true;
+    }
+
+    llend = vhost_vdpa_section_end(section);
+    if (int128_gt(llend, int128_make64(iova_max))) {
+        error_report("RAM section out of device range (max=0x%" PRIx64
+                     ", end addr=0x%" PRIx64 ")",
+                     iova_max, int128_get64(llend));
+        return true;
+    }
+
+    return false;
 }
 
 static int vhost_vdpa_dma_map(struct vhost_vdpa *v, hwaddr iova, hwaddr size,
@@ -86,24 +119,28 @@ static int vhost_vdpa_dma_unmap(struct vhost_vdpa *v, hwaddr iova,
     return ret;
 }
 
-static void vhost_vdpa_listener_begin(MemoryListener *listener)
+static void vhost_vdpa_listener_begin_batch(struct vhost_vdpa *v)
 {
-    struct vhost_vdpa *v = container_of(listener, struct vhost_vdpa, listener);
-    struct vhost_dev *dev = v->dev;
-    struct vhost_msg_v2 msg = {};
     int fd = v->device_fd;
-
-    if (!(dev->backend_cap & (0x1ULL << VHOST_BACKEND_F_IOTLB_BATCH))) {
-        return;
-    }
-
-    msg.type = v->msg_type;
-    msg.iotlb.type = VHOST_IOTLB_BATCH_BEGIN;
+    struct vhost_msg_v2 msg = {
+        .type = v->msg_type,
+        .iotlb.type = VHOST_IOTLB_BATCH_BEGIN,
+    };
 
     if (write(fd, &msg, sizeof(msg)) != sizeof(msg)) {
         error_report("failed to write, fd=%d, errno=%d (%s)",
                      fd, errno, strerror(errno));
     }
+}
+
+static void vhost_vdpa_iotlb_batch_begin_once(struct vhost_vdpa *v)
+{
+    if (v->dev->backend_cap & (0x1ULL << VHOST_BACKEND_F_IOTLB_BATCH) &&
+        !v->iotlb_batch_begin_sent) {
+        vhost_vdpa_listener_begin_batch(v);
+    }
+
+    v->iotlb_batch_begin_sent = true;
 }
 
 static void vhost_vdpa_listener_commit(MemoryListener *listener)
@@ -117,6 +154,10 @@ static void vhost_vdpa_listener_commit(MemoryListener *listener)
         return;
     }
 
+    if (!v->iotlb_batch_begin_sent) {
+        return;
+    }
+
     msg.type = v->msg_type;
     msg.iotlb.type = VHOST_IOTLB_BATCH_END;
 
@@ -124,6 +165,8 @@ static void vhost_vdpa_listener_commit(MemoryListener *listener)
         error_report("failed to write, fd=%d, errno=%d (%s)",
                      fd, errno, strerror(errno));
     }
+
+    v->iotlb_batch_begin_sent = false;
 }
 
 static void vhost_vdpa_listener_region_add(MemoryListener *listener,
@@ -135,7 +178,8 @@ static void vhost_vdpa_listener_region_add(MemoryListener *listener,
     void *vaddr;
     int ret;
 
-    if (vhost_vdpa_listener_skipped_section(section)) {
+    if (vhost_vdpa_listener_skipped_section(section, v->iova_range.first,
+                                            v->iova_range.last)) {
         return;
     }
 
@@ -146,10 +190,7 @@ static void vhost_vdpa_listener_region_add(MemoryListener *listener,
     }
 
     iova = TARGET_PAGE_ALIGN(section->offset_within_address_space);
-    llend = int128_make64(section->offset_within_address_space);
-    llend = int128_add(llend, section->size);
-    llend = int128_and(llend, int128_exts64(TARGET_PAGE_MASK));
-
+    llend = vhost_vdpa_section_end(section);
     if (int128_ge(int128_make64(iova), llend)) {
         return;
     }
@@ -167,26 +208,17 @@ static void vhost_vdpa_listener_region_add(MemoryListener *listener,
 
     llsize = int128_sub(llend, int128_make64(iova));
 
+    vhost_vdpa_iotlb_batch_begin_once(v);
     ret = vhost_vdpa_dma_map(v, iova, int128_get64(llsize),
                              vaddr, section->readonly);
     if (ret) {
         error_report("vhost vdpa map fail!");
-        if (memory_region_is_ram_device(section->mr)) {
-            /* Allow unexpected mappings not to be fatal for RAM devices */
-            error_report("map ram fail!");
-          return ;
-        }
         goto fail;
     }
 
     return;
 
 fail:
-    if (memory_region_is_ram_device(section->mr)) {
-        error_report("failed to vdpa_dma_map. pci p2p may not work");
-        return;
-
-    }
     /*
      * On the initfn path, store the first error in the container so we
      * can gracefully fail.  Runtime, there's not much we can do other
@@ -205,7 +237,8 @@ static void vhost_vdpa_listener_region_del(MemoryListener *listener,
     Int128 llend, llsize;
     int ret;
 
-    if (vhost_vdpa_listener_skipped_section(section)) {
+    if (vhost_vdpa_listener_skipped_section(section, v->iova_range.first,
+                                            v->iova_range.last)) {
         return;
     }
 
@@ -216,9 +249,7 @@ static void vhost_vdpa_listener_region_del(MemoryListener *listener,
     }
 
     iova = TARGET_PAGE_ALIGN(section->offset_within_address_space);
-    llend = int128_make64(section->offset_within_address_space);
-    llend = int128_add(llend, section->size);
-    llend = int128_and(llend, int128_exts64(TARGET_PAGE_MASK));
+    llend = vhost_vdpa_section_end(section);
 
     trace_vhost_vdpa_listener_region_del(v, iova, int128_get64(llend));
 
@@ -228,6 +259,7 @@ static void vhost_vdpa_listener_region_del(MemoryListener *listener,
 
     llsize = int128_sub(llend, int128_make64(iova));
 
+    vhost_vdpa_iotlb_batch_begin_once(v);
     ret = vhost_vdpa_dma_unmap(v, iova, int128_get64(llsize));
     if (ret) {
         error_report("vhost_vdpa dma unmap error!");
@@ -241,7 +273,7 @@ static void vhost_vdpa_listener_region_del(MemoryListener *listener,
  * depends on the addnop().
  */
 static const MemoryListener vhost_vdpa_memory_listener = {
-    .begin = vhost_vdpa_listener_begin,
+    .name = "vhost-vdpa",
     .commit = vhost_vdpa_listener_commit,
     .region_add = vhost_vdpa_listener_region_add,
     .region_del = vhost_vdpa_listener_region_del,
@@ -252,10 +284,12 @@ static int vhost_vdpa_call(struct vhost_dev *dev, unsigned long int request,
 {
     struct vhost_vdpa *v = dev->opaque;
     int fd = v->device_fd;
+    int ret;
 
     assert(dev->vhost_ops->backend_type == VHOST_BACKEND_TYPE_VDPA);
 
-    return ioctl(fd, request, arg);
+    ret = ioctl(fd, request, arg);
+    return ret < 0 ? -errno : ret;
 }
 
 static void vhost_vdpa_add_status(struct vhost_dev *dev, uint8_t status)
@@ -272,25 +306,130 @@ static void vhost_vdpa_add_status(struct vhost_dev *dev, uint8_t status)
     vhost_vdpa_call(dev, VHOST_VDPA_SET_STATUS, &s);
 }
 
-static int vhost_vdpa_init(struct vhost_dev *dev, void *opaque)
+static void vhost_vdpa_get_iova_range(struct vhost_vdpa *v)
+{
+    int ret = vhost_vdpa_call(v->dev, VHOST_VDPA_GET_IOVA_RANGE,
+                              &v->iova_range);
+    if (ret != 0) {
+        v->iova_range.first = 0;
+        v->iova_range.last = UINT64_MAX;
+    }
+
+    trace_vhost_vdpa_get_iova_range(v->dev, v->iova_range.first,
+                                    v->iova_range.last);
+}
+
+static bool vhost_vdpa_one_time_request(struct vhost_dev *dev)
+{
+    struct vhost_vdpa *v = dev->opaque;
+
+    return v->index != 0;
+}
+
+static int vhost_vdpa_init(struct vhost_dev *dev, void *opaque, Error **errp)
 {
     struct vhost_vdpa *v;
-    uint64_t features;
     assert(dev->vhost_ops->backend_type == VHOST_BACKEND_TYPE_VDPA);
     trace_vhost_vdpa_init(dev, opaque);
 
     v = opaque;
     v->dev = dev;
     dev->opaque =  opaque ;
-    vhost_vdpa_call(dev, VHOST_GET_FEATURES, &features);
-    dev->backend_features = features;
     v->listener = vhost_vdpa_memory_listener;
     v->msg_type = VHOST_IOTLB_MSG_V2;
+
+    vhost_vdpa_get_iova_range(v);
+
+    if (vhost_vdpa_one_time_request(dev)) {
+        return 0;
+    }
 
     vhost_vdpa_add_status(dev, VIRTIO_CONFIG_S_ACKNOWLEDGE |
                                VIRTIO_CONFIG_S_DRIVER);
 
     return 0;
+}
+
+static void vhost_vdpa_host_notifier_uninit(struct vhost_dev *dev,
+                                            int queue_index)
+{
+    size_t page_size = qemu_real_host_page_size;
+    struct vhost_vdpa *v = dev->opaque;
+    VirtIODevice *vdev = dev->vdev;
+    VhostVDPAHostNotifier *n;
+
+    n = &v->notifier[queue_index];
+
+    if (n->addr) {
+        virtio_queue_set_host_notifier_mr(vdev, queue_index, &n->mr, false);
+        object_unparent(OBJECT(&n->mr));
+        munmap(n->addr, page_size);
+        n->addr = NULL;
+    }
+}
+
+static void vhost_vdpa_host_notifiers_uninit(struct vhost_dev *dev, int n)
+{
+    int i;
+
+    for (i = 0; i < n; i++) {
+        vhost_vdpa_host_notifier_uninit(dev, i);
+    }
+}
+
+static int vhost_vdpa_host_notifier_init(struct vhost_dev *dev, int queue_index)
+{
+    size_t page_size = qemu_real_host_page_size;
+    struct vhost_vdpa *v = dev->opaque;
+    VirtIODevice *vdev = dev->vdev;
+    VhostVDPAHostNotifier *n;
+    int fd = v->device_fd;
+    void *addr;
+    char *name;
+
+    vhost_vdpa_host_notifier_uninit(dev, queue_index);
+
+    n = &v->notifier[queue_index];
+
+    addr = mmap(NULL, page_size, PROT_WRITE, MAP_SHARED, fd,
+                queue_index * page_size);
+    if (addr == MAP_FAILED) {
+        goto err;
+    }
+
+    name = g_strdup_printf("vhost-vdpa/host-notifier@%p mmaps[%d]",
+                           v, queue_index);
+    memory_region_init_ram_device_ptr(&n->mr, OBJECT(vdev), name,
+                                      page_size, addr);
+    g_free(name);
+
+    if (virtio_queue_set_host_notifier_mr(vdev, queue_index, &n->mr, true)) {
+        munmap(addr, page_size);
+        goto err;
+    }
+    n->addr = addr;
+
+    return 0;
+
+err:
+    return -1;
+}
+
+static void vhost_vdpa_host_notifiers_init(struct vhost_dev *dev)
+{
+    int i;
+
+    for (i = dev->vq_index; i < dev->vq_index + dev->nvqs; i++) {
+        if (vhost_vdpa_host_notifier_init(dev, i)) {
+            goto err;
+        }
+    }
+
+    return;
+
+err:
+    vhost_vdpa_host_notifiers_uninit(dev, i);
+    return;
 }
 
 static int vhost_vdpa_cleanup(struct vhost_dev *dev)
@@ -299,6 +438,7 @@ static int vhost_vdpa_cleanup(struct vhost_dev *dev)
     assert(dev->vhost_ops->backend_type == VHOST_BACKEND_TYPE_VDPA);
     v = dev->opaque;
     trace_vhost_vdpa_cleanup(dev, v);
+    vhost_vdpa_host_notifiers_uninit(dev, dev->nvqs);
     memory_listener_unregister(&v->listener);
 
     dev->opaque = NULL;
@@ -314,6 +454,10 @@ static int vhost_vdpa_memslots_limit(struct vhost_dev *dev)
 static int vhost_vdpa_set_mem_table(struct vhost_dev *dev,
                                     struct vhost_memory *mem)
 {
+    if (vhost_vdpa_one_time_request(dev)) {
+        return 0;
+    }
+
     trace_vhost_vdpa_set_mem_table(dev, mem->nregions, mem->padding);
     if (trace_event_get_state_backends(TRACE_VHOST_VDPA_SET_MEM_TABLE) &&
         trace_event_get_state_backends(TRACE_VHOST_VDPA_DUMP_REGIONS)) {
@@ -337,6 +481,11 @@ static int vhost_vdpa_set_features(struct vhost_dev *dev,
                                    uint64_t features)
 {
     int ret;
+
+    if (vhost_vdpa_one_time_request(dev)) {
+        return 0;
+    }
+
     trace_vhost_vdpa_set_features(dev, features);
     ret = vhost_vdpa_call(dev, VHOST_SET_FEATURES, &features);
     uint8_t status = 0;
@@ -357,13 +506,16 @@ static int vhost_vdpa_set_backend_cap(struct vhost_dev *dev)
     int r;
 
     if (vhost_vdpa_call(dev, VHOST_GET_BACKEND_FEATURES, &features)) {
-        return 0;
+        return -EFAULT;
     }
 
     features &= f;
-    r = vhost_vdpa_call(dev, VHOST_SET_BACKEND_FEATURES, &features);
-    if (r) {
-        return 0;
+
+    if (vhost_vdpa_one_time_request(dev)) {
+        r = vhost_vdpa_call(dev, VHOST_SET_BACKEND_FEATURES, &features);
+        if (r) {
+            return -EFAULT;
+        }
     }
 
     dev->backend_cap = features;
@@ -371,8 +523,8 @@ static int vhost_vdpa_set_backend_cap(struct vhost_dev *dev)
     return 0;
 }
 
-int vhost_vdpa_get_device_id(struct vhost_dev *dev,
-                                   uint32_t *device_id)
+static int vhost_vdpa_get_device_id(struct vhost_dev *dev,
+                                    uint32_t *device_id)
 {
     int ret;
     ret = vhost_vdpa_call(dev, VHOST_VDPA_GET_DEVICE_ID, device_id);
@@ -394,8 +546,8 @@ static int vhost_vdpa_get_vq_index(struct vhost_dev *dev, int idx)
 {
     assert(idx >= dev->vq_index && idx < dev->vq_index + dev->nvqs);
 
-    trace_vhost_vdpa_get_vq_index(dev, idx, idx - dev->vq_index);
-    return idx - dev->vq_index;
+    trace_vhost_vdpa_get_vq_index(dev, idx, idx);
+    return idx;
 }
 
 static int vhost_vdpa_set_vring_ready(struct vhost_dev *dev)
@@ -448,7 +600,7 @@ static int vhost_vdpa_set_config(struct vhost_dev *dev, const uint8_t *data,
 }
 
 static int vhost_vdpa_get_config(struct vhost_dev *dev, uint8_t *config,
-                                   uint32_t config_len)
+                                   uint32_t config_len, Error **errp)
 {
     struct vhost_vdpa_config *v_config;
     unsigned long config_size = offsetof(struct vhost_vdpa_config, buf);
@@ -472,10 +624,21 @@ static int vhost_vdpa_dev_start(struct vhost_dev *dev, bool started)
 {
     struct vhost_vdpa *v = dev->opaque;
     trace_vhost_vdpa_dev_start(dev, started);
+
+    if (started) {
+        vhost_vdpa_host_notifiers_init(dev);
+        vhost_vdpa_set_vring_ready(dev);
+    } else {
+        vhost_vdpa_host_notifiers_uninit(dev, dev->nvqs);
+    }
+
+    if (dev->vq_index + dev->nvqs != dev->last_index) {
+        return 0;
+    }
+
     if (started) {
         uint8_t status = 0;
         memory_listener_register(&v->listener, &address_space_memory);
-        vhost_vdpa_set_vring_ready(dev);
         vhost_vdpa_add_status(dev, VIRTIO_CONFIG_S_DRIVER_OK);
         vhost_vdpa_call(dev, VHOST_VDPA_GET_STATUS, &status);
 
@@ -493,6 +656,10 @@ static int vhost_vdpa_dev_start(struct vhost_dev *dev, bool started)
 static int vhost_vdpa_set_log_base(struct vhost_dev *dev, uint64_t base,
                                      struct vhost_log *log)
 {
+    if (vhost_vdpa_one_time_request(dev)) {
+        return 0;
+    }
+
     trace_vhost_vdpa_set_log_base(dev, base, log->size, log->refcnt, log->fd,
                                   log->log);
     return vhost_vdpa_call(dev, VHOST_SET_LOG_BASE, &base);
@@ -558,6 +725,10 @@ static int vhost_vdpa_get_features(struct vhost_dev *dev,
 
 static int vhost_vdpa_set_owner(struct vhost_dev *dev)
 {
+    if (vhost_vdpa_one_time_request(dev)) {
+        return 0;
+    }
+
     trace_vhost_vdpa_set_owner(dev);
     return vhost_vdpa_call(dev, VHOST_SET_OWNER, NULL);
 }

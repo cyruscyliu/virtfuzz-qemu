@@ -166,8 +166,14 @@ _qemu_wrapper()
         if [ -n "${QEMU_NEED_PID}" ]; then
             echo $BASHPID > "${QEMU_TEST_DIR}/qemu-${_QEMU_HANDLE}.pid"
         fi
+
+        GDB=""
+        if [ -n "${GDB_OPTIONS}" ]; then
+            GDB="gdbserver ${GDB_OPTIONS}"
+        fi
+
         VALGRIND_QEMU="${VALGRIND_QEMU_VM}" _qemu_proc_exec "${VALGRIND_LOGFILE}" \
-            "$QEMU_PROG" $QEMU_OPTIONS "$@"
+            $GDB "$QEMU_PROG" $QEMU_OPTIONS "$@"
     )
     RETVAL=$?
     _qemu_proc_valgrind_log "${VALGRIND_LOGFILE}" $RETVAL
@@ -512,9 +518,13 @@ _make_test_img()
         # Usually, users would export formatted nodes.  But we present fuse as a
         # protocol-level driver here, so we have to leave the format to the
         # client.
+        # Switch off allow-other, because in general we do not need it for
+        # iotests.  The default allow-other=auto has the downside of printing a
+        # fusermount error on its first attempt if allow_other is not
+        # permissible, which we would need to filter.
         QSD_NEED_PID=y $QSD \
               --blockdev file,node-name=export-node,filename=$img_name,discard=unmap \
-              --export fuse,id=fuse-export,node-name=export-node,mountpoint="$export_mp",writable=on,growable=on \
+              --export fuse,id=fuse-export,node-name=export-node,mountpoint="$export_mp",writable=on,growable=on,allow-other=off \
               &
 
         pidfile="$QEMU_TEST_DIR/qemu-storage-daemon.pid"
@@ -639,10 +649,6 @@ _cleanup_test_img()
 
         rbd)
             rbd --no-progress rm "$TEST_DIR/t.$IMGFMT" > /dev/null
-            ;;
-
-        sheepdog)
-            collie vdi delete "$TEST_DIR/t.$IMGFMT"
             ;;
 
     esac

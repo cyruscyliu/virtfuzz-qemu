@@ -74,7 +74,7 @@ struct mips_def_t {
     int32_t SAARP;
 };
 
-extern const char regnames[32][4];
+extern const char regnames[32][3];
 extern const char fregnames[32][4];
 
 extern const struct mips_def_t mips_defs[];
@@ -155,8 +155,6 @@ void cpu_mips_store_cause(CPUMIPSState *env, target_ulong val);
 extern const VMStateDescription vmstate_mips_cpu;
 
 #endif /* !CONFIG_USER_ONLY */
-
-#define cpu_signal_handler cpu_mips_signal_handler
 
 static inline bool cpu_mips_hw_interrupts_enabled(CPUMIPSState *env)
 {

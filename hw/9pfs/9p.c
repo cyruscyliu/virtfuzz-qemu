@@ -11,6 +11,11 @@
  *
  */
 
+/*
+ * Not so fast! You might want to read the 9p developer docs first:
+ * https://wiki.qemu.org/Documentation/9p
+ */
+
 #include "qemu/osdep.h"
 #include <glib/gprintf.h>
 #include "hw/virtio/virtio.h"
@@ -44,6 +49,8 @@ enum {
     Orclose = 0x40,
     Oappend = 0x80,
 };
+
+P9ARRAY_DEFINE_TYPE(V9fsPath, v9fs_path_free);
 
 static ssize_t pdu_marshal(V9fsPDU *pdu, size_t offset, const char *fmt, ...)
 {
@@ -966,23 +973,6 @@ static int stat_to_qid(V9fsPDU *pdu, const struct stat *stbuf, V9fsQID *qidp)
     return 0;
 }
 
-static int coroutine_fn fid_to_qid(V9fsPDU *pdu, V9fsFidState *fidp,
-                                   V9fsQID *qidp)
-{
-    struct stat stbuf;
-    int err;
-
-    err = v9fs_co_lstat(pdu, &fidp->path, &stbuf);
-    if (err < 0) {
-        return err;
-    }
-    err = stat_to_qid(pdu, &stbuf, qidp);
-    if (err < 0) {
-        return err;
-    }
-    return 0;
-}
-
 V9fsPDU *pdu_alloc(V9fsState *s)
 {
     V9fsPDU *pdu = NULL;
@@ -1274,6 +1264,37 @@ static int coroutine_fn stat_to_v9stat(V9fsPDU *pdu, V9fsPath *path,
 #define P9_STATS_ALL           0x00003fffULL /* Mask for All fields above */
 
 
+/**
+ * Convert host filesystem's block size into an appropriate block size for
+ * 9p client (guest OS side). The value returned suggests an "optimum" block
+ * size for 9p I/O, i.e. to maximize performance.
+ *
+ * @pdu: 9p client request
+ * @blksize: host filesystem's block size
+ */
+static int32_t blksize_to_iounit(const V9fsPDU *pdu, int32_t blksize)
+{
+    int32_t iounit = 0;
+    V9fsState *s = pdu->s;
+
+    /*
+     * iounit should be multiples of blksize (host filesystem block size)
+     * as well as less than (client msize - P9_IOHDRSZ)
+     */
+    if (blksize) {
+        iounit = QEMU_ALIGN_DOWN(s->msize - P9_IOHDRSZ, blksize);
+    }
+    if (!iounit) {
+        iounit = s->msize - P9_IOHDRSZ;
+    }
+    return iounit;
+}
+
+static int32_t stat_to_iounit(const V9fsPDU *pdu, const struct stat *stbuf)
+{
+    return blksize_to_iounit(pdu, stbuf->st_blksize);
+}
+
 static int stat_to_v9stat_dotl(V9fsPDU *pdu, const struct stat *stbuf,
                                 V9fsStatDotl *v9lstat)
 {
@@ -1285,7 +1306,7 @@ static int stat_to_v9stat_dotl(V9fsPDU *pdu, const struct stat *stbuf,
     v9lstat->st_gid = stbuf->st_gid;
     v9lstat->st_rdev = stbuf->st_rdev;
     v9lstat->st_size = stbuf->st_size;
-    v9lstat->st_blksize = stbuf->st_blksize;
+    v9lstat->st_blksize = stat_to_iounit(pdu, stbuf);
     v9lstat->st_blocks = stbuf->st_blocks;
     v9lstat->st_atime_sec = stbuf->st_atime;
     v9lstat->st_atime_nsec = stbuf->st_atim.tv_nsec;
@@ -1395,6 +1416,7 @@ static void coroutine_fn v9fs_attach(void *opaque)
     size_t offset = 7;
     V9fsQID qid;
     ssize_t err;
+    struct stat stbuf;
 
     v9fs_string_init(&uname);
     v9fs_string_init(&aname);
@@ -1417,7 +1439,13 @@ static void coroutine_fn v9fs_attach(void *opaque)
         clunk_fid(s, fid);
         goto out;
     }
-    err = fid_to_qid(pdu, fidp, &qid);
+    err = v9fs_co_lstat(pdu, &fidp->path, &stbuf);
+    if (err < 0) {
+        err = -EINVAL;
+        clunk_fid(s, fid);
+        goto out;
+    }
+    err = stat_to_qid(pdu, &stbuf, &qid);
     if (err < 0) {
         err = -EINVAL;
         clunk_fid(s, fid);
@@ -1449,7 +1477,7 @@ static void coroutine_fn v9fs_attach(void *opaque)
     }
     err += offset;
 
-    memcpy(&s->root_qid, &qid, sizeof(qid));
+    memcpy(&s->root_st, &stbuf, sizeof(stbuf));
     trace_v9fs_attach_return(pdu->tag, pdu->id,
                              qid.type, qid.version, qid.path);
 out:
@@ -1700,25 +1728,24 @@ static bool name_is_illegal(const char *name)
     return !*name || strchr(name, '/') != NULL;
 }
 
-static bool not_same_qid(const V9fsQID *qid1, const V9fsQID *qid2)
+static bool same_stat_id(const struct stat *a, const struct stat *b)
 {
-    return
-        qid1->type != qid2->type ||
-        qid1->version != qid2->version ||
-        qid1->path != qid2->path;
+    return a->st_dev == b->st_dev && a->st_ino == b->st_ino;
 }
 
 static void coroutine_fn v9fs_walk(void *opaque)
 {
     int name_idx;
-    V9fsQID *qids = NULL;
+    g_autofree V9fsQID *qids = NULL;
     int i, err = 0;
     V9fsPath dpath, path;
+    P9ARRAY_REF(V9fsPath) pathes = NULL;
     uint16_t nwnames;
-    struct stat stbuf;
+    struct stat stbuf, fidst;
+    g_autofree struct stat *stbufs = NULL;
     size_t offset = 7;
     int32_t fid, newfid;
-    V9fsString *wnames = NULL;
+    P9ARRAY_REF(V9fsString) wnames = NULL;
     V9fsFidState *fidp;
     V9fsFidState *newfidp = NULL;
     V9fsPDU *pdu = opaque;
@@ -1734,9 +1761,15 @@ static void coroutine_fn v9fs_walk(void *opaque)
 
     trace_v9fs_walk(pdu->tag, pdu->id, fid, newfid, nwnames);
 
-    if (nwnames && nwnames <= P9_MAXWELEM) {
-        wnames = g_new0(V9fsString, nwnames);
+    if (nwnames > P9_MAXWELEM) {
+        err = -EINVAL;
+        goto out_nofid;
+    }
+    if (nwnames) {
+        P9ARRAY_NEW(V9fsString, wnames, nwnames);
         qids   = g_new0(V9fsQID, nwnames);
+        stbufs = g_new0(struct stat, nwnames);
+        P9ARRAY_NEW(V9fsPath, pathes, nwnames);
         for (i = 0; i < nwnames; i++) {
             err = pdu_unmarshal(pdu, offset, "s", &wnames[i]);
             if (err < 0) {
@@ -1748,9 +1781,6 @@ static void coroutine_fn v9fs_walk(void *opaque)
             }
             offset += err;
         }
-    } else if (nwnames > P9_MAXWELEM) {
-        err = -EINVAL;
-        goto out_nofid;
     }
     fidp = get_fid(pdu, fid);
     if (fidp == NULL) {
@@ -1760,35 +1790,85 @@ static void coroutine_fn v9fs_walk(void *opaque)
 
     v9fs_path_init(&dpath);
     v9fs_path_init(&path);
-
-    err = fid_to_qid(pdu, fidp, &qid);
-    if (err < 0) {
-        goto out;
-    }
-
     /*
-     * Both dpath and path initially poin to fidp.
+     * Both dpath and path initially point to fidp.
      * Needed to handle request with nwnames == 0
      */
     v9fs_path_copy(&dpath, &fidp->path);
     v9fs_path_copy(&path, &fidp->path);
-    for (name_idx = 0; name_idx < nwnames; name_idx++) {
-        if (not_same_qid(&pdu->s->root_qid, &qid) ||
-            strcmp("..", wnames[name_idx].data)) {
-            err = v9fs_co_name_to_path(pdu, &dpath, wnames[name_idx].data,
-                                       &path);
-            if (err < 0) {
-                goto out;
-            }
 
-            err = v9fs_co_lstat(pdu, &path, &stbuf);
-            if (err < 0) {
-                goto out;
+    /*
+     * To keep latency (i.e. overall execution time for processing this
+     * Twalk client request) as small as possible, run all the required fs
+     * driver code altogether inside the following block.
+     */
+    v9fs_co_run_in_worker({
+        if (v9fs_request_cancelled(pdu)) {
+            err = -EINTR;
+            break;
+        }
+        err = s->ops->lstat(&s->ctx, &dpath, &fidst);
+        if (err < 0) {
+            err = -errno;
+            break;
+        }
+        stbuf = fidst;
+        for (name_idx = 0; name_idx < nwnames; name_idx++) {
+            if (v9fs_request_cancelled(pdu)) {
+                err = -EINTR;
+                break;
             }
+            if (!same_stat_id(&pdu->s->root_st, &stbuf) ||
+                strcmp("..", wnames[name_idx].data))
+            {
+                err = s->ops->name_to_path(&s->ctx, &dpath,
+                                           wnames[name_idx].data,
+                                           &pathes[name_idx]);
+                if (err < 0) {
+                    err = -errno;
+                    break;
+                }
+                if (v9fs_request_cancelled(pdu)) {
+                    err = -EINTR;
+                    break;
+                }
+                err = s->ops->lstat(&s->ctx, &pathes[name_idx], &stbuf);
+                if (err < 0) {
+                    err = -errno;
+                    break;
+                }
+                stbufs[name_idx] = stbuf;
+                v9fs_path_copy(&dpath, &pathes[name_idx]);
+            }
+        }
+    });
+    /*
+     * Handle all the rest of this Twalk request on main thread ...
+     */
+    if (err < 0) {
+        goto out;
+    }
+
+    err = stat_to_qid(pdu, &fidst, &qid);
+    if (err < 0) {
+        goto out;
+    }
+    stbuf = fidst;
+
+    /* reset dpath and path */
+    v9fs_path_copy(&dpath, &fidp->path);
+    v9fs_path_copy(&path, &fidp->path);
+
+    for (name_idx = 0; name_idx < nwnames; name_idx++) {
+        if (!same_stat_id(&pdu->s->root_st, &stbuf) ||
+            strcmp("..", wnames[name_idx].data))
+        {
+            stbuf = stbufs[name_idx];
             err = stat_to_qid(pdu, &stbuf, &qid);
             if (err < 0) {
                 goto out;
             }
+            v9fs_path_copy(&path, &pathes[name_idx]);
             v9fs_path_copy(&dpath, &path);
         }
         memcpy(&qids[name_idx], &qid, sizeof(qid));
@@ -1821,35 +1901,14 @@ out:
     v9fs_path_free(&path);
 out_nofid:
     pdu_complete(pdu, err);
-    if (nwnames && nwnames <= P9_MAXWELEM) {
-        for (name_idx = 0; name_idx < nwnames; name_idx++) {
-            v9fs_string_free(&wnames[name_idx]);
-        }
-        g_free(wnames);
-        g_free(qids);
-    }
 }
 
 static int32_t coroutine_fn get_iounit(V9fsPDU *pdu, V9fsPath *path)
 {
     struct statfs stbuf;
-    int32_t iounit = 0;
-    V9fsState *s = pdu->s;
+    int err = v9fs_co_statfs(pdu, path, &stbuf);
 
-    /*
-     * iounit should be multiples of f_bsize (host filesystem block size
-     * and as well as less than (client msize - P9_IOHDRSZ))
-     */
-    if (!v9fs_co_statfs(pdu, path, &stbuf)) {
-        if (stbuf.f_bsize) {
-            iounit = stbuf.f_bsize;
-            iounit *= (s->msize - P9_IOHDRSZ) / stbuf.f_bsize;
-        }
-    }
-    if (!iounit) {
-        iounit = s->msize - P9_IOHDRSZ;
-    }
-    return iounit;
+    return blksize_to_iounit(pdu, (err >= 0) ? stbuf.f_bsize : 0);
 }
 
 static void coroutine_fn v9fs_open(void *opaque)

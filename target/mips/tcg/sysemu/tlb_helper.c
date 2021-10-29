@@ -17,6 +17,7 @@
  * License along with this library; if not, see <http://www.gnu.org/licenses/>.
  */
 #include "qemu/osdep.h"
+#include "qemu/bitops.h"
 
 #include "cpu.h"
 #include "internal.h"
@@ -659,7 +660,7 @@ static int walk_directory(CPUMIPSState *env, uint64_t *vaddr,
         w = directory_index - 1;
         if (directory_index & 0x1) {
             /* Generate adjacent page from same PTE for odd TLB page */
-            lsb = (1 << w) >> 6;
+            lsb = BIT_ULL(w) >> 6;
             *pw_entrylo0 = entry & ~lsb; /* even page */
             *pw_entrylo1 = entry | lsb; /* odd page */
         } else if (dph) {
@@ -1336,6 +1337,24 @@ void mips_cpu_do_interrupt(CPUState *cs)
                  env->CP0_DEPC);
     }
     cs->exception_index = EXCP_NONE;
+}
+
+bool mips_cpu_exec_interrupt(CPUState *cs, int interrupt_request)
+{
+    if (interrupt_request & CPU_INTERRUPT_HARD) {
+        MIPSCPU *cpu = MIPS_CPU(cs);
+        CPUMIPSState *env = &cpu->env;
+
+        if (cpu_mips_hw_interrupts_enabled(env) &&
+            cpu_mips_hw_interrupts_pending(env)) {
+            /* Raise it */
+            cs->exception_index = EXCP_EXT_INTERRUPT;
+            env->error_code = 0;
+            mips_cpu_do_interrupt(cs);
+            return true;
+        }
+    }
+    return false;
 }
 
 void r4k_invalidate_tlb(CPUMIPSState *env, int idx, int use_extra)

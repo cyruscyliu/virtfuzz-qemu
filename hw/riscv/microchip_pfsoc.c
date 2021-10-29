@@ -36,12 +36,10 @@
 
 #include "qemu/osdep.h"
 #include "qemu/error-report.h"
-#include "qemu/log.h"
 #include "qemu/units.h"
 #include "qemu/cutils.h"
 #include "qapi/error.h"
 #include "hw/boards.h"
-#include "hw/irq.h"
 #include "hw/loader.h"
 #include "hw/sysbus.h"
 #include "chardev/char.h"
@@ -51,8 +49,9 @@
 #include "hw/riscv/boot.h"
 #include "hw/riscv/riscv_hart.h"
 #include "hw/riscv/microchip_pfsoc.h"
-#include "hw/intc/sifive_clint.h"
+#include "hw/intc/riscv_aclint.h"
 #include "hw/intc/sifive_plic.h"
+#include "sysemu/device_tree.h"
 #include "sysemu/sysemu.h"
 
 /*
@@ -235,9 +234,12 @@ static void microchip_pfsoc_soc_realize(DeviceState *dev, Error **errp)
         memmap[MICROCHIP_PFSOC_BUSERR_UNIT4].size);
 
     /* CLINT */
-    sifive_clint_create(memmap[MICROCHIP_PFSOC_CLINT].base,
-        memmap[MICROCHIP_PFSOC_CLINT].size, 0, ms->smp.cpus,
-        SIFIVE_SIP_BASE, SIFIVE_TIMECMP_BASE, SIFIVE_TIME_BASE,
+    riscv_aclint_swi_create(memmap[MICROCHIP_PFSOC_CLINT].base,
+        0, ms->smp.cpus, false);
+    riscv_aclint_mtimer_create(
+        memmap[MICROCHIP_PFSOC_CLINT].base + RISCV_ACLINT_SWI_SIZE,
+        RISCV_ACLINT_DEFAULT_MTIMER_SIZE, 0, ms->smp.cpus,
+        RISCV_ACLINT_DEFAULT_MTIMECMP, RISCV_ACLINT_DEFAULT_MTIME,
         CLINT_TIMEBASE_FREQ, false);
 
     /* L2 cache controller */
@@ -275,7 +277,7 @@ static void microchip_pfsoc_soc_realize(DeviceState *dev, Error **errp)
 
     /* PLIC */
     s->plic = sifive_plic_create(memmap[MICROCHIP_PFSOC_PLIC].base,
-        plic_hart_config, 0,
+        plic_hart_config, ms->smp.cpus, 0,
         MICROCHIP_PFSOC_PLIC_NUM_SOURCES,
         MICROCHIP_PFSOC_PLIC_NUM_PRIORITIES,
         MICROCHIP_PFSOC_PLIC_PRIORITY_BASE,
@@ -461,7 +463,13 @@ static void microchip_icicle_kit_machine_init(MachineState *machine)
     MemoryRegion *mem_low_alias = g_new(MemoryRegion, 1);
     MemoryRegion *mem_high = g_new(MemoryRegion, 1);
     MemoryRegion *mem_high_alias = g_new(MemoryRegion, 1);
-    uint64_t mem_high_size;
+    uint64_t mem_low_size, mem_high_size;
+    hwaddr firmware_load_addr;
+    const char *firmware_name;
+    bool kernel_as_payload = false;
+    target_ulong firmware_end_addr, kernel_start_addr;
+    uint64_t kernel_entry;
+    uint32_t fdt_load_addr;
     DriveInfo *dinfo = drive_get_next(IF_SD);
 
     /* Sanity check on RAM size */
@@ -477,37 +485,37 @@ static void microchip_icicle_kit_machine_init(MachineState *machine)
                             TYPE_MICROCHIP_PFSOC);
     qdev_realize(DEVICE(&s->soc), NULL, &error_abort);
 
+    /* Split RAM into low and high regions using aliases to machine->ram */
+    mem_low_size = memmap[MICROCHIP_PFSOC_DRAM_LO].size;
+    mem_high_size = machine->ram_size - mem_low_size;
+    memory_region_init_alias(mem_low, NULL,
+                             "microchip.icicle.kit.ram_low", machine->ram,
+                             0, mem_low_size);
+    memory_region_init_alias(mem_high, NULL,
+                             "microchip.icicle.kit.ram_high", machine->ram,
+                             mem_low_size, mem_high_size);
+
     /* Register RAM */
-    memory_region_init_ram(mem_low, NULL, "microchip.icicle.kit.ram_low",
-                           memmap[MICROCHIP_PFSOC_DRAM_LO].size,
-                           &error_fatal);
-    memory_region_init_alias(mem_low_alias, NULL,
-                             "microchip.icicle.kit.ram_low.alias",
-                             mem_low, 0,
-                             memmap[MICROCHIP_PFSOC_DRAM_LO_ALIAS].size);
     memory_region_add_subregion(system_memory,
                                 memmap[MICROCHIP_PFSOC_DRAM_LO].base,
                                 mem_low);
     memory_region_add_subregion(system_memory,
+                                memmap[MICROCHIP_PFSOC_DRAM_HI].base,
+                                mem_high);
+
+    /* Create aliases for the low and high RAM regions */
+    memory_region_init_alias(mem_low_alias, NULL,
+                             "microchip.icicle.kit.ram_low.alias",
+                             mem_low, 0, mem_low_size);
+    memory_region_add_subregion(system_memory,
                                 memmap[MICROCHIP_PFSOC_DRAM_LO_ALIAS].base,
                                 mem_low_alias);
-
-    mem_high_size = machine->ram_size - 1 * GiB;
-
-    memory_region_init_ram(mem_high, NULL, "microchip.icicle.kit.ram_high",
-                           mem_high_size, &error_fatal);
     memory_region_init_alias(mem_high_alias, NULL,
                              "microchip.icicle.kit.ram_high.alias",
                              mem_high, 0, mem_high_size);
     memory_region_add_subregion(system_memory,
-                                memmap[MICROCHIP_PFSOC_DRAM_HI].base,
-                                mem_high);
-    memory_region_add_subregion(system_memory,
                                 memmap[MICROCHIP_PFSOC_DRAM_HI_ALIAS].base,
                                 mem_high_alias);
-
-    /* Load the firmware */
-    riscv_find_and_load_firmware(machine, BIOS_FILENAME, RESET_VECTOR, NULL);
 
     /* Attach an SD card */
     if (dinfo) {
@@ -517,6 +525,77 @@ static void microchip_icicle_kit_machine_init(MachineState *machine)
         qdev_prop_set_drive_err(card, "drive", blk_by_legacy_dinfo(dinfo),
                                 &error_fatal);
         qdev_realize_and_unref(card, sdhci->bus, &error_fatal);
+    }
+
+    /*
+     * We follow the following table to select which payload we execute.
+     *
+     *  -bios |    -kernel | payload
+     * -------+------------+--------
+     *      N |          N | HSS
+     *      Y | don't care | HSS
+     *      N |          Y | kernel
+     *
+     * This ensures backwards compatibility with how we used to expose -bios
+     * to users but allows them to run through direct kernel booting as well.
+     *
+     * When -kernel is used for direct boot, -dtb must be present to provide
+     * a valid device tree for the board, as we don't generate device tree.
+     */
+
+    if (machine->kernel_filename && machine->dtb) {
+        int fdt_size;
+        machine->fdt = load_device_tree(machine->dtb, &fdt_size);
+        if (!machine->fdt) {
+            error_report("load_device_tree() failed");
+            exit(1);
+        }
+
+        firmware_name = RISCV64_BIOS_BIN;
+        firmware_load_addr = memmap[MICROCHIP_PFSOC_DRAM_LO].base;
+        kernel_as_payload = true;
+    }
+
+    if (!kernel_as_payload) {
+        firmware_name = BIOS_FILENAME;
+        firmware_load_addr = RESET_VECTOR;
+    }
+
+    /* Load the firmware */
+    firmware_end_addr = riscv_find_and_load_firmware(machine, firmware_name,
+                                                     firmware_load_addr, NULL);
+
+    if (kernel_as_payload) {
+        kernel_start_addr = riscv_calc_kernel_start_addr(&s->soc.u_cpus,
+                                                         firmware_end_addr);
+
+        kernel_entry = riscv_load_kernel(machine->kernel_filename,
+                                         kernel_start_addr, NULL);
+
+        if (machine->initrd_filename) {
+            hwaddr start;
+            hwaddr end = riscv_load_initrd(machine->initrd_filename,
+                                           machine->ram_size, kernel_entry,
+                                           &start);
+            qemu_fdt_setprop_cell(machine->fdt, "/chosen",
+                                  "linux,initrd-start", start);
+            qemu_fdt_setprop_cell(machine->fdt, "/chosen",
+                                  "linux,initrd-end", end);
+        }
+
+        if (machine->kernel_cmdline) {
+            qemu_fdt_setprop_string(machine->fdt, "/chosen",
+                                    "bootargs", machine->kernel_cmdline);
+        }
+
+        /* Compute the fdt load address in dram */
+        fdt_load_addr = riscv_load_fdt(memmap[MICROCHIP_PFSOC_DRAM_LO].base,
+                                       machine->ram_size, machine->fdt);
+        /* Load the reset vector */
+        riscv_setup_rom_reset_vec(machine, &s->soc.u_cpus, firmware_load_addr,
+                                  memmap[MICROCHIP_PFSOC_ENVM_DATA].base,
+                                  memmap[MICROCHIP_PFSOC_ENVM_DATA].size,
+                                  kernel_entry, fdt_load_addr, machine->fdt);
     }
 }
 
@@ -530,6 +609,7 @@ static void microchip_icicle_kit_machine_class_init(ObjectClass *oc, void *data)
                    MICROCHIP_PFSOC_COMPUTE_CPU_COUNT;
     mc->min_cpus = MICROCHIP_PFSOC_MANAGEMENT_CPU_COUNT + 1;
     mc->default_cpus = mc->min_cpus;
+    mc->default_ram_id = "microchip.icicle.kit.ram";
 
     /*
      * Map 513 MiB high memory, the mimimum required high memory size, because

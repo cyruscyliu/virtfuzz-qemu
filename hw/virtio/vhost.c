@@ -21,7 +21,6 @@
 #include "qemu/error-report.h"
 #include "qemu/memfd.h"
 #include "standard-headers/linux/vhost_types.h"
-#include "exec/address-spaces.h"
 #include "hw/virtio/virtio-bus.h"
 #include "hw/virtio/virtio-access.h"
 #include "migration/blocker.h"
@@ -175,6 +174,35 @@ static uint64_t vhost_get_log_size(struct vhost_dev *dev)
     return log_size;
 }
 
+static int vhost_set_backend_type(struct vhost_dev *dev,
+                                  VhostBackendType backend_type)
+{
+    int r = 0;
+
+    switch (backend_type) {
+#ifdef CONFIG_VHOST_KERNEL
+    case VHOST_BACKEND_TYPE_KERNEL:
+        dev->vhost_ops = &kernel_ops;
+        break;
+#endif
+#ifdef CONFIG_VHOST_USER
+    case VHOST_BACKEND_TYPE_USER:
+        dev->vhost_ops = &user_ops;
+        break;
+#endif
+#ifdef CONFIG_VHOST_VDPA
+    case VHOST_BACKEND_TYPE_VDPA:
+        dev->vhost_ops = &vdpa_ops;
+        break;
+#endif
+    default:
+        error_report("Unknown vhost backend type");
+        r = -1;
+    }
+
+    return r;
+}
+
 static struct vhost_log *vhost_log_alloc(uint64_t size, bool share)
 {
     Error *err = NULL;
@@ -287,7 +315,7 @@ static int vhost_dev_has_iommu(struct vhost_dev *dev)
      * does not have IOMMU, there's no need to enable this feature
      * which may cause unnecessary IOTLB miss/update trnasactions.
      */
-    return vdev->dma_as != &address_space_memory &&
+    return virtio_bus_device_iommu_enabled(vdev) &&
            virtio_host_has_feature(vdev, VIRTIO_F_IOMMU_PLATFORM);
 }
 
@@ -1287,11 +1315,11 @@ static void vhost_virtqueue_cleanup(struct vhost_virtqueue *vq)
 }
 
 int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
-                   VhostBackendType backend_type, uint32_t busyloop_timeout)
+                   VhostBackendType backend_type, uint32_t busyloop_timeout,
+                   Error **errp)
 {
     uint64_t features;
     int i, r, n_initialized_vqs = 0;
-    Error *local_err = NULL;
 
     hdev->vdev = NULL;
     hdev->migration_blocker = NULL;
@@ -1299,26 +1327,27 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
     r = vhost_set_backend_type(hdev, backend_type);
     assert(r >= 0);
 
-    r = hdev->vhost_ops->vhost_backend_init(hdev, opaque);
+    r = hdev->vhost_ops->vhost_backend_init(hdev, opaque, errp);
     if (r < 0) {
         goto fail;
     }
 
     r = hdev->vhost_ops->vhost_set_owner(hdev);
     if (r < 0) {
-        VHOST_OPS_DEBUG("vhost_set_owner failed");
+        error_setg_errno(errp, -r, "vhost_set_owner failed");
         goto fail;
     }
 
     r = hdev->vhost_ops->vhost_get_features(hdev, &features);
     if (r < 0) {
-        VHOST_OPS_DEBUG("vhost_get_features failed");
+        error_setg_errno(errp, -r, "vhost_get_features failed");
         goto fail;
     }
 
     for (i = 0; i < hdev->nvqs; ++i, ++n_initialized_vqs) {
         r = vhost_virtqueue_init(hdev, hdev->vqs + i, hdev->vq_index + i);
         if (r < 0) {
+            error_setg_errno(errp, -r, "Failed to initialize virtqueue %d", i);
             goto fail;
         }
     }
@@ -1328,6 +1357,7 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
             r = vhost_virtqueue_set_busyloop_timeout(hdev, hdev->vq_index + i,
                                                      busyloop_timeout);
             if (r < 0) {
+                error_setg_errno(errp, -r, "Failed to set busyloop timeout");
                 goto fail_busyloop;
             }
         }
@@ -1336,6 +1366,7 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
     hdev->features = features;
 
     hdev->memory_listener = (MemoryListener) {
+        .name = "vhost",
         .begin = vhost_begin,
         .commit = vhost_commit,
         .region_add = vhost_region_addnop,
@@ -1351,6 +1382,7 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
     };
 
     hdev->iommu_listener = (MemoryListener) {
+        .name = "vhost-iommu",
         .region_add = vhost_iommu_region_add,
         .region_del = vhost_iommu_region_del,
     };
@@ -1366,9 +1398,8 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
     }
 
     if (hdev->migration_blocker != NULL) {
-        r = migrate_add_blocker(hdev->migration_blocker, &local_err);
-        if (local_err) {
-            error_report_err(local_err);
+        r = migrate_add_blocker(hdev->migration_blocker, errp);
+        if (r < 0) {
             error_free(hdev->migration_blocker);
             goto fail_busyloop;
         }
@@ -1385,9 +1416,9 @@ int vhost_dev_init(struct vhost_dev *hdev, void *opaque,
     QLIST_INSERT_HEAD(&vhost_devices, hdev, entry);
 
     if (used_memslots > hdev->vhost_ops->vhost_backend_memslots_limit(hdev)) {
-        error_report("vhost backend memory slots limit is less"
-                " than current number of present memory slots");
-        r = -1;
+        error_setg(errp, "vhost backend memory slots limit is less"
+                   " than current number of present memory slots");
+        r = -EINVAL;
         goto fail_busyloop;
     }
 
@@ -1558,15 +1589,17 @@ void vhost_ack_features(struct vhost_dev *hdev, const int *feature_bits,
 }
 
 int vhost_dev_get_config(struct vhost_dev *hdev, uint8_t *config,
-                         uint32_t config_len)
+                         uint32_t config_len, Error **errp)
 {
     assert(hdev->vhost_ops);
 
     if (hdev->vhost_ops->vhost_get_config) {
-        return hdev->vhost_ops->vhost_get_config(hdev, config, config_len);
+        return hdev->vhost_ops->vhost_get_config(hdev, config, config_len,
+                                                 errp);
     }
 
-    return -1;
+    error_setg(errp, "vhost_get_config not implemented");
+    return -ENOTSUP;
 }
 
 int vhost_dev_set_config(struct vhost_dev *hdev, const uint8_t *data,

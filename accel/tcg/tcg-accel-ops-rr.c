@@ -30,7 +30,6 @@
 #include "qemu/main-loop.h"
 #include "qemu/guest-random.h"
 #include "exec/exec-all.h"
-#include "hw/boards.h"
 
 #include "tcg-accel-ops.h"
 #include "tcg-accel-ops-rr.h"
@@ -60,8 +59,6 @@ void rr_kick_vcpu_thread(CPUState *unused)
 
 static QEMUTimer *rr_kick_vcpu_timer;
 static CPUState *rr_current_cpu;
-
-#define TCG_KICK_PERIOD (NANOSECONDS_PER_SECOND / 10)
 
 static inline int64_t rr_next_kick_time(void)
 {

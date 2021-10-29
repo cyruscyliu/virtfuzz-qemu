@@ -32,14 +32,12 @@
 #include "sysemu/device_tree.h"
 #include "sysemu/hw_accel.h"
 #include "target/ppc/cpu.h"
-#include "qemu/log.h"
 #include "hw/ppc/fdt.h"
 #include "hw/ppc/ppc.h"
 #include "hw/ppc/pnv.h"
 #include "hw/ppc/pnv_core.h"
 #include "hw/loader.h"
 #include "hw/nmi.h"
-#include "exec/address-spaces.h"
 #include "qapi/visitor.h"
 #include "monitor/monitor.h"
 #include "hw/intc/intc.h"
@@ -53,7 +51,6 @@
 #include "hw/ppc/pnv_pnor.h"
 
 #include "hw/isa/isa.h"
-#include "hw/boards.h"
 #include "hw/char/serial.h"
 #include "hw/rtc/mc146818rtc.h"
 
@@ -199,7 +196,7 @@ static void pnv_dt_core(PnvChip *chip, PnvCore *pc, void *fdt)
     _FDT((fdt_setprop_string(fdt, offset, "status", "okay")));
     _FDT((fdt_setprop(fdt, offset, "64-bit", NULL, 0)));
 
-    if (env->spr_cb[SPR_PURR].oea_read) {
+    if (ppc_has_spr(cpu, SPR_PURR)) {
         _FDT((fdt_setprop(fdt, offset, "ibm,purr", NULL, 0)));
     }
 
@@ -713,6 +710,25 @@ static void pnv_chip_power10_pic_print_info(PnvChip *chip, Monitor *mon)
     pnv_psi_pic_print_info(&chip10->psi, mon);
 }
 
+/* Always give the first 1GB to chip 0 else we won't boot */
+static uint64_t pnv_chip_get_ram_size(PnvMachineState *pnv, int chip_id)
+{
+    MachineState *machine = MACHINE(pnv);
+    uint64_t ram_per_chip;
+
+    assert(machine->ram_size >= 1 * GiB);
+
+    ram_per_chip = machine->ram_size / pnv->num_chips;
+    if (ram_per_chip >= 1 * GiB) {
+        return QEMU_ALIGN_DOWN(ram_per_chip, 1 * MiB);
+    }
+
+    assert(pnv->num_chips > 1);
+
+    ram_per_chip = (machine->ram_size - 1 * GiB) / (pnv->num_chips - 1);
+    return chip_id == 0 ? 1 * GiB : QEMU_ALIGN_DOWN(ram_per_chip, 1 * MiB);
+}
+
 static void pnv_init(MachineState *machine)
 {
     const char *bios_name = machine->firmware ?: FW_FILE_NAME;
@@ -720,6 +736,7 @@ static void pnv_init(MachineState *machine)
     MachineClass *mc = MACHINE_GET_CLASS(machine);
     char *fw_filename;
     long fw_size;
+    uint64_t chip_ram_start = 0;
     int i;
     char *chip_typename;
     DriveInfo *pnor = drive_get(IF_MTD, 0, 0);
@@ -812,9 +829,10 @@ static void pnv_init(MachineState *machine)
      * TODO: should we decide on how many chips we can create based
      * on #cores and Venice vs. Murano vs. Naples chip type etc...,
      */
-    if (!is_power_of_2(pnv->num_chips) || pnv->num_chips > 4) {
+    if (!is_power_of_2(pnv->num_chips) || pnv->num_chips > 16) {
         error_report("invalid number of chips: '%d'", pnv->num_chips);
-        error_printf("Try '-smp sockets=N'. Valid values are : 1, 2 or 4.\n");
+        error_printf(
+            "Try '-smp sockets=N'. Valid values are : 1, 2, 4, 8 and 16.\n");
         exit(1);
     }
 
@@ -822,22 +840,20 @@ static void pnv_init(MachineState *machine)
     for (i = 0; i < pnv->num_chips; i++) {
         char chip_name[32];
         Object *chip = OBJECT(qdev_new(chip_typename));
+        uint64_t chip_ram_size =  pnv_chip_get_ram_size(pnv, i);
 
         pnv->chips[i] = PNV_CHIP(chip);
 
-        /*
-         * TODO: put all the memory in one node on chip 0 until we find a
-         * way to specify different ranges for each chip
-         */
-        if (i == 0) {
-            object_property_set_int(chip, "ram-size", machine->ram_size,
-                                    &error_fatal);
-        }
-
-        snprintf(chip_name, sizeof(chip_name), "chip[%d]", PNV_CHIP_HWID(i));
-        object_property_add_child(OBJECT(pnv), chip_name, chip);
-        object_property_set_int(chip, "chip-id", PNV_CHIP_HWID(i),
+        /* Distribute RAM among the chips  */
+        object_property_set_int(chip, "ram-start", chip_ram_start,
                                 &error_fatal);
+        object_property_set_int(chip, "ram-size", chip_ram_size,
+                                &error_fatal);
+        chip_ram_start += chip_ram_size;
+
+        snprintf(chip_name, sizeof(chip_name), "chip[%d]", i);
+        object_property_add_child(OBJECT(pnv), chip_name, chip);
+        object_property_set_int(chip, "chip-id", i, &error_fatal);
         object_property_set_int(chip, "nr-cores", machine->smp.cores,
                                 &error_fatal);
         object_property_set_int(chip, "nr-threads", machine->smp.threads,
@@ -1354,10 +1370,10 @@ static void pnv_chip_quad_realize(Pnv9Chip *chip9, Error **errp)
                                            sizeof(*eq), TYPE_PNV_QUAD,
                                            &error_fatal, NULL);
 
-        object_property_set_int(OBJECT(eq), "id", core_id, &error_fatal);
+        object_property_set_int(OBJECT(eq), "quad-id", core_id, &error_fatal);
         qdev_realize(DEVICE(eq), NULL, &error_fatal);
 
-        pnv_xscom_add_subregion(chip, PNV9_XSCOM_EQ_BASE(eq->id),
+        pnv_xscom_add_subregion(chip, PNV9_XSCOM_EQ_BASE(eq->quad_id),
                                 &eq->xscom_regs);
     }
 }
@@ -1919,7 +1935,7 @@ static void pnv_machine_power10_class_init(ObjectClass *oc, void *data)
     static const char compat[] = "qemu,powernv10\0ibm,powernv";
 
     mc->desc = "IBM PowerNV (Non-Virtualized) POWER10";
-    mc->default_cpu_type = POWERPC_CPU_TYPE_NAME("power10_v1.0");
+    mc->default_cpu_type = POWERPC_CPU_TYPE_NAME("power10_v2.0");
 
     pmc->compat = compat;
     pmc->compat_size = sizeof(compat);

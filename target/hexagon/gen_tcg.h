@@ -424,9 +424,9 @@
 #define fGEN_TCG_L4_loadd_locked(SHORTCODE) \
     SHORTCODE
 #define fGEN_TCG_S2_storew_locked(SHORTCODE) \
-    do { SHORTCODE; READ_PREG(PdV, PdN); } while (0)
+    SHORTCODE
 #define fGEN_TCG_S4_stored_locked(SHORTCODE) \
-    do { SHORTCODE; READ_PREG(PdV, PdN); } while (0)
+    SHORTCODE
 
 #define fGEN_TCG_STORE(SHORTCODE) \
     do { \
@@ -684,9 +684,8 @@
     gen_helper_sfmin(RdV, cpu_env, RsV, RtV)
 #define fGEN_TCG_F2_sfclass(SHORTCODE) \
     do { \
-        TCGv imm = tcg_const_tl(uiV); \
+        TCGv imm = tcg_constant_tl(uiV); \
         gen_helper_sfclass(PdV, cpu_env, RsV, imm); \
-        tcg_temp_free(imm); \
     } while (0)
 #define fGEN_TCG_F2_sffixupn(SHORTCODE) \
     gen_helper_sffixupn(RdV, cpu_env, RsV, RtV)
@@ -712,9 +711,8 @@
     gen_helper_dfcmpuo(PdV, cpu_env, RssV, RttV)
 #define fGEN_TCG_F2_dfclass(SHORTCODE) \
     do { \
-        TCGv imm = tcg_const_tl(uiV); \
+        TCGv imm = tcg_constant_tl(uiV); \
         gen_helper_dfclass(PdV, cpu_env, RssV, imm); \
-        tcg_temp_free(imm); \
     } while (0)
 #define fGEN_TCG_F2_sfmpy(SHORTCODE) \
     gen_helper_sfmpy(RdV, cpu_env, RsV, RtV)
@@ -733,5 +731,16 @@
     gen_helper_dfmpyfix(RddV, cpu_env, RssV, RttV)
 #define fGEN_TCG_F2_dfmpyhh(SHORTCODE) \
     gen_helper_dfmpyhh(RxxV, cpu_env, RxxV, RssV, RttV)
+
+/* Nothing to do for these in qemu, need to suppress compiler warnings */
+#define fGEN_TCG_Y4_l2fetch(SHORTCODE) \
+    do { \
+        RsV = RsV; \
+        RtV = RtV; \
+    } while (0)
+#define fGEN_TCG_Y5_l2fetch(SHORTCODE) \
+    do { \
+        RsV = RsV; \
+    } while (0)
 
 #endif

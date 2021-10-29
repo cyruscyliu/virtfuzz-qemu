@@ -25,7 +25,6 @@
 
 #include "qemu/osdep.h"
 #include "qapi/error.h"
-#include "cpu.h"
 #include "hw/irq.h"
 #include "hw/sysbus.h"
 #include "migration/vmstate.h"
@@ -35,7 +34,6 @@
 #include "hw/pci/pci_host.h"
 #include "hw/ppc/spapr.h"
 #include "hw/pci-host/spapr.h"
-#include "exec/address-spaces.h"
 #include "exec/ram_addr.h"
 #include <libfdt.h>
 #include "trace.h"
@@ -784,33 +782,29 @@ static AddressSpace *spapr_pci_dma_iommu(PCIBus *bus, void *opaque, int devfn)
 
 static char *spapr_phb_vfio_get_loc_code(SpaprPhbState *sphb,  PCIDevice *pdev)
 {
-    char *path = NULL, *buf = NULL, *host = NULL;
+    g_autofree char *path = NULL;
+    g_autofree char *host = NULL;
+    g_autofree char *devspec = NULL;
+    char *buf = NULL;
 
     /* Get the PCI VFIO host id */
     host = object_property_get_str(OBJECT(pdev), "host", NULL);
     if (!host) {
-        goto err_out;
+        return NULL;
     }
 
     /* Construct the path of the file that will give us the DT location */
     path = g_strdup_printf("/sys/bus/pci/devices/%s/devspec", host);
-    g_free(host);
-    if (!g_file_get_contents(path, &buf, NULL, NULL)) {
-        goto err_out;
+    if (!g_file_get_contents(path, &devspec, NULL, NULL)) {
+        return NULL;
     }
-    g_free(path);
 
     /* Construct and read from host device tree the loc-code */
-    path = g_strdup_printf("/proc/device-tree%s/ibm,loc-code", buf);
-    g_free(buf);
+    path = g_strdup_printf("/proc/device-tree%s/ibm,loc-code", devspec);
     if (!g_file_get_contents(path, &buf, NULL, NULL)) {
-        goto err_out;
+        return NULL;
     }
     return buf;
-
-err_out:
-    g_free(path);
-    return NULL;
 }
 
 static char *spapr_phb_get_loc_code(SpaprPhbState *sphb, PCIDevice *pdev)

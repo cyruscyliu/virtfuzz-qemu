@@ -128,6 +128,64 @@
   } }
 
 ##
+# @ImageInfoSpecificRbd:
+#
+# @encryption-format: Image encryption format
+#
+# Since: 6.1
+##
+{ 'struct': 'ImageInfoSpecificRbd',
+  'data': {
+      '*encryption-format': 'RbdImageEncryptionFormat'
+  } }
+
+##
+# @ImageInfoSpecificKind:
+#
+# @luks: Since 2.7
+# @rbd: Since 6.1
+#
+# Since: 1.7
+##
+{ 'enum': 'ImageInfoSpecificKind',
+  'data': [ 'qcow2', 'vmdk', 'luks', 'rbd' ] }
+
+##
+# @ImageInfoSpecificQCow2Wrapper:
+#
+# Since: 1.7
+##
+{ 'struct': 'ImageInfoSpecificQCow2Wrapper',
+  'data': { 'data': 'ImageInfoSpecificQCow2' } }
+
+##
+# @ImageInfoSpecificVmdkWrapper:
+#
+# Since: 6.1
+##
+{ 'struct': 'ImageInfoSpecificVmdkWrapper',
+  'data': { 'data': 'ImageInfoSpecificVmdk' } }
+
+##
+# @ImageInfoSpecificLUKSWrapper:
+#
+# Since: 2.7
+##
+{ 'struct': 'ImageInfoSpecificLUKSWrapper',
+  'data': { 'data': 'QCryptoBlockInfoLUKS' } }
+# If we need to add block driver specific parameters for
+# LUKS in future, then we'll subclass QCryptoBlockInfoLUKS
+# to define a ImageInfoSpecificLUKS
+
+##
+# @ImageInfoSpecificRbdWrapper:
+#
+# Since: 6.1
+##
+{ 'struct': 'ImageInfoSpecificRbdWrapper',
+  'data': { 'data': 'ImageInfoSpecificRbd' } }
+
+##
 # @ImageInfoSpecific:
 #
 # A discriminated record of image format specific information structures.
@@ -135,13 +193,13 @@
 # Since: 1.7
 ##
 { 'union': 'ImageInfoSpecific',
+  'base': { 'type': 'ImageInfoSpecificKind' },
+  'discriminator': 'type',
   'data': {
-      'qcow2': 'ImageInfoSpecificQCow2',
-      'vmdk': 'ImageInfoSpecificVmdk',
-      # If we need to add block driver specific parameters for
-      # LUKS in future, then we'll subclass QCryptoBlockInfoLUKS
-      # to define a ImageInfoSpecificLUKS
-      'luks': 'QCryptoBlockInfoLUKS'
+      'qcow2': 'ImageInfoSpecificQCow2Wrapper',
+      'vmdk': 'ImageInfoSpecificVmdkWrapper',
+      'luks': 'ImageInfoSpecificLUKSWrapper',
+      'rbd': 'ImageInfoSpecificRbdWrapper'
   } }
 
 ##
@@ -261,6 +319,9 @@
 #         images in the chain)) before reaching one for which the
 #         range is allocated
 #
+# @present: true if this layer provides the data, false if adding a backing
+#           layer could impact this region (since 6.1)
+#
 # @offset: if present, the image file stores the data for this range
 #          in raw format at the given (host) offset
 #
@@ -271,8 +332,8 @@
 ##
 { 'struct': 'MapEntry',
   'data': {'start': 'int', 'length': 'int', 'data': 'bool',
-           'zero': 'bool', 'depth': 'int', '*offset': 'int',
-           '*filename': 'str' } }
+           'zero': 'bool', 'depth': 'int', 'present': 'bool',
+           '*offset': 'int', '*filename': 'str' } }
 
 ##
 # @BlockdevCacheInfo:
@@ -897,7 +958,8 @@
   'discriminator': 'driver',
   'data': {
       'file': 'BlockStatsSpecificFile',
-      'host_device': 'BlockStatsSpecificFile',
+      'host_device': { 'type': 'BlockStatsSpecificFile',
+                       'if': 'HAVE_HOST_BLOCK_DEVICE' },
       'nvme': 'BlockStatsSpecificNvme' } }
 
 ##
@@ -2779,7 +2841,7 @@
 ##
 { 'enum': 'BlockdevAioOptions',
   'data': [ 'threads', 'native',
-            { 'name': 'io_uring', 'if': 'defined(CONFIG_LINUX_IO_URING)' } ] }
+            { 'name': 'io_uring', 'if': 'CONFIG_LINUX_IO_URING' } ] }
 
 ##
 # @BlockdevCacheOptions:
@@ -2808,17 +2870,20 @@
 # @blklogwrites: Since 3.0
 # @blkreplay: Since 4.2
 # @compress: Since 5.0
+# @copy-before-write: Since 6.2
 #
 # Since: 2.9
 ##
 { 'enum': 'BlockdevDriver',
   'data': [ 'blkdebug', 'blklogwrites', 'blkreplay', 'blkverify', 'bochs',
-            'cloop', 'compress', 'copy-on-read', 'dmg', 'file', 'ftp', 'ftps',
-            'gluster', 'host_cdrom', 'host_device', 'http', 'https', 'iscsi',
+            'cloop', 'compress', 'copy-before-write', 'copy-on-read', 'dmg',
+            'file', 'ftp', 'ftps', 'gluster',
+            {'name': 'host_cdrom', 'if': 'HAVE_HOST_BLOCK_DEVICE' },
+            {'name': 'host_device', 'if': 'HAVE_HOST_BLOCK_DEVICE' },
+            'http', 'https', 'iscsi',
             'luks', 'nbd', 'nfs', 'null-aio', 'null-co', 'nvme', 'parallels',
             'preallocate', 'qcow', 'qcow2', 'qed', 'quorum', 'raw', 'rbd',
-            { 'name': 'replication', 'if': 'defined(CONFIG_REPLICATION)' },
-            'sheepdog',
+            { 'name': 'replication', 'if': 'CONFIG_REPLICATION' },
             'ssh', 'throttle', 'vdi', 'vhdx', 'vmdk', 'vpc', 'vvfat' ] }
 
 ##
@@ -2860,10 +2925,10 @@
             '*locking': 'OnOffAuto',
             '*aio': 'BlockdevAioOptions',
             '*drop-cache': {'type': 'bool',
-                            'if': 'defined(CONFIG_LINUX)'},
+                            'if': 'CONFIG_LINUX'},
             '*x-check-cache-dropped': 'bool' },
   'features': [ { 'name': 'dynamic-auto-read-only',
-                  'if': 'defined(CONFIG_POSIX)' } ] }
+                  'if': 'CONFIG_POSIX' } ] }
 
 ##
 # @BlockdevOptionsNull:
@@ -3067,6 +3132,7 @@
 
 ##
 # @BlockdevQcow2EncryptionFormat:
+#
 # @aes: AES-CBC with plain64 initialization vectors
 #
 # Since: 2.10
@@ -3187,11 +3253,12 @@
 #
 # @md5: The given hash is an md5 hash
 # @sha1: The given hash is an sha1 hash
+# @sha256: The given hash is an sha256 hash
 #
 # Since: 2.12
 ##
 { 'enum': 'SshHostKeyCheckHashType',
-  'data': [ 'md5', 'sha1' ] }
+  'data': [ 'md5', 'sha1', 'sha256' ] }
 
 ##
 # @SshHostKeyHash:
@@ -3610,6 +3677,94 @@
   'data': [ 'cephx', 'none' ] }
 
 ##
+# @RbdImageEncryptionFormat:
+#
+# Since: 6.1
+##
+{ 'enum': 'RbdImageEncryptionFormat',
+  'data': [ 'luks', 'luks2' ] }
+
+##
+# @RbdEncryptionOptionsLUKSBase:
+#
+# @key-secret: ID of a QCryptoSecret object providing a passphrase
+#              for unlocking the encryption
+#
+# Since: 6.1
+##
+{ 'struct': 'RbdEncryptionOptionsLUKSBase',
+  'data': { 'key-secret': 'str' } }
+
+##
+# @RbdEncryptionCreateOptionsLUKSBase:
+#
+# @cipher-alg: The encryption algorithm
+#
+# Since: 6.1
+##
+{ 'struct': 'RbdEncryptionCreateOptionsLUKSBase',
+  'base': 'RbdEncryptionOptionsLUKSBase',
+  'data': { '*cipher-alg': 'QCryptoCipherAlgorithm' } }
+
+##
+# @RbdEncryptionOptionsLUKS:
+#
+# Since: 6.1
+##
+{ 'struct': 'RbdEncryptionOptionsLUKS',
+  'base': 'RbdEncryptionOptionsLUKSBase',
+  'data': { } }
+
+##
+# @RbdEncryptionOptionsLUKS2:
+#
+# Since: 6.1
+##
+{ 'struct': 'RbdEncryptionOptionsLUKS2',
+  'base': 'RbdEncryptionOptionsLUKSBase',
+  'data': { } }
+
+##
+# @RbdEncryptionCreateOptionsLUKS:
+#
+# Since: 6.1
+##
+{ 'struct': 'RbdEncryptionCreateOptionsLUKS',
+  'base': 'RbdEncryptionCreateOptionsLUKSBase',
+  'data': { } }
+
+##
+# @RbdEncryptionCreateOptionsLUKS2:
+#
+# Since: 6.1
+##
+{ 'struct': 'RbdEncryptionCreateOptionsLUKS2',
+  'base': 'RbdEncryptionCreateOptionsLUKSBase',
+  'data': { } }
+
+##
+# @RbdEncryptionOptions:
+#
+# Since: 6.1
+##
+{ 'union': 'RbdEncryptionOptions',
+  'base': { 'format': 'RbdImageEncryptionFormat' },
+  'discriminator': 'format',
+  'data': { 'luks': 'RbdEncryptionOptionsLUKS',
+            'luks2': 'RbdEncryptionOptionsLUKS2' } }
+
+##
+# @RbdEncryptionCreateOptions:
+#
+# Since: 6.1
+##
+{ 'union': 'RbdEncryptionCreateOptions',
+  'base': { 'format': 'RbdImageEncryptionFormat' },
+  'discriminator': 'format',
+  'data': { 'luks': 'RbdEncryptionCreateOptionsLUKS',
+            'luks2': 'RbdEncryptionCreateOptionsLUKS2' } }
+
+##
 # @BlockdevOptionsRbd:
 #
 # @pool: Ceph pool name.
@@ -3623,6 +3778,8 @@
 #        options specified via QAPI.
 #
 # @snapshot: Ceph snapshot name.
+#
+# @encrypt: Image encryption options. (Since 6.1)
 #
 # @user: Ceph id name.
 #
@@ -3646,30 +3803,11 @@
             'image': 'str',
             '*conf': 'str',
             '*snapshot': 'str',
+            '*encrypt': 'RbdEncryptionOptions',
             '*user': 'str',
             '*auth-client-required': ['RbdAuthMode'],
             '*key-secret': 'str',
             '*server': ['InetSocketAddressBase'] } }
-
-##
-# @BlockdevOptionsSheepdog:
-#
-# Driver specific block device options for sheepdog
-#
-# @vdi: Virtual disk image name
-# @server: The Sheepdog server to connect to
-# @snap-id: Snapshot ID
-# @tag: Snapshot tag name
-#
-# Only one of @snap-id and @tag may be present.
-#
-# Since: 2.9
-##
-{ 'struct': 'BlockdevOptionsSheepdog',
-  'data': { 'server': 'SocketAddress',
-            'vdi': 'str',
-            '*snap-id': 'uint32',
-            '*tag': 'str' } }
 
 ##
 # @ReplicationMode:
@@ -3683,7 +3821,7 @@
 # Since: 2.9
 ##
 { 'enum' : 'ReplicationMode', 'data' : [ 'primary', 'secondary' ],
-  'if': 'defined(CONFIG_REPLICATION)' }
+  'if': 'CONFIG_REPLICATION' }
 
 ##
 # @BlockdevOptionsReplication:
@@ -3702,7 +3840,7 @@
   'base': 'BlockdevOptionsGenericFormat',
   'data': { 'mode': 'ReplicationMode',
             '*top-id': 'str' },
-  'if': 'defined(CONFIG_REPLICATION)' }
+  'if': 'CONFIG_REPLICATION' }
 
 ##
 # @NFSTransport:
@@ -3959,6 +4097,25 @@
   'data': { '*bottom': 'str' } }
 
 ##
+# @BlockdevOptionsCbw:
+#
+# Driver specific block device options for the copy-before-write driver,
+# which does so called copy-before-write operations: when data is
+# written to the filter, the filter first reads corresponding blocks
+# from its file child and copies them to @target child. After successfully
+# copying, the write request is propagated to file child. If copying
+# fails, the original write request is failed too and no data is written
+# to file child.
+#
+# @target: The target for copy-before-write operations.
+#
+# Since: 6.2
+##
+{ 'struct': 'BlockdevOptionsCbw',
+  'base': 'BlockdevOptionsGenericFormat',
+  'data': { 'target': 'BlockdevRef' } }
+
+##
 # @BlockdevOptions:
 #
 # Options for creating a block device.  Many options are available for all
@@ -4010,14 +4167,17 @@
       'bochs':      'BlockdevOptionsGenericFormat',
       'cloop':      'BlockdevOptionsGenericFormat',
       'compress':   'BlockdevOptionsGenericFormat',
+      'copy-before-write':'BlockdevOptionsCbw',
       'copy-on-read':'BlockdevOptionsCor',
       'dmg':        'BlockdevOptionsGenericFormat',
       'file':       'BlockdevOptionsFile',
       'ftp':        'BlockdevOptionsCurlFtp',
       'ftps':       'BlockdevOptionsCurlFtps',
       'gluster':    'BlockdevOptionsGluster',
-      'host_cdrom': 'BlockdevOptionsFile',
-      'host_device':'BlockdevOptionsFile',
+      'host_cdrom':  { 'type': 'BlockdevOptionsFile',
+                       'if': 'HAVE_HOST_BLOCK_DEVICE' },
+      'host_device': { 'type': 'BlockdevOptionsFile',
+                       'if': 'HAVE_HOST_BLOCK_DEVICE' },
       'http':       'BlockdevOptionsCurlHttp',
       'https':      'BlockdevOptionsCurlHttps',
       'iscsi':      'BlockdevOptionsIscsi',
@@ -4036,8 +4196,7 @@
       'raw':        'BlockdevOptionsRaw',
       'rbd':        'BlockdevOptionsRbd',
       'replication': { 'type': 'BlockdevOptionsReplication',
-                       'if': 'defined(CONFIG_REPLICATION)' },
-      'sheepdog':   'BlockdevOptionsSheepdog',
+                       'if': 'CONFIG_REPLICATION' },
       'ssh':        'BlockdevOptionsSsh',
       'throttle':   'BlockdevOptionsThrottle',
       'vdi':        'BlockdevOptionsGenericFormat',
@@ -4130,15 +4289,17 @@
 { 'command': 'blockdev-add', 'data': 'BlockdevOptions', 'boxed': true }
 
 ##
-# @x-blockdev-reopen:
+# @blockdev-reopen:
 #
-# Reopens a block device using the given set of options. Any option
-# not specified will be reset to its default value regardless of its
-# previous status. If an option cannot be changed or a particular
+# Reopens one or more block devices using the given set of options.
+# Any option not specified will be reset to its default value regardless
+# of its previous status. If an option cannot be changed or a particular
 # driver does not support reopening then the command will return an
-# error.
+# error. All devices in the list are reopened in one transaction, so
+# if one of them fails then the whole transaction is cancelled.
 #
-# The top-level @node-name option (from BlockdevOptions) must be
+# The command receives a list of block devices to reopen. For each one
+# of them, the top-level @node-name option (from BlockdevOptions) must be
 # specified and is used to select the block device to be reopened.
 # Other @node-name options must be either omitted or set to the
 # current name of the appropriate node. This command won't change any
@@ -4158,18 +4319,18 @@
 #
 #  4) NULL: the current child (if any) is detached.
 #
-# Options (1) and (2) are supported in all cases, but at the moment
-# only @backing allows replacing or detaching an existing child.
+# Options (1) and (2) are supported in all cases. Option (3) is
+# supported for @file and @backing, and option (4) for @backing only.
 #
 # Unlike with blockdev-add, the @backing option must always be present
 # unless the node being reopened does not have a backing file and its
 # image does not have a default backing file name as part of its
 # metadata.
 #
-# Since: 4.0
+# Since: 6.1
 ##
-{ 'command': 'x-blockdev-reopen',
-  'data': 'BlockdevOptions', 'boxed': true }
+{ 'command': 'blockdev-reopen',
+  'data': { 'options': ['BlockdevOptions'] } }
 
 ##
 # @blockdev-del:
@@ -4213,8 +4374,8 @@
 # @size: Size of the virtual disk in bytes
 # @preallocation: Preallocation mode for the new image (default: off;
 #                 allowed values: off,
-#                 falloc (if defined CONFIG_POSIX_FALLOCATE),
-#                 full (if defined CONFIG_POSIX))
+#                 falloc (if CONFIG_POSIX_FALLOCATE),
+#                 full (if CONFIG_POSIX))
 # @nocow: Turn off copy-on-write (valid only on btrfs; default: off)
 # @extent-size-hint: Extent size hint to add to the image file; 0 for not
 #                    adding an extent size hint (default: 1 MB, since 5.1)
@@ -4237,8 +4398,8 @@
 # @size: Size of the virtual disk in bytes
 # @preallocation: Preallocation mode for the new image (default: off;
 #                 allowed values: off,
-#                 falloc (if defined CONFIG_GLUSTERFS_FALLOCATE),
-#                 full (if defined CONFIG_GLUSTERFS_ZEROFILL))
+#                 falloc (if CONFIG_GLUSTERFS_FALLOCATE),
+#                 full (if CONFIG_GLUSTERFS_ZEROFILL))
 #
 # Since: 2.12
 ##
@@ -4338,7 +4499,7 @@
 # Since: 5.1
 ##
 { 'enum': 'Qcow2CompressionType',
-  'data': [ 'zlib', { 'name': 'zstd', 'if': 'defined(CONFIG_ZSTD)' } ] }
+  'data': [ 'zlib', { 'name': 'zstd', 'if': 'CONFIG_ZSTD' } ] }
 
 ##
 # @BlockdevCreateOptionsQcow2:
@@ -4418,13 +4579,15 @@
 #            point to a snapshot.
 # @size: Size of the virtual disk in bytes
 # @cluster-size: RBD object size
+# @encrypt: Image encryption options. (Since 6.1)
 #
 # Since: 2.12
 ##
 { 'struct': 'BlockdevCreateOptionsRbd',
   'data': { 'location':         'BlockdevOptionsRbd',
             'size':             'size',
-            '*cluster-size' :   'size' } }
+            '*cluster-size' :   'size',
+            '*encrypt' :        'RbdEncryptionCreateOptions' } }
 
 ##
 # @BlockdevVmdkSubformat:
@@ -4495,74 +4658,6 @@
             '*hwversion':       'str',
             '*zeroed-grain':    'bool' } }
 
-
-##
-# @SheepdogRedundancyType:
-#
-# @full: Create a fully replicated vdi with x copies
-# @erasure-coded: Create an erasure coded vdi with x data strips and
-#                 y parity strips
-#
-# Since: 2.12
-##
-{ 'enum': 'SheepdogRedundancyType',
-  'data': [ 'full', 'erasure-coded' ] }
-
-##
-# @SheepdogRedundancyFull:
-#
-# @copies: Number of copies to use (between 1 and 31)
-#
-# Since: 2.12
-##
-{ 'struct': 'SheepdogRedundancyFull',
-  'data': { 'copies': 'int' }}
-
-##
-# @SheepdogRedundancyErasureCoded:
-#
-# @data-strips: Number of data strips to use (one of {2,4,8,16})
-# @parity-strips: Number of parity strips to use (between 1 and 15)
-#
-# Since: 2.12
-##
-{ 'struct': 'SheepdogRedundancyErasureCoded',
-  'data': { 'data-strips': 'int',
-            'parity-strips': 'int' }}
-
-##
-# @SheepdogRedundancy:
-#
-# Since: 2.12
-##
-{ 'union': 'SheepdogRedundancy',
-  'base': { 'type': 'SheepdogRedundancyType' },
-  'discriminator': 'type',
-  'data': { 'full': 'SheepdogRedundancyFull',
-            'erasure-coded': 'SheepdogRedundancyErasureCoded' } }
-
-##
-# @BlockdevCreateOptionsSheepdog:
-#
-# Driver specific image creation options for Sheepdog.
-#
-# @location: Where to store the new image file
-# @size: Size of the virtual disk in bytes
-# @backing-file: File name of a base image
-# @preallocation: Preallocation mode for the new image (default: off;
-#                 allowed values: off, full)
-# @redundancy: Redundancy of the image
-# @object-size: Object size of the image
-#
-# Since: 2.12
-##
-{ 'struct': 'BlockdevCreateOptionsSheepdog',
-  'data': { 'location':         'BlockdevOptionsSheepdog',
-            'size':             'size',
-            '*backing-file':    'str',
-            '*preallocation':   'PreallocMode',
-            '*redundancy':      'SheepdogRedundancy',
-            '*object-size':     'size' } }
 
 ##
 # @BlockdevCreateOptionsSsh:
@@ -4687,7 +4782,6 @@
       'qcow2':          'BlockdevCreateOptionsQcow2',
       'qed':            'BlockdevCreateOptionsQed',
       'rbd':            'BlockdevCreateOptionsRbd',
-      'sheepdog':       'BlockdevCreateOptionsSheepdog',
       'ssh':            'BlockdevCreateOptionsSsh',
       'vdi':            'BlockdevCreateOptionsVdi',
       'vhdx':           'BlockdevCreateOptionsVhdx',
@@ -5322,7 +5416,7 @@
 #
 # Notes: In transaction, if @name is empty, or any snapshot matching @name
 #        exists, the operation will fail. Only some image formats support it,
-#        for example, qcow2, rbd, and sheepdog.
+#        for example, qcow2, and rbd.
 #
 # Since: 1.7
 ##

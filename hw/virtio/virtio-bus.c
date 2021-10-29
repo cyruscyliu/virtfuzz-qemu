@@ -69,6 +69,11 @@ void virtio_bus_device_plugged(VirtIODevice *vdev, Error **errp)
         return;
     }
 
+    if (has_iommu && !virtio_host_has_feature(vdev, VIRTIO_F_IOMMU_PLATFORM)) {
+        error_setg(errp, "iommu_platform=true is not supported by the device");
+        return;
+    }
+
     if (klass->device_plugged != NULL) {
         klass->device_plugged(qbus->parent, &local_err);
     }
@@ -318,6 +323,20 @@ static char *virtio_bus_get_dev_path(DeviceState *dev)
 static char *virtio_bus_get_fw_dev_path(DeviceState *dev)
 {
     return NULL;
+}
+
+bool virtio_bus_device_iommu_enabled(VirtIODevice *vdev)
+{
+    DeviceState *qdev = DEVICE(vdev);
+    BusState *qbus = BUS(qdev_get_parent_bus(qdev));
+    VirtioBusState *bus = VIRTIO_BUS(qbus);
+    VirtioBusClass *klass = VIRTIO_BUS_GET_CLASS(bus);
+
+    if (!klass->iommu_enabled) {
+        return false;
+    }
+
+    return klass->iommu_enabled(qbus->parent);
 }
 
 static void virtio_bus_class_init(ObjectClass *klass, void *data)

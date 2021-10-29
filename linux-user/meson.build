@@ -1,3 +1,7 @@
+if not have_linux_user
+   subdir_done()
+endif
+
 linux_user_ss.add(files(
   'elfload.c',
   'exit.c',
@@ -32,7 +36,6 @@ subdir('mips')
 subdir('ppc')
 subdir('s390x')
 subdir('sh4')
-subdir('sparc64')
 subdir('sparc')
 subdir('x86_64')
 subdir('xtensa')

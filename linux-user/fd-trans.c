@@ -27,7 +27,9 @@
 #include <linux/if_bridge.h>
 #endif
 #include "qemu.h"
+#include "user-internals.h"
 #include "fd-trans.h"
+#include "signal-common.h"
 
 enum {
     QEMU_IFLA_BR_UNSPEC,
@@ -267,6 +269,7 @@ enum {
 };
 
 TargetFdTrans **target_fd_trans;
+QemuMutex target_fd_trans_lock;
 unsigned int target_fd_max;
 
 static void tswap_nlmsghdr(struct nlmsghdr *nlh)

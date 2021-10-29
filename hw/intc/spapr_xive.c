@@ -185,7 +185,7 @@ static void spapr_xive_pic_print_info(SpaprXive *xive, Monitor *mon)
                        xive_source_irq_is_lsi(xsrc, i) ? "LSI" : "MSI",
                        pq & XIVE_ESB_VAL_P ? 'P' : '-',
                        pq & XIVE_ESB_VAL_Q ? 'Q' : '-',
-                       xsrc->status[i] & XIVE_STATUS_ASSERTED ? 'A' : ' ',
+                       xive_source_is_asserted(xsrc, i) ? 'A' : ' ',
                        xive_eas_is_masked(eas) ? "M" : " ",
                        (int) xive_get_field64(EAS_END_DATA, eas->w));
 
@@ -1798,7 +1798,7 @@ static target_ulong h_int_reset(PowerPCCPU *cpu,
         return H_PARAMETER;
     }
 
-    device_legacy_reset(DEVICE(xive));
+    device_cold_reset(DEVICE(xive));
 
     if (spapr_xive_in_kernel(xive)) {
         Error *local_err = NULL;

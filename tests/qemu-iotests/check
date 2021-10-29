@@ -19,6 +19,9 @@
 import os
 import sys
 import argparse
+import shutil
+from pathlib import Path
+
 from findtests import TestFinder
 from testenv import TestEnv
 from testrunner import TestRunner
@@ -33,6 +36,15 @@ def make_argparser() -> argparse.ArgumentParser:
                    help='pretty print output for make check')
 
     p.add_argument('-d', dest='debug', action='store_true', help='debug')
+    p.add_argument('-p', dest='print', action='store_true',
+                help='redirects qemu\'s stdout and stderr to the test output')
+    p.add_argument('-gdb', action='store_true',
+                   help="start gdbserver with $GDB_OPTIONS options \
+                        ('localhost:12345' if $GDB_OPTIONS is empty)")
+    p.add_argument('-valgrind', action='store_true',
+                    help='use valgrind, sets VALGRIND_QEMU environment '
+                    'variable')
+
     p.add_argument('-misalign', action='store_true',
                    help='misalign memory allocations')
     p.add_argument('--color', choices=['on', 'off', 'auto'],
@@ -65,8 +77,7 @@ def make_argparser() -> argparse.ArgumentParser:
         mg.add_argument('-' + fmt, dest='imgfmt', action='store_const',
                         const=fmt, help=f'test {fmt}')
 
-    protocol_list = ['file', 'rbd', 'sheepdog', 'nbd', 'ssh', 'nfs',
-                     'fuse']
+    protocol_list = ['file', 'rbd', 'nbd', 'ssh', 'nfs', 'fuse']
     g_prt = p.add_argument_group(
         '  image protocol options',
         'The following options set the IMGPROTO environment variable. '
@@ -83,9 +94,6 @@ def make_argparser() -> argparse.ArgumentParser:
     g_bash.add_argument('-o', dest='imgopts',
                         help='options to pass to qemu-img create/convert, '
                         'sets IMGOPTS environment variable')
-    g_bash.add_argument('-valgrind', action='store_true',
-                        help='use valgrind, sets VALGRIND_QEMU environment '
-                        'variable')
 
     g_sel = p.add_argument_group('test selecting options',
                                  'The following options specify test set '
@@ -101,7 +109,7 @@ def make_argparser() -> argparse.ArgumentParser:
                        'rerun failed ./check command, starting from the '
                        'middle of the process.')
     g_sel.add_argument('tests', metavar='TEST_FILES', nargs='*',
-                       help='tests to run')
+                       help='tests to run, or "--" followed by a command')
 
     return p
 
@@ -112,7 +120,22 @@ if __name__ == '__main__':
     env = TestEnv(imgfmt=args.imgfmt, imgproto=args.imgproto,
                   aiomode=args.aiomode, cachemode=args.cachemode,
                   imgopts=args.imgopts, misalign=args.misalign,
-                  debug=args.debug, valgrind=args.valgrind)
+                  debug=args.debug, valgrind=args.valgrind,
+                  gdb=args.gdb, qprint=args.print)
+
+    if len(sys.argv) > 1 and sys.argv[-len(args.tests)-1] == '--':
+        if not args.tests:
+            sys.exit("missing command after '--'")
+        cmd = args.tests
+        env.print_env()
+        exec_pathstr = shutil.which(cmd[0])
+        if exec_pathstr is None:
+            sys.exit('command not found: ' + cmd[0])
+        exec_path = Path(exec_pathstr).resolve()
+        cmd[0] = str(exec_path)
+        full_env = env.prepare_subprocess(cmd)
+        os.chdir(exec_path.parent)
+        os.execve(cmd[0], cmd, full_env)
 
     testfinder = TestFinder(test_dir=env.source_iotests)
 

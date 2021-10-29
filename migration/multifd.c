@@ -361,7 +361,7 @@ static int multifd_recv_unfill_packet(MultiFDRecvParams *p, Error **errp)
         if (offset > (block->used_length - qemu_target_page_size())) {
             error_setg(errp, "multifd: offset too long %" PRIu64
                        " (max " RAM_ADDR_FMT ")",
-                       offset, block->max_length);
+                       offset, block->used_length);
             return -1;
         }
         p->pages->iov[i].iov_base = block->host + offset;
@@ -531,7 +531,7 @@ void multifd_save_cleanup(void)
 {
     int i;
 
-    if (!migrate_use_multifd()) {
+    if (!migrate_use_multifd() || !migrate_multifd_is_allowed()) {
         return;
     }
     multifd_send_terminate_threads(NULL);
@@ -546,6 +546,9 @@ void multifd_save_cleanup(void)
         MultiFDSendParams *p = &multifd_send_state->params[i];
         Error *local_err = NULL;
 
+        if (p->registered_yank) {
+            migration_ioc_unregister_yank(p->c);
+        }
         socket_send_channel_destroy(p->c);
         p->c = NULL;
         qemu_mutex_destroy(&p->mutex);
@@ -813,7 +816,8 @@ static bool multifd_channel_connect(MultiFDSendParams *p,
                 return false;
             }
         } else {
-            /* update for tls qio channel */
+            migration_ioc_register_yank(ioc);
+            p->registered_yank = true;
             p->c = ioc;
             qemu_thread_create(&p->thread, p->name, multifd_send_thread, p,
                                    QEMU_THREAD_JOINABLE);
@@ -864,6 +868,17 @@ cleanup:
     multifd_new_send_channel_cleanup(p, sioc, local_err);
 }
 
+static bool migrate_allow_multifd = true;
+void migrate_protocol_allow_multifd(bool allow)
+{
+    migrate_allow_multifd = allow;
+}
+
+bool migrate_multifd_is_allowed(void)
+{
+    return migrate_allow_multifd;
+}
+
 int multifd_save_setup(Error **errp)
 {
     int thread_count;
@@ -874,6 +889,11 @@ int multifd_save_setup(Error **errp)
     if (!migrate_use_multifd()) {
         return 0;
     }
+    if (!migrate_multifd_is_allowed()) {
+        error_setg(errp, "multifd is not supported by current protocol");
+        return -1;
+    }
+
     s = migrate_get_current();
     thread_count = migrate_multifd_channels();
     multifd_send_state = g_malloc0(sizeof(*multifd_send_state));
@@ -967,7 +987,7 @@ int multifd_load_cleanup(Error **errp)
 {
     int i;
 
-    if (!migrate_use_multifd()) {
+    if (!migrate_use_multifd() || !migrate_multifd_is_allowed()) {
         return 0;
     }
     multifd_recv_terminate_threads(NULL);
@@ -987,13 +1007,7 @@ int multifd_load_cleanup(Error **errp)
     for (i = 0; i < migrate_multifd_channels(); i++) {
         MultiFDRecvParams *p = &multifd_recv_state->params[i];
 
-        if (object_dynamic_cast(OBJECT(p->c), TYPE_QIO_CHANNEL_SOCKET)
-            && OBJECT(p->c)->ref == 1) {
-            yank_unregister_function(MIGRATION_YANK_INSTANCE,
-                                     migration_yank_iochannel,
-                                     QIO_CHANNEL(p->c));
-        }
-
+        migration_ioc_unregister_yank(p->c);
         object_unref(OBJECT(p->c));
         p->c = NULL;
         qemu_mutex_destroy(&p->mutex);
@@ -1122,6 +1136,10 @@ int multifd_load_setup(Error **errp)
     if (!migrate_use_multifd()) {
         return 0;
     }
+    if (!migrate_multifd_is_allowed()) {
+        error_setg(errp, "multifd is not supported by current protocol");
+        return -1;
+    }
     thread_count = migrate_multifd_channels();
     multifd_recv_state = g_malloc0(sizeof(*multifd_recv_state));
     multifd_recv_state->params = g_new0(MultiFDRecvParams, thread_count);
@@ -1163,6 +1181,11 @@ bool multifd_recv_all_channels_created(void)
 
     if (!migrate_use_multifd()) {
         return true;
+    }
+
+    if (!multifd_recv_state) {
+        /* Called before any connections created */
+        return false;
     }
 
     return thread_count == qatomic_read(&multifd_recv_state->count);

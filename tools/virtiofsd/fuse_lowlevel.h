@@ -798,7 +798,8 @@ struct fuse_lowlevel_ops {
      *   fuse_reply_err
      */
     void (*setxattr)(fuse_req_t req, fuse_ino_t ino, const char *name,
-                     const char *value, size_t size, int flags);
+                     const char *value, size_t size, int flags,
+                     uint32_t setxattr_flags);
 
     /**
      * Get an extended attribute
@@ -1602,7 +1603,7 @@ int fuse_lowlevel_notify_inval_inode(struct fuse_session *se, fuse_ino_t ino,
  * parent/name
  *
  * To avoid a deadlock this function must not be called in the
- * execution path of a related filesytem operation or within any code
+ * execution path of a related filesystem operation or within any code
  * that could hold a lock that could be needed to execute such an
  * operation. As of kernel 4.18, a "related operation" is a lookup(),
  * symlink(), mknod(), mkdir(), unlink(), rename(), link() or create()
@@ -1635,7 +1636,7 @@ int fuse_lowlevel_notify_inval_entry(struct fuse_session *se, fuse_ino_t parent,
  * that the dentry has been deleted.
  *
  * To avoid a deadlock this function must not be called while
- * executing a related filesytem operation or while holding a lock
+ * executing a related filesystem operation or while holding a lock
  * that could be needed to execute such an operation (see the
  * description of fuse_lowlevel_notify_inval_entry() for more
  * details).

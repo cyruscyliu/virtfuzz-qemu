@@ -29,15 +29,14 @@
 #include "hw/qdev-properties.h"
 #include "hw/qdev-properties-system.h"
 #include "migration/vmstate.h"
+#include "qapi/qmp/qdict.h"
 #include "qemu/error-report.h"
 #include "qemu/main-loop.h"
 #include "qemu/module.h"
-#include "qemu/option.h"
 #include "qemu/range.h"
 #include "qemu/units.h"
 #include "sysemu/kvm.h"
 #include "sysemu/runstate.h"
-#include "sysemu/sysemu.h"
 #include "pci.h"
 #include "trace.h"
 #include "qapi/error.h"
@@ -942,7 +941,7 @@ static void vfio_pci_size_rom(VFIOPCIDevice *vdev)
     }
 
     if (vfio_opt_rom_in_denylist(vdev)) {
-        if (dev->opts && qemu_opt_get(dev->opts, "rombar")) {
+        if (dev->opts && qdict_haskey(dev->opts, "rombar")) {
             warn_report("Device at %s is known to cause system instability"
                         " issues during option rom execution",
                         vdev->vbasedev.name);
@@ -1365,7 +1364,7 @@ static void vfio_pci_relocate_msix(VFIOPCIDevice *vdev, Error **errp)
          * TODO: Lookup table for known devices.
          *
          * Logically we might use an algorithm here to select the BAR adding
-         * the least additional MMIO space, but we cannot programatically
+         * the least additional MMIO space, but we cannot programmatically
          * predict the driver dependency on BAR ordering or sizing, therefore
          * 'auto' becomes a lookup for combinations reported to work.
          */
@@ -1500,6 +1499,14 @@ static void vfio_msix_early_setup(VFIOPCIDevice *vdev, Error **errp)
         if (vdev->vendor_id == PCI_VENDOR_ID_CHELSIO &&
             (vdev->device_id & 0xff00) == 0x5800) {
             msix->pba_offset = 0x1000;
+        /*
+         * BAIDU KUNLUN Virtual Function devices for KUNLUN AI processor
+         * return an incorrect value of 0x460000 for the VF PBA offset while
+         * the BAR itself is only 0x10000.  The correct value is 0xb400.
+         */
+        } else if (vfio_pci_is(vdev, PCI_VENDOR_ID_BAIDU,
+                               PCI_DEVICE_ID_KUNLUN_VF)) {
+            msix->pba_offset = 0xb400;
         } else if (vdev->msix_relo == OFF_AUTOPCIBAR_OFF) {
             error_setg(errp, "hardware reports invalid configuration, "
                        "MSIX PBA outside of specified BAR");
@@ -2151,7 +2158,7 @@ static void vfio_pci_pre_reset(VFIOPCIDevice *vdev)
     }
 
     /*
-     * Stop any ongoing DMA by disconecting I/O, MMIO, and bus master.
+     * Stop any ongoing DMA by disconnecting I/O, MMIO, and bus master.
      * Also put INTx Disable in known state.
      */
     cmd = vfio_pci_read_config(pdev, PCI_COMMAND, 2);
@@ -2377,7 +2384,7 @@ out_single:
 }
 
 /*
- * We want to differentiate hot reset of mulitple in-use devices vs hot reset
+ * We want to differentiate hot reset of multiple in-use devices vs hot reset
  * of a single in-use device.  VFIO_DEVICE_RESET will already handle the case
  * of doing hot resets when there is only a single device per bus.  The in-use
  * here refers to how many VFIODevices are affected.  A hot reset that affects
@@ -3059,14 +3066,14 @@ static void vfio_realize(PCIDevice *pdev, Error **errp)
         }
     }
 
-    if (vdev->vendor_id == PCI_VENDOR_ID_NVIDIA) {
+    if (vfio_pci_is(vdev, PCI_VENDOR_ID_NVIDIA, PCI_ANY_ID)) {
         ret = vfio_pci_nvidia_v100_ram_init(vdev, errp);
         if (ret && ret != -ENODEV) {
             error_report("Failed to setup NVIDIA V100 GPU RAM");
         }
     }
 
-    if (vdev->vendor_id == PCI_VENDOR_ID_IBM) {
+    if (vfio_pci_is(vdev, PCI_VENDOR_ID_IBM, PCI_ANY_ID)) {
         ret = vfio_pci_nvlink2_init(vdev, errp);
         if (ret && ret != -ENODEV) {
             error_report("Failed to setup NVlink2 bridge");

@@ -1,7 +1,7 @@
 'virt' generic virtual platform (``virt``)
 ==========================================
 
-The `virt` board is a platform which does not correspond to any
+The ``virt`` board is a platform which does not correspond to any
 real hardware; it is designed for use in virtual machines.
 It is the recommended board type if you simply want to run
 a guest such as Linux and do not care about reproducing the
@@ -55,6 +55,7 @@ Supported guest CPU types:
 - ``cortex-a53`` (64-bit)
 - ``cortex-a57`` (64-bit)
 - ``cortex-a72`` (64-bit)
+- ``a64fx`` (64-bit)
 - ``host`` (with KVM only)
 - ``max`` (same as ``host`` for KVM; best possible emulation with TCG)
 

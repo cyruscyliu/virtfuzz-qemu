@@ -13,7 +13,6 @@
 
 import os
 
-from avocado import skipIf
 from avocado_qemu import wait_for_console_pattern
 from boot_linux_console import LinuxKernelTest
 
@@ -48,7 +47,6 @@ class BootXenBase(LinuxKernelTest):
 
         xen_command_line = self.XEN_COMMON_COMMAND_LINE
         self.vm.add_args('-machine', 'virtualization=on',
-                         '-cpu', 'cortex-a57',
                          '-m', '768',
                          '-kernel', xen_path,
                          '-append', xen_command_line,
