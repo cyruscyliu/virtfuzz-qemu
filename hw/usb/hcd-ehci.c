@@ -845,8 +845,6 @@ static USBDevice *ehci_find_device(EHCIState *ehci, uint8_t addr)
 }
 
 /* 4.1 host controller initialization */
-void __sanitizer_cov_trace_state(uint8_t a, size_t b) __attribute__((weak));
-void __sanitizer_cov_trace_state(uint8_t a, size_t b) {}
 void ehci_reset(void *opaque)
 {
     EHCIState *s = opaque;
@@ -877,7 +875,6 @@ void ehci_reset(void *opaque)
 
     s->astate = EST_INACTIVE;
     s->pstate = EST_INACTIVE;
-    __sanitizer_cov_trace_state(0x31, EST_INACTIVE);
 
     for(i = 0; i < NB_PORTS; i++) {
         if (s->companion_ports[i]) {
@@ -1039,8 +1036,8 @@ static void ehci_opreg_write(void *ptr, hwaddr addr,
 
         /* not supporting dynamic frame list size at the moment */
         if ((val & USBCMD_FLS) && !(s->usbcmd & USBCMD_FLS)) {
-            // fprintf(stderr, "attempt to set frame list size -- value %d\n",
-            //         (int)val & USBCMD_FLS);
+            fprintf(stderr, "attempt to set frame list size -- value %d\n",
+                    (int)val & USBCMD_FLS);
             val &= ~USBCMD_FLS;
         }
 
@@ -1095,21 +1092,17 @@ static void ehci_opreg_write(void *ptr, hwaddr addr,
 
     case PERIODICLISTBASE:
         if (ehci_periodic_enabled(s)) {
-            /*
             fprintf(stderr,
               "ehci: PERIODIC list base register set while periodic schedule\n"
               "      is enabled and HC is enabled\n");
-              */
         }
         break;
 
     case ASYNCLISTADDR:
         if (ehci_async_enabled(s)) {
-            /*
             fprintf(stderr,
               "ehci: ASYNC list address register set while async schedule\n"
               "      is enabled and HC is enabled\n");
-              */
         }
         break;
     }
@@ -1132,7 +1125,6 @@ static void ehci_flush_qh(EHCIQueue *q)
     uint32_t *qh = (uint32_t *) &q->qh;
     uint32_t dwords = sizeof(EHCIqh) >> 2;
     uint32_t addr = NLPTR_GET(q->qhaddr);
-
     put_dwords(q->ehci, addr + 3 * sizeof(uint32_t), qh + 3, dwords - 3);
 }
 
@@ -2127,7 +2119,7 @@ static void ehci_advance_state(EHCIState *ehci, int async)
 
         if (again < 0 || itd_count > 16) {
             /* TODO: notify guest (raise HSE irq?) */
-            // fprintf(stderr, "processing error - resetting ehci HC\n");
+            fprintf(stderr, "processing error - resetting ehci HC\n");
             ehci_reset(ehci);
             again = 0;
         }

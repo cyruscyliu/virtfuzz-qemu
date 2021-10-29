@@ -914,15 +914,13 @@ static uint64_t xilinx_spips_read(void *opaque, hwaddr addr,
                         cpu_to_be32(*(uint32_t *)rx_buf) :
                         cpu_to_le32(*(uint32_t *)rx_buf);
         if (!(s->regs[R_CONFIG] & R_CONFIG_ENDIAN)) {
-            ret <<= ((8 * shortfall) % 32);
+            ret <<= 8 * shortfall;
         }
         DB_PRINT_L(0, "addr=" TARGET_FMT_plx " = %x\n", addr * 4, ret);
         xilinx_spips_check_flush(s);
         xilinx_spips_update_ixr(s);
         return ret;
     }
-    if (addr >= 64)
-        return 0;
     DB_PRINT_L(0, "addr=" TARGET_FMT_plx " = %x\n", addr * 4,
                s->regs[addr] & mask);
     return s->regs[addr] & mask;
@@ -1030,8 +1028,6 @@ static void xilinx_spips_write(void *opaque, hwaddr addr,
         try_flush = false;
         break;
     }
-    if (addr >= 64)
-        goto no_reg_update;
     s->regs[addr] = (s->regs[addr] & ~mask) | (value & mask);
 no_reg_update:
     if (try_flush) {

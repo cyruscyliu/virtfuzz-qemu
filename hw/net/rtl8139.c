@@ -988,7 +988,6 @@ static ssize_t rtl8139_do_receive(NetClientState *nc, const uint8_t *buf, size_t
 
         uint32_t val, rxdw0,rxdw1,rxbufLO,rxbufHI;
 
-        // printf("[-] rx_ring_desc=0x%lx\n", cplus_rx_ring_desc);
         pci_dma_read(d, cplus_rx_ring_desc, &val, 4);
         rxdw0 = le32_to_cpu(val);
         pci_dma_read(d, cplus_rx_ring_desc+4, &val, 4);
@@ -1918,7 +1917,6 @@ static int rtl8139_cplus_transmit_one(RTL8139State *s)
 
     uint32_t val, txdw0,txdw1,txbufLO,txbufHI;
 
-    // printf("[-] tx_ring_desc=0x%lx\n", cplus_tx_ring_desc);
     pci_dma_read(d, cplus_tx_ring_desc,    (uint8_t *)&val, 4);
     txdw0 = le32_to_cpu(val);
     pci_dma_read(d, cplus_tx_ring_desc+4,  (uint8_t *)&val, 4);

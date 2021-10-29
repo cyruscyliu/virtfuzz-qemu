@@ -277,8 +277,8 @@ static int ahci_cond_start_engines(AHCIDevice *ad)
     if (cmd_start && !cmd_on) {
         if (!ahci_map_clb_address(ad)) {
             pr->cmd &= ~PORT_CMD_START;
-            // error_report("AHCI: Failed to start DMA engine: "
-            //              "bad command list buffer address");
+            error_report("AHCI: Failed to start DMA engine: "
+                         "bad command list buffer address");
             return -1;
         }
     } else if (!cmd_start && cmd_on) {
@@ -288,8 +288,8 @@ static int ahci_cond_start_engines(AHCIDevice *ad)
     if (fis_start && !fis_on) {
         if (!ahci_map_fis_address(ad)) {
             pr->cmd &= ~PORT_CMD_FIS_RX;
-            // error_report("AHCI: Failed to start FIS receive engine: "
-            //              "bad FIS receive buffer address");
+            error_report("AHCI: Failed to start FIS receive engine: "
+                         "bad FIS receive buffer address");
             return -1;
         }
     } else if (!fis_start && fis_on) {

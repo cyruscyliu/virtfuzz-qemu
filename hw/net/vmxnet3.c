@@ -455,8 +455,7 @@ vmxnet3_setup_tx_offloads(VMXNET3State *s)
         break;
 
     default:
-        // BUG
-        // g_assert_not_reached();
+        g_assert_not_reached();
         return false;
     }
 
@@ -1094,9 +1093,7 @@ vmxnet3_io_bar0_write(void *opaque, hwaddr addr,
         int tx_queue_idx =
             VMW_MULTIREG_IDX_BY_ADDR(addr, VMXNET3_REG_TXPROD,
                                      VMXNET3_REG_ALIGN);
-        // assert(tx_queue_idx <= s->txq_num);
-        if (tx_queue_idx > s->txq_num)
-            return;
+        assert(tx_queue_idx <= s->txq_num);
         vmxnet3_process_tx_queue(s, tx_queue_idx);
         return;
     }
@@ -1119,8 +1116,8 @@ vmxnet3_io_bar0_write(void *opaque, hwaddr addr,
         return;
     }
 
-    // VMW_WRPRN("BAR0 unknown write [%" PRIx64 "] = %" PRIx64 ", size %d",
-    //           (uint64_t) addr, val, size);
+    VMW_WRPRN("BAR0 unknown write [%" PRIx64 "] = %" PRIx64 ", size %d",
+              (uint64_t) addr, val, size);
 }
 
 static uint64_t
@@ -1351,37 +1348,31 @@ static bool vmxnet3_verify_intx(VMXNET3State *s, int intx)
         || intx == pci_get_byte(s->parent_obj.config + PCI_INTERRUPT_PIN) - 1;
 }
 
-static bool vmxnet3_validate_interrupt_idx(bool is_msix, int idx)
+static void vmxnet3_validate_interrupt_idx(bool is_msix, int idx)
 {
     int max_ints = is_msix ? VMXNET3_MAX_INTRS : VMXNET3_MAX_NMSIX_INTRS;
     if (idx >= max_ints) {
-        // hw_error("Bad interrupt index: %d\n", idx);
-        return false;
+        hw_error("Bad interrupt index: %d\n", idx);
     }
-    return true;
 }
 
 static void vmxnet3_validate_interrupts(VMXNET3State *s)
 {
     int i;
-    int max_ints = s->msix_used ? VMXNET3_MAX_INTRS : VMXNET3_MAX_NMSIX_INTRS;
 
     VMW_CFPRN("Verifying event interrupt index (%d)", s->event_int_idx);
-    if (!vmxnet3_validate_interrupt_idx(s->msix_used, s->event_int_idx))
-        s->event_int_idx = max_ints - 1;
+    vmxnet3_validate_interrupt_idx(s->msix_used, s->event_int_idx);
 
     for (i = 0; i < s->txq_num; i++) {
         int idx = s->txq_descr[i].intr_idx;
         VMW_CFPRN("Verifying TX queue %d interrupt index (%d)", i, idx);
-        if (!vmxnet3_validate_interrupt_idx(s->msix_used, idx))
-            s->txq_descr[i].intr_idx = max_ints - 1;
+        vmxnet3_validate_interrupt_idx(s->msix_used, idx);
     }
 
     for (i = 0; i < s->rxq_num; i++) {
         int idx = s->rxq_descr[i].intr_idx;
         VMW_CFPRN("Verifying RX queue %d interrupt index (%d)", i, idx);
-        if (!vmxnet3_validate_interrupt_idx(s->msix_used, idx))
-            s->rxq_descr[i].intr_idx = max_ints - 1;
+        vmxnet3_validate_interrupt_idx(s->msix_used, idx);
     }
 }
 
@@ -1394,13 +1385,11 @@ static void vmxnet3_validate_queues(VMXNET3State *s)
     */
 
     if (s->txq_num > VMXNET3_DEVICE_MAX_TX_QUEUES) {
-        // hw_error("Bad TX queues number: %d\n", s->txq_num);
-        s->txq_num = VMXNET3_DEVICE_MAX_TX_QUEUES;
+        hw_error("Bad TX queues number: %d\n", s->txq_num);
     }
 
     if (s->rxq_num > VMXNET3_DEVICE_MAX_RX_QUEUES) {
-        // hw_error("Bad RX queues number: %d\n", s->rxq_num);
-        s->rxq_num = VMXNET3_DEVICE_MAX_RX_QUEUES;
+        hw_error("Bad RX queues number: %d\n", s->rxq_num);
     }
 }
 
@@ -1703,7 +1692,7 @@ static uint64_t vmxnet3_get_command_status(VMXNET3State *s)
         break;
 
     default:
-        // VMW_WRPRN("Received request for unknown command: %x", s->last_command);
+        VMW_WRPRN("Received request for unknown command: %x", s->last_command);
         ret = 0;
         break;
     }

@@ -358,14 +358,11 @@ USBDevice *usb_find_device(USBPort *port, uint8_t addr)
     USBDevice *dev = port->dev;
 
     if (dev == NULL || !dev->attached || dev->state != USB_STATE_DEFAULT) {
-        printf("[-] b1 NULL\n");
         return NULL;
     }
     if (dev->addr == addr) {
-        // printf("[-] b2 dev\n");
         return dev;
     }
-    printf("[-] b3 callback\n");
     return usb_device_find_device(dev, addr);
 }
 
@@ -623,9 +620,7 @@ void usb_packet_copy(USBPacket *p, void *ptr, size_t bytes)
         break;
     default:
         fprintf(stderr, "%s: invalid pid: %x\n", __func__, p->pid);
-#ifndef CLANG_COV_DUMP
         abort();
-#endif
     }
     p->actual_length += bytes;
 }
@@ -740,11 +735,10 @@ void usb_ep_dump(USBDevice *dev)
 
 struct USBEndpoint *usb_ep_get(USBDevice *dev, int pid, int ep)
 {
-    printf("pid=%d ep=%d\n", pid, ep);
     struct USBEndpoint *eps;
 
     assert(dev != NULL);
-    if (ep == 0 || pid == 0 || pid == USB_TOKEN_SETUP) {
+    if (ep == 0) {
         return &dev->ep_ctl;
     }
     assert(pid == USB_TOKEN_IN || pid == USB_TOKEN_OUT);

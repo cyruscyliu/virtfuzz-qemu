@@ -681,7 +681,6 @@ static TRBType xhci_ring_fetch(XHCIState *xhci, XHCIRing *ring, XHCITRB *trb,
 
     while (1) {
         TRBType type;
-        // printf("[0] ring->dequeue=0x%lx\n", ring->dequeue);
         dma_memory_read(xhci->as, ring->dequeue, trb, TRB_SIZE);
         trb->addr = ring->dequeue;
         trb->ccs = ring->ccs;
@@ -692,7 +691,6 @@ static TRBType xhci_ring_fetch(XHCIState *xhci, XHCIRing *ring, XHCITRB *trb,
         trace_usb_xhci_fetch_trb(ring->dequeue, trb_name(trb),
                                  trb->parameter, trb->status, trb->control);
 
-        // printf("[0] trb->control=0x%x\n", trb->control);
         if ((trb->control & TRB_C) != ring->ccs) {
             return 0;
         }

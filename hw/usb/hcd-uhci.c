@@ -306,10 +306,6 @@ static void uhci_update_irq(UHCIState *s)
 
 static void uhci_reset(DeviceState *dev)
 {
-    static int counter = 0;
-    if (counter > 10)
-        return;
-    counter++;
     PCIDevice *d = PCI_DEVICE(dev);
     UHCIState *s = UHCI(d);
     uint8_t *pci_conf;
@@ -969,10 +965,8 @@ static void uhci_process_frame(UHCIState *s)
     QhDb qhdb;
 
     frame_addr = s->fl_base_addr + ((s->frnum & 0x3ff) << 2);
-    // printf("[+] address is 0x%x\n", frame_addr);
 
     pci_dma_read(&s->dev, frame_addr, &link, 4);
-    // printf("[+] (spray) link is 0x%x\n", link);
     le32_to_cpus(&link);
 
     int_mask = 0;
@@ -1116,7 +1110,6 @@ static void uhci_frame_timer(void *opaque)
 
     /* Process up to MAX_FRAMES_PER_TICK frames */
     frames = (t_now - t_last_run) / frame_t;
-    // printf("frames=%d\n", frames);
     if (frames > s->maxframes) {
         int skipped = frames - s->maxframes;
         s->expire_time += skipped * frame_t;

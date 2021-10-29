@@ -782,7 +782,6 @@ static void pcnet_init(PCNetState *s)
         TraceStateCallback(11);
         s->phys_mem_read(s->dma_opaque, PHYSADDR(s,CSR_IADR(s)),
                 (uint8_t *)&initblk, sizeof(initblk), 0);
-        // printf("[-] addr11=0x%x\n", PHYSADDR(s, CSR_IADR(s)));
         mode = le16_to_cpu(initblk.mode);
         rlen = initblk.rlen >> 4;
         tlen = initblk.tlen >> 4;
@@ -800,7 +799,6 @@ static void pcnet_init(PCNetState *s)
         TraceStateCallback(12);
         s->phys_mem_read(s->dma_opaque, PHYSADDR(s,CSR_IADR(s)),
                 (uint8_t *)&initblk, sizeof(initblk), 0);
-        // printf("[-] addr12=0x%x\n", PHYSADDR(s, CSR_IADR(s)));
         mode = le16_to_cpu(initblk.mode);
         ladrf[0] = le16_to_cpu(initblk.ladrf[0]);
         ladrf[1] = le16_to_cpu(initblk.ladrf[1]);
@@ -1057,7 +1055,6 @@ ssize_t pcnet_receive(NetClientState *nc, const uint8_t *buf, size_t size_)
             TraceStateCallback(14);
             uint8_t *src = s->buffer;
             hwaddr crda = CSR_CRDA(s);
-            // printf("[-] addr14=0x%lx\n", crda);
             struct pcnet_RMD rmd;
             int pktcount = 0;
 
@@ -1116,7 +1113,6 @@ ssize_t pcnet_receive(NetClientState *nc, const uint8_t *buf, size_t size_)
             if ((remaining > 0) && CSR_NRDA(s)) {
                 TraceStateCallback(15);
                 hwaddr nrda = CSR_NRDA(s);
-                printf("[-] addr15=0x%lx\n", nrda);
 #ifdef PCNET_DEBUG_RMD
                 PRINT_RMD(&rmd);
 #endif
@@ -1213,7 +1209,6 @@ txagain:
 
         // TraceStateCallback(13);
         TMDLOAD(&tmd, PHYSADDR(s,CSR_CXDA(s)));
-        printf("[-] addr13=0x%x\n", PHYSADDR(s, CSR_CXDA(s)));
 
 #ifdef PCNET_DEBUG_TMD
         printf("  TMDLOAD 0x%08x\n", PHYSADDR(s,CSR_CXDA(s)));
