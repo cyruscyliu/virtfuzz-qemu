@@ -135,18 +135,19 @@ static void printf_qtest_prefix()
 }
 
 static void dispatch_socket_write(QTestState *s, const void *data, uint32_t size) {
-    const uint8_t *ptr = data;
+    uint8_t D[SOCKET_WRITE_MAX_SIZE + 4];
+    const uint8_t *ptr = &D;
     char *enc;
     uint32_t i;
     if (!sockfds_initialized)
         return;
-    uint8_t D[SOCKET_WRITE_MAX_SIZE + 4];
     if (size > SOCKET_WRITE_MAX_SIZE)
         return;
     uint32_t S = htonl(size);
     memcpy(D, (uint8_t *)&S, 4);
     memcpy(D + 4, data, size);
-    int ignore = write(sockfds[0], D, size + 4);
+    size += 4;
+    int ignore = write(sockfds[0], D, size);
     if (getenv("FUZZ_SERIALIZE_QTEST")) {
         enc = g_malloc(2 * size + 1);
         for (i = 0; i < size; i++) {
