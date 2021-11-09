@@ -766,6 +766,7 @@ start_xmit(E1000State *s)
     }
 
     TraceStateCallback(6);
+    s->mac_reg[TDT] = 1;
     while (s->mac_reg[TDH] != s->mac_reg[TDT]) {
         base = tx_desc_base(s) +
                sizeof(struct e1000_tx_desc) * s->mac_reg[TDH];
