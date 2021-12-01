@@ -6,6 +6,7 @@ fuzz-obj-y += tests/qtest/fuzz/fuzz.o # Fuzzer skeleton
 fuzz-obj-y += tests/qtest/fuzz/fork_fuzz.o
 fuzz-obj-y += tests/qtest/fuzz/qos_fuzz.o
 fuzz-obj-y += tests/qtest/fuzz/qtest_wrappers.o
+fuzz-obj-y += tests/qtest/fuzz/less_crashes_wrappers.o
 fuzz-obj-y += tests/qtest/fuzz/generic_fuzz.o
 fuzz-obj-y += tests/qtest/fuzz/stateful_fuzz.o
 
@@ -41,3 +42,4 @@ FUZZ_LDFLAGS += -Wl,-wrap,qtest_bufread
 FUZZ_LDFLAGS += -Wl,-wrap,qtest_memwrite
 FUZZ_LDFLAGS += -Wl,-wrap,qtest_bufwrite
 FUZZ_LDFLAGS += -Wl,-wrap,qtest_memset
+FUZZ_LDFLAGS += -Wl,-wrap,abort
