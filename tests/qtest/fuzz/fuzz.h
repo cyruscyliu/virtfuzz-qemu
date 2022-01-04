@@ -74,7 +74,7 @@ typedef struct FuzzTarget {
      * execution and cleanup.
      * Cannot be NULL
      */
-    void(*fuzz)(QTestState *, const unsigned char *, size_t);
+    void(*fuzz)(QTestState *, unsigned char *, size_t);
 
     /*
      * The fuzzer can specify a "Custom Crossover" function for combining two
