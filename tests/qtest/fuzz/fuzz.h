@@ -119,7 +119,7 @@ size_t LLVMFuzzerCustomCrossOver(const uint8_t *data1, size_t size1,
                                  const uint8_t *data2, size_t size2,
                                  uint8_t *out, size_t max_out_size,
                                  unsigned int seed);
-int LLVMFuzzerTestOneInput(const unsigned char *Data, size_t Size);
+int __LLVMFuzzerTestOneInput(unsigned char *Data, size_t Size);
 int LLVMFuzzerInitialize(int *argc, char ***argv, char ***envp);
 
 #endif

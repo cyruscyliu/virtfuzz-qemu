@@ -16,7 +16,7 @@
 //
 // QEMU Dispatcher
 //
-void dispatch_mmio_read(Event *event, void *object) { 
+void dispatch_mmio_read(Event *event, void *object) {
     QTestState *s = (QTestState *)object;
     switch (event->size) {
         case ViDeZZo_Byte: qtest_readb(s, event->addr); break;
@@ -83,7 +83,7 @@ static void printf_qtest_prefix()
             (long) tv.tv_sec, (long) tv.tv_usec);
 }
 
-void dispatch_socket_write(Event *event, void *object) { 
+void dispatch_socket_write(Event *event, void *object) {
     QTestState *s = (QTestState *)object;
     uint8_t D[SOCKET_WRITE_MAX_SIZE + 4];
     uint8_t *ptr = &D;
@@ -304,7 +304,7 @@ static void videzzo_qemu_pre(QTestState *s) {
         printf("No fuzzable interfaces found ...\n");
         exit(2);
     } else {
-        print_event_description();
+        print_interfaces();
     }
 
     videzzo_alloc = get_videzzo_alloc(s);
@@ -317,7 +317,7 @@ static void videzzo_qemu_pre(QTestState *s) {
 
 //
 // QEMU specific initialization - Show usage
-// 
+//
 static void usage(void) {
     printf("Please specify the following environment variables:\n");
     printf("QEMU_FUZZ_ARGS= the command line arguments passed to qemu\n");
