@@ -1074,6 +1074,7 @@ static void execute_ncq_command(NCQTransferState *ncq_tfs)
     case READ_FPDMA_QUEUED:
         trace_execute_ncq_command_read(ad->hba, port, ncq_tfs->tag,
                                        ncq_tfs->sector_count, ncq_tfs->lba);
+        // TODO
         dma_acct_start(ide_state->blk, &ncq_tfs->acct,
                        &ncq_tfs->sglist, BLOCK_ACCT_READ);
         ncq_tfs->aiocb = dma_blk_read(ide_state->blk, &ncq_tfs->sglist,
@@ -1380,6 +1381,7 @@ static void ahci_pio_transfer(const IDEDMA *dma)
         if (is_write) {
             dma_buf_write(s->data_ptr, size, &s->sg);
         } else {
+            // TODO
             dma_buf_read(s->data_ptr, size, &s->sg);
         }
     }
@@ -1473,6 +1475,7 @@ static int ahci_dma_rw_buf(const IDEDMA *dma, bool is_write)
     }
 
     if (is_write) {
+        // TODO
         dma_buf_read(p, l, &s->sg);
     } else {
         dma_buf_write(p, l, &s->sg);

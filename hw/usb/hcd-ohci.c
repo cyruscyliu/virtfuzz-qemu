@@ -37,8 +37,8 @@
 #include "hw/qdev-properties.h"
 #include "trace.h"
 #include "hcd-ohci.h"
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
+void GroupMutatorMiss(uint8_t id, uint64_t physaddr) __attribute__((weak));
+void GroupMutatorMiss(uint8_t id, uint64_t physaddr) {}
 
 /* This causes frames to occur 1000x slower */
 //#define OHCI_TIME_WARP 1
@@ -539,6 +539,7 @@ static inline int ohci_read_iso_td(OHCIState *ohci,
 static inline int ohci_read_hcca(OHCIState *ohci,
                                  dma_addr_t addr, struct ohci_hcca *hcca)
 {
+    GroupMutatorMiss(1, addr);
     return dma_memory_read(ohci->as, addr + ohci->localmem_base,
                            hcca, sizeof(*hcca));
 }
@@ -1269,7 +1270,6 @@ static void ohci_frame_boundary(void *opaque)
     OHCIState *ohci = opaque;
     struct ohci_hcca hcca;
 
-    TraceStateCallback(1);
     if (ohci_read_hcca(ohci, ohci->hcca, &hcca)) {
         trace_usb_ohci_hcca_read_error(ohci->hcca);
         ohci_die(ohci);

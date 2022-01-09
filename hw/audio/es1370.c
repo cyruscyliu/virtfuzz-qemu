@@ -633,6 +633,12 @@ static uint64_t es1370_read(void *opaque, hwaddr addr, unsigned size)
     return val;
 }
 
+static int pci_dma_read_2(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(2, addr);
+    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
+}
+
 static void es1370_transfer_audio (ES1370State *s, struct chan *d, int loop_sel,
                                    int max, int *irq)
 {
@@ -676,7 +682,7 @@ static void es1370_transfer_audio (ES1370State *s, struct chan *d, int loop_sel,
             int copied, to_copy;
 
             to_copy = MIN ((size_t) temp, sizeof (tmpbuf));
-            pci_dma_read (&s->dev, addr, tmpbuf, to_copy);
+            pci_dma_read_2 (&s->dev, addr, tmpbuf, to_copy);
             copied = AUD_write (voice, tmpbuf, to_copy);
             if (!copied)
                 break;

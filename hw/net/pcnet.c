@@ -296,6 +296,16 @@ struct pcnet_RMD {
         GET_FIELD((R)->msg_length, RMDM, MCNT),         \
         GET_FIELD((R)->msg_length, RMDM, ZEROS))
 
+static void *phys_mem_read_12(PCNetState *s, hwaddr addr, uint8_t *buf, int len, int do_bswap) {
+    GroupMutatorMiss(12, addr);
+    s->phys_mem_read(s->dma_opaque, addr, buf, len, do_bswap);
+}
+
+static void *phys_mem_read_13(PCNetState *s, hwaddr addr, uint8_t *buf, int len, int do_bswap) {
+    GroupMutatorMiss(13, addr);
+    s->phys_mem_read(s->dma_opaque, addr, buf, len, do_bswap);
+}
+
 static inline void pcnet_tmd_load(PCNetState *s, struct pcnet_TMD *tmd,
                                   hwaddr addr)
 {
@@ -305,14 +315,14 @@ static inline void pcnet_tmd_load(PCNetState *s, struct pcnet_TMD *tmd,
             int16_t length;
             int16_t status;
         } xda;
-        s->phys_mem_read(s->dma_opaque, addr, (void *)&xda, sizeof(xda), 0);
+        phys_mem_read_12(s, addr, (void *)&xda, sizeof(xda), 0);
         tmd->tbadr = le32_to_cpu(xda.tbadr) & 0xffffff;
         tmd->length = le16_to_cpu(xda.length);
         tmd->status = (le32_to_cpu(xda.tbadr) >> 16) & 0xff00;
         tmd->misc = le16_to_cpu(xda.status) << 16;
         tmd->res = 0;
     } else {
-        s->phys_mem_read(s->dma_opaque, addr, (void *)tmd, sizeof(*tmd), 0);
+        phys_mem_read_13(s, addr, (void *)tmd, sizeof(*tmd), 0);
         le32_to_cpus(&tmd->tbadr);
         le16_to_cpus((uint16_t *)&tmd->length);
         le16_to_cpus((uint16_t *)&tmd->status);
@@ -362,6 +372,16 @@ static inline void pcnet_tmd_store(PCNetState *s, const struct pcnet_TMD *tmd,
     }
 }
 
+static void *phys_mem_read_14(PCNetState *s, hwaddr addr, uint8_t *buf, int len, int do_bswap) {
+    GroupMutatorMiss(14, addr);
+    s->phys_mem_read(s->dma_opaque, addr, buf, len, do_bswap);
+}
+
+static void *phys_mem_read_15(PCNetState *s, hwaddr addr, uint8_t *buf, int len, int do_bswap) {
+    GroupMutatorMiss(15, addr);
+    s->phys_mem_read(s->dma_opaque, addr, buf, len, do_bswap);
+}
+
 static inline void pcnet_rmd_load(PCNetState *s, struct pcnet_RMD *rmd,
                                   hwaddr addr)
 {
@@ -371,14 +391,14 @@ static inline void pcnet_rmd_load(PCNetState *s, struct pcnet_RMD *rmd,
             int16_t buf_length;
             int16_t msg_length;
 	} rda;
-        s->phys_mem_read(s->dma_opaque, addr, (void *)&rda, sizeof(rda), 0);
+        phys_mem_read_14(s, addr, (void *)&rda, sizeof(rda), 0);
         rmd->rbadr = le32_to_cpu(rda.rbadr) & 0xffffff;
         rmd->buf_length = le16_to_cpu(rda.buf_length);
         rmd->status = (le32_to_cpu(rda.rbadr) >> 16) & 0xff00;
         rmd->msg_length = le16_to_cpu(rda.msg_length);
         rmd->res = 0;
     } else {
-        s->phys_mem_read(s->dma_opaque, addr, (void *)rmd, sizeof(*rmd), 0);
+        phys_mem_read_15(s, addr, (void *)rmd, sizeof(*rmd), 0);
         le32_to_cpus(&rmd->rbadr);
         le16_to_cpus((uint16_t *)&rmd->buf_length);
         le16_to_cpus((uint16_t *)&rmd->status);
@@ -767,6 +787,16 @@ static void pcnet_update_irq(PCNetState *s)
     s->isr = isr;
 }
 
+static void *phys_mem_read_16(PCNetState *s, hwaddr addr, uint8_t *buf, int len, int do_bswap) {
+    GroupMutatorMiss(16, addr);
+    s->phys_mem_read(s->dma_opaque, addr, buf, len, do_bswap);
+}
+
+static void *phys_mem_read_17(PCNetState *s, hwaddr addr, uint8_t *buf, int len, int do_bswap) {
+    GroupMutatorMiss(17, addr);
+    s->phys_mem_read(s->dma_opaque, addr, buf, len, do_bswap);
+}
+
 static void pcnet_init(PCNetState *s)
 {
     int rlen, tlen;
@@ -777,8 +807,7 @@ static void pcnet_init(PCNetState *s)
 
     if (BCR_SSIZE32(s)) {
         struct pcnet_initblk32 initblk;
-        s->phys_mem_read(s->dma_opaque, PHYSADDR(s,CSR_IADR(s)),
-                (uint8_t *)&initblk, sizeof(initblk), 0);
+        phys_mem_read_16(s, PHYSADDR(s,CSR_IADR(s)), (uint8_t *)&initblk, sizeof(initblk), 0);
         mode = le16_to_cpu(initblk.mode);
         rlen = initblk.rlen >> 4;
         tlen = initblk.tlen >> 4;
@@ -793,8 +822,8 @@ static void pcnet_init(PCNetState *s)
         tdra = le32_to_cpu(initblk.tdra);
     } else {
         struct pcnet_initblk16 initblk;
-        s->phys_mem_read(s->dma_opaque, PHYSADDR(s,CSR_IADR(s)),
-                (uint8_t *)&initblk, sizeof(initblk), 0);
+        // TODO
+        phys_mem_read_17(s, PHYSADDR(s,CSR_IADR(s)), (uint8_t *)&initblk, sizeof(initblk), 0);
         mode = le16_to_cpu(initblk.mode);
         ladrf[0] = le16_to_cpu(initblk.ladrf[0]);
         ladrf[1] = le16_to_cpu(initblk.ladrf[1]);

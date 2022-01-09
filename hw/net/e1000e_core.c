@@ -909,6 +909,12 @@ e1000e_rx_ring_init(E1000ECore *core, E1000E_RxRing *rxr, int idx)
     rxr->i      = &i[idx];
 }
 
+static int pci_dma_read_9(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(9, addr);
+    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
+}
+
 static void
 e1000e_start_xmit(E1000ECore *core, const E1000E_TxRing *txr)
 {
@@ -926,7 +932,7 @@ e1000e_start_xmit(E1000ECore *core, const E1000E_TxRing *txr)
     while (!e1000e_ring_empty(core, txi)) {
         base = e1000e_ring_head_descr(core, txi);
 
-        pci_dma_read(core->owner, base, &desc, sizeof(desc));
+        pci_dma_read_9(core->owner, base, &desc, sizeof(desc));
 
         trace_e1000e_tx_descr((void *)(intptr_t)desc.buffer_addr,
                               desc.lower.data, desc.upper.data);
@@ -1491,6 +1497,12 @@ e1000e_do_ps(E1000ECore *core, struct NetRxPkt *pkt, size_t *hdr_len)
     return true;
 }
 
+static int pci_dma_read_10(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(10, addr);
+    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
+}
+
 static void
 e1000e_write_packet_to_guest(E1000ECore *core, struct NetRxPkt *pkt,
                              const E1000E_RxRing *rxr,
@@ -1530,7 +1542,7 @@ e1000e_write_packet_to_guest(E1000ECore *core, struct NetRxPkt *pkt,
 
         base = e1000e_ring_head_descr(core, rxi);
 
-        pci_dma_read(d, base, &desc, core->rx_desc_len);
+        pci_dma_read_10(d, base, &desc, core->rx_desc_len);
 
         trace_e1000e_rx_descr(rxi->idx, base, core->rx_desc_len);
 

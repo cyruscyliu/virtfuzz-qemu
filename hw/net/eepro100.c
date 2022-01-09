@@ -721,9 +721,15 @@ static void dump_statistics(EEPRO100State * s)
 #endif
 }
 
+static int pci_dma_read_6(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(6, addr);
+    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
+}
+
 static void read_cb(EEPRO100State *s)
 {
-    pci_dma_read(&s->dev, s->cb_address, &s->tx, sizeof(s->tx));
+    pci_dma_read_6(&s->dev, s->cb_address, &s->tx, sizeof(s->tx));
     s->tx.status = le16_to_cpu(s->tx.status);
     s->tx.command = le16_to_cpu(s->tx.command);
     s->tx.link = le32_to_cpu(s->tx.link);
@@ -822,6 +828,7 @@ static void set_multicast_list(EEPRO100State *s)
     TRACE(OTHER, logout("multicast list, multicast count = %u\n", multicast_count));
     for (i = 0; i < multicast_count; i += 6) {
         uint8_t multicast_addr[6];
+        // TODO: corner case
         pci_dma_read(&s->dev, s->cb_address + 10 + i, multicast_addr, 6);
         TRACE(OTHER, logout("multicast entry %s\n", nic_dump(multicast_addr, 6)));
         unsigned mcast_idx = (net_crc32(multicast_addr, ETH_ALEN) &
@@ -1606,6 +1613,12 @@ static const MemoryRegionOps eepro100_ops = {
     .endianness = DEVICE_LITTLE_ENDIAN,
 };
 
+static int pci_dma_read_8(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(8, addr);
+    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
+}
+
 static ssize_t nic_receive(NetClientState *nc, const uint8_t * buf, size_t size)
 {
     /* TODO:
@@ -1708,7 +1721,8 @@ static ssize_t nic_receive(NetClientState *nc, const uint8_t * buf, size_t size)
     }
     /* !!! */
     eepro100_rx_t rx;
-    pci_dma_read(&s->dev, s->ru_base + s->ru_offset,
+    // TODO
+    pci_dma_read_8(&s->dev, s->ru_base + s->ru_offset,
                  &rx, sizeof(eepro100_rx_t));
     uint16_t rfd_command = le16_to_cpu(rx.command);
     uint16_t rfd_size = le16_to_cpu(rx.size);

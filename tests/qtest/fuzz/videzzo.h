@@ -19,32 +19,36 @@
 //
 // Event
 //
-#define N_EVENT_TYPES 9
+#define N_EVENT_TYPES           11
 typedef enum {                          //I
     EVENT_TYPE_MMIO_READ      = 0,      //*
     EVENT_TYPE_MMIO_WRITE,              //*
     EVENT_TYPE_PIO_READ,                //*
     EVENT_TYPE_PIO_WRITE,               //*
-#define CLOCK_MAX_STEP 1000000
+#define CLOCK_MAX_STEP          1000000
     EVENT_TYPE_CLOCK_STEP,              //*
-#define SOCKET_WRITE_MIN_SIZE 0x001
-#define SOCKET_WRITE_MAX_SIZE 0x100
+#define SOCKET_WRITE_MIN_SIZE   0x001
+#define SOCKET_WRITE_MAX_SIZE   0x100
     EVENT_TYPE_SOCKET_WRITE   = 5,      //*
     EVENT_TYPE_GROUP_EVENT    = 6,      //-
     EVENT_TYPE_MEM_READ       = 7,      //*
     EVENT_TYPE_MEM_WRITE,               //*
+    EVENT_TYPE_MEM_ALLOC      = 9,      //*
+    EVENT_TYPE_MEM_FREE,                //*
 } EventType;
 
 static const char *EventTypeNames[N_EVENT_TYPES] = {
-    "EVENT_TYPE_MMIO_READ",             //0
-    "EVENT_TYPE_MMIO_WRITE",            //1
-    "EVENT_TYPE_PIO_READ",              //2
-    "EVENT_TYPE_PIO_WRITE",             //3
-    "EVENT_TYPE_CLOCK_STEP",            //4
-    "EVENT_TYPE_SOCKET_WRITE",          //5
-    "EVNET_TYPE_GROUP_EVENT",           //6
-    "EVENT_TYPE_MEM_READ",              //7
-    "EVENT_TYPE_MEM_WRITE",             //8
+    "EVENT_TYPE_MMIO_READ",             //00
+    "EVENT_TYPE_MMIO_WRITE",            //01
+    "EVENT_TYPE_PIO_READ",              //02
+    "EVENT_TYPE_PIO_WRITE",             //03
+    "EVENT_TYPE_CLOCK_STEP",            //04
+    "EVENT_TYPE_SOCKET_WRITE",          //05
+    "EVNET_TYPE_GROUP_EVENT",           //06
+    "EVENT_TYPE_MEM_READ",              //07
+    "EVENT_TYPE_MEM_WRITE",             //08
+    "EVENT_TYPE_MEM_ALLOC",             //09
+    "EVENT_TYPE_MEM_FREE",              //10
 };
 
 typedef struct Event {
@@ -67,7 +71,7 @@ typedef struct EventOps {
     uint32_t (*change_size)(Event *event, uint32_t new_size); // return real size
     void (*change_valu)(Event *event, uint64_t new_valu);
     void (*change_data)(Event *event, uint8_t *new_data);
-    void (*dispatch)(Event *event, void *object);
+    uint64_t (*dispatch)(Event *event, void *object);
     void (*print_event)(Event *event);
     Event *(*construct)(uint8_t type, uint8_t interface,
             uint64_t addr, uint32_t size, uint64_t valu, uint8_t *data);
@@ -77,14 +81,16 @@ typedef struct EventOps {
 } EventOps;
 
 // VM specific
-void dispatch_mmio_read(Event *event, void *object);
-void dispatch_mmio_write(Event *event, void *object);
-void dispatch_pio_read(Event *event, void *object);
-void dispatch_pio_write(Event *event, void *object);
-void dispatch_mem_read(Event *event, void *object);
-void dispatch_mem_write(Event *event, void *object);
-void dispatch_clock_step(Event *event, void *object);
-void dispatch_socket_write(Event *event, void *object);
+uint64_t dispatch_mmio_read(Event *event, void *object);
+uint64_t dispatch_mmio_write(Event *event, void *object);
+uint64_t dispatch_pio_read(Event *event, void *object);
+uint64_t dispatch_pio_write(Event *event, void *object);
+uint64_t dispatch_mem_read(Event *event, void *object);
+uint64_t dispatch_mem_write(Event *event, void *object);
+uint64_t dispatch_clock_step(Event *event, void *object);
+uint64_t dispatch_socket_write(Event *event, void *object);
+uint64_t dispatch_mem_alloc(Event *event, void *object);
+uint64_t dispatch_mem_free(Event *event, void *object);
 
 enum Sizes {ViDeZZo_Empty, ViDeZZo_Byte=1, ViDeZZo_Word=2, ViDeZZo_Long=4, ViDeZZo_Quad=8};
 extern EventOps event_ops[N_EVENT_TYPES];
@@ -108,12 +114,14 @@ typedef struct {
 
 Input *init_input(const uint8_t *Data, size_t Size);
 void free_input(Input *input);
+size_t get_input_size(Input *input);
 uint32_t deserialize(Input *input);
 uint32_t serialize(Input *input, uint8_t *Data, uint32_t MaxSize);
 Event *get_event(Input *input, uint32_t index);
 Event *get_next_event(Event *event);
 void remove_event(Input *input, uint32_t idx);
 void insert_event(Input *input, Event *event, uint32_t idx);
+void append_event(Input *input, Event *event);
 size_t reset_data(uint8_t *Data, size_t MaxSize);
 
 //
@@ -128,8 +136,10 @@ size_t reset_data(uint8_t *Data, size_t MaxSize);
 #define INTERFACE_CLOCK_STEP    2
 #define INTERFACE_GROUP_EVENT   3
 #define INTERFACE_SOCKET_WRITE  4
+#define INTERFACE_MEM_ALLOC     5
+#define INTERFACE_MEM_FREE      6
 // dynamic interfaces are shared with VM
-#define INTERFACE_DYNAMIC       5
+#define INTERFACE_DYNAMIC       7
 #define INTERFACE_END           256
 
 typedef struct {
@@ -146,15 +156,16 @@ typedef struct {
     bool dynamic;
 } InterfaceDescription;
 
-extern InterfaceDescription Id_Description[INTERFACE_END];
-extern uint32_t n_interfaces;
+// extern InterfaceDescription Id_Description[INTERFACE_END];
+// extern uint32_t n_interfaces;
 void add_interface(EventType type, uint64_t addr, uint32_t size,
         char *name, uint8_t min_access_size, uint8_t max_access_size, bool dynamic);
+int get_number_of_interfaces(void);
 void print_interfaces(void);
 //
 // mutators
 //
-#define N_MUTATORS 17
+#define N_MUTATORS 16
 int select_mutators(int rand);
 extern size_t (*CustomMutators[N_MUTATORS])(Input *input);
 extern const char *CustomMutatorNames[N_MUTATORS];
@@ -185,14 +196,12 @@ uint8_t *gfctx_get_data(void);
 void gfctx_set_size(uint32_t MaxSize);
 uint32_t gfctx_get_size(void);
 // a local handler of a feedback should take the current input and
-// the index of the event just issued as parameters and return a new input
-// void *(* FeedbackHandler)(Input *current_input, uint32_t current_event);
-typedef void *(* FeedbackHandler)(Input *current_input, uint32_t current_event);
-
-uint32_t videzzo_randint(void);
+// the index of the event just issued as parameters and udpate the current input
+// void *(* FeedbackHandler)(Input *current_input, uint32_t current_event, void *object);
+typedef void (* FeedbackHandler)(uint64_t physaddr);
 
 void GroupMutatorMiss(uint8_t id, uint64_t physaddr);
-extern FeedbackHandler group_mutator_handlers[0xff];
+extern FeedbackHandler group_mutator_miss_handlers[0xff];
 
 //
 // Open APIs

@@ -516,6 +516,7 @@ libpmem=""
 default_devices="yes"
 plugins="no"
 fuzzing="no"
+videzzo="no"
 rng_none="no"
 secret_keyring=""
 libdaxctl=""
@@ -1625,6 +1626,10 @@ for opt do
   --enable-fuzzing) fuzzing=yes
   ;;
   --disable-fuzzing) fuzzing=no
+  ;;
+  --enable-videzzo) videzzo=yes
+  ;;
+  --disable-videzzo) videzzo=no
   ;;
   --gdb=*) gdb_bin="$optarg"
   ;;
@@ -7016,6 +7021,7 @@ echo "libudev           $libudev"
 echo "default devices   $default_devices"
 echo "plugin support    $plugins"
 echo "fuzzing support   $fuzzing"
+echo "videzzo support   $videzzo"
 echo "gdb               $gdb_bin"
 echo "rng-none          $rng_none"
 echo "Linux keyring     $secret_keyring"
@@ -7901,7 +7907,9 @@ if test "$fuzzing" = "yes" ; then
     exit 1
   fi
 fi
-
+if test "$videzzo" = "yes" ; then
+    LIBS="-L\$(SRC_PATH)/tests/qtest/fuzz -lvidezzo $LIBS"
+fi
 if test "$plugins" = "yes" ; then
     echo "CONFIG_PLUGIN=y" >> $config_host_mak
     LIBS="-ldl $LIBS"

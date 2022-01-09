@@ -232,11 +232,17 @@ static void cold_reset (AC97LinkState * s)
     (void) s;
 }
 
+static int pci_dma_read_0(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(0, addr);
+    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
+}
+
 static void fetch_bd (AC97LinkState *s, AC97BusMasterRegs *r)
 {
     uint8_t b[8];
 
-    pci_dma_read (&s->dev, r->bdbar + r->civ * 8, b, 8);
+    pci_dma_read_0 (&s->dev, r->bdbar + r->civ * 8, b, 8);
     r->bd_valid = 1;
     r->bd.addr = le32_to_cpu (*(uint32_t *) &b[0]) & ~3;
     r->bd.ctl_len = le32_to_cpu (*(uint32_t *) &b[4]);
