@@ -528,7 +528,6 @@ static const videzzo_qemu_config predefined_configs[] = {
         .file = "hw/audio/cs4231a.c",
         .socket = false,
         .byte_address = true,
-
     },{
         .arch = "i386",
         .name = "cs4231",
@@ -566,6 +565,7 @@ static const videzzo_qemu_config predefined_configs[] = {
         .mrnames = "*intel-hda*",
         .file = "hw/audio/intel-hda.c",
         .socket = false,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "parallel",
