@@ -437,6 +437,7 @@ static const videzzo_qemu_config predefined_configs[] = {
         .mrnames = "*eepro100-mmio*,*eepro100-io*,*eepro100-flash*",
         .file = "hw/net/eepro100.c",
         .socket = true,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "e1000",
@@ -662,9 +663,10 @@ static const videzzo_qemu_config predefined_configs[] = {
         "-drive id=disk0,file=null-co://,file.read-zeroes=on,if=none,format=raw "
         "-device floppy,unit=0,drive=disk0",
         .objects = "fd* floppy* i8257",
-        .mrnames = "*fdc*",
+        .mrnames = "*fdc*,*dma-chan*,*dma-page*,*dma-pageh*,*dma-cont*",
         .file = "hw/block/fdc.c",
         .socket = false,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "nvme",
