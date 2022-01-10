@@ -555,6 +555,7 @@ static const videzzo_qemu_config predefined_configs[] = {
         .mrnames = "*sb16*,*dma-chan*,*dma-page*,*dma-pageh*,*dma-cont*",
         .file = "hw/audio/sb16.c hw/dma/i8257.c",
         .socket = false,
+        .byte_address = true,
     },{
         .arch = "i386",
         .name = "intel-hda",
