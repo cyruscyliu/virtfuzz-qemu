@@ -573,6 +573,11 @@ static void sdhci_write_dataport(SDHCIState *s, uint32_t value, unsigned size)
 /*
  * Single DMA data transfer
  */
+static inline int dma_memory_read_30(AddressSpace *as, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(30, addr);
+    dma_memory_read(as, addr, buf, len);
+}
 
 /* Multi block SDMA transfer */
 static void sdhci_sdma_transfer_multi_blocks(SDHCIState *s)
@@ -637,8 +642,7 @@ static void sdhci_sdma_transfer_multi_blocks(SDHCIState *s)
                 s->data_count = block_size;
                 boundary_count -= block_size - begin;
             }
-            // TODO
-            dma_memory_read(s->dma_as, s->sdmasysad,
+            dma_memory_read_30(s->dma_as, s->sdmasysad,
                             &s->fifo_buffer[begin], s->data_count - begin);
             s->sdmasysad += s->data_count - begin;
             if (s->data_count == block_size) {
@@ -666,6 +670,12 @@ static void sdhci_sdma_transfer_multi_blocks(SDHCIState *s)
     }
 }
 
+static inline int dma_memory_read_29(AddressSpace *as, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(29, addr);
+    dma_memory_read(as, addr, buf, len);
+}
+
 /* single block SDMA transfer */
 static void sdhci_sdma_transfer_single_block(SDHCIState *s)
 {
@@ -678,8 +688,7 @@ static void sdhci_sdma_transfer_single_block(SDHCIState *s)
         }
         dma_memory_write(s->dma_as, s->sdmasysad, s->fifo_buffer, datacnt);
     } else {
-        // TODO
-        dma_memory_read(s->dma_as, s->sdmasysad, s->fifo_buffer, datacnt);
+        dma_memory_read_29(s->dma_as, s->sdmasysad, s->fifo_buffer, datacnt);
         for (n = 0; n < datacnt; n++) {
             sdbus_write_data(&s->sdbus, s->fifo_buffer[n]);
         }
@@ -696,6 +705,25 @@ typedef struct ADMADescr {
     uint8_t incr;
 } ADMADescr;
 
+
+static inline int dma_memory_read_26(AddressSpace *as, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(26, addr);
+    dma_memory_read(as, addr, buf, len);
+}
+
+static inline int dma_memory_read_27(AddressSpace *as, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(27, addr);
+    dma_memory_read(as, addr, buf, len);
+}
+
+static inline int dma_memory_read_28(AddressSpace *as, dma_addr_t addr, void *buf, dma_addr_t len)
+{
+    GroupMutatorMiss(28, addr);
+    dma_memory_read(as, addr, buf, len);
+}
+
 static void get_adma_description(SDHCIState *s, ADMADescr *dscr)
 {
     uint32_t adma1 = 0;
@@ -703,8 +731,7 @@ static void get_adma_description(SDHCIState *s, ADMADescr *dscr)
     hwaddr entry_addr = (hwaddr)s->admasysaddr;
     switch (SDHC_DMA_TYPE(s->hostctl1)) {
     case SDHC_CTRL_ADMA2_32:
-        // TODO
-        dma_memory_read(s->dma_as, entry_addr, &adma2, sizeof(adma2));
+        dma_memory_read_26(s->dma_as, entry_addr, &adma2, sizeof(adma2));
         adma2 = le64_to_cpu(adma2);
         /* The spec does not specify endianness of descriptor table.
          * We currently assume that it is LE.
@@ -715,8 +742,7 @@ static void get_adma_description(SDHCIState *s, ADMADescr *dscr)
         dscr->incr = 8;
         break;
     case SDHC_CTRL_ADMA1_32:
-        // TODO
-        dma_memory_read(s->dma_as, entry_addr, &adma1, sizeof(adma1));
+        dma_memory_read_27(s->dma_as, entry_addr, &adma1, sizeof(adma1));
         adma1 = le32_to_cpu(adma1);
         dscr->addr = (hwaddr)(adma1 & 0xFFFFF000);
         dscr->attr = (uint8_t)extract32(adma1, 0, 7);
@@ -728,8 +754,7 @@ static void get_adma_description(SDHCIState *s, ADMADescr *dscr)
         }
         break;
     case SDHC_CTRL_ADMA2_64:
-        // TODO
-        dma_memory_read(s->dma_as, entry_addr, &dscr->attr, 1);
+        dma_memory_read_28(s->dma_as, entry_addr, &dscr->attr, 1);
         dma_memory_read(s->dma_as, entry_addr + 2, &dscr->length, 2);
         dscr->length = le16_to_cpu(dscr->length);
         dma_memory_read(s->dma_as, entry_addr + 4, &dscr->addr, 8);
@@ -814,7 +839,6 @@ static void sdhci_do_adma(SDHCIState *s)
                         s->data_count = block_size;
                         length -= block_size - begin;
                     }
-                    // TODO
                     dma_memory_read(s->dma_as, dscr.addr,
                                     &s->fifo_buffer[begin],
                                     s->data_count - begin);

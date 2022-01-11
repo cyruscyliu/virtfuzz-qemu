@@ -1402,8 +1402,11 @@ static void vmxnet3_validate_queues(VMXNET3State *s)
     }
 }
 
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
+static bool vmxnet3_verify_driver_magic_21(PCIDevice *d, hwaddr dshmem) {
+    GroupMutatorMiss(21, dshmem);
+    return vmxnet3_verify_driver_magic(d, dshmem);
+}
+
 static void vmxnet3_activate_device(VMXNET3State *s)
 {
     int i;
@@ -1414,8 +1417,7 @@ static void vmxnet3_activate_device(VMXNET3State *s)
     uint32_t size;
 
     /* Verify configuration consistency */
-    TraceStateCallback(4);
-    if (!vmxnet3_verify_driver_magic(d, s->drv_shmem)) {
+    if (!vmxnet3_verify_driver_magic_21(d, s->drv_shmem)) {
         VMW_ERPRN("Device configuration received from driver is invalid");
         return;
     }
@@ -1567,6 +1569,7 @@ static void vmxnet3_activate_device(VMXNET3State *s)
 
 static void vmxnet3_handle_command(VMXNET3State *s, uint64_t cmd)
 {
+    cmd %= 0x20;
     s->last_command = cmd;
 
     switch (cmd) {
