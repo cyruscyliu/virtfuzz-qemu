@@ -37,8 +37,6 @@
 #include "hw/qdev-properties.h"
 #include "trace.h"
 #include "hcd-ohci.h"
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 
 /* This causes frames to occur 1000x slower */
 //#define OHCI_TIME_WARP 1
@@ -1164,13 +1162,7 @@ static int ohci_service_ed_list(OHCIState *ohci, uint32_t head, int completion)
     if (head == 0)
         return 0;
 
-    static int counter2;
-
-    counter2 = 0;
     for (cur = head; cur && link_cnt++ < ED_LINK_LIMIT; cur = next_ed) {
-        counter2++;
-        if (counter2 > 1)
-            break;
         if (ohci_read_ed(ohci, cur, &ed)) {
             trace_usb_ohci_ed_read_error(cur);
             ohci_die(ohci);
@@ -1192,13 +1184,7 @@ static int ohci_service_ed_list(OHCIState *ohci, uint32_t head, int completion)
             continue;
         }
 
-        static int counter;
-        counter = 0;
         while ((ed.head & OHCI_DPTR_MASK) != ed.tail) {
-            counter++;
-            if (counter > 1)
-                break;
-
             trace_usb_ohci_ed_pkt(cur, (ed.head & OHCI_ED_H) != 0,
                     (ed.head & OHCI_ED_C) != 0, ed.head & OHCI_DPTR_MASK,
                     ed.tail & OHCI_DPTR_MASK, ed.next & OHCI_DPTR_MASK);
@@ -1269,7 +1255,6 @@ static void ohci_frame_boundary(void *opaque)
     OHCIState *ohci = opaque;
     struct ohci_hcca hcca;
 
-    TraceStateCallback(1);
     if (ohci_read_hcca(ohci, ohci->hcca, &hcca)) {
         trace_usb_ohci_hcca_read_error(ohci->hcca);
         ohci_die(ohci);
