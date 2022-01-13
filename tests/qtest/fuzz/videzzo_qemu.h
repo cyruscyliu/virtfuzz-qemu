@@ -873,7 +873,7 @@ static const videzzo_qemu_config predefined_configs[] = {
         .objects = "*xgmac*",
         .mrnames = "*xgmac*",
         .file = "hw/net/xgmac.c",
-        .socket = false,
+        .socket = true,
     },{
         .arch = "arm",
         .name = "stellaris-enet",
@@ -884,12 +884,12 @@ static const videzzo_qemu_config predefined_configs[] = {
         .socket = false,
     },{
         .arch = "arm",
-        .name = "scm91c111",
+        .name = "smc91c111",
         .args = "-machine mainstone",
         .objects = "*smc91c111-mmio*",
         .mrnames = "*smc91c111-mmio*",
         .file = "hw/net/smc91c111.c",
-        .socket = false,
+        .socket = true,
     },{
         .arch = "arm",
         .name = "npcm7xx-emc",

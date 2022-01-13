@@ -230,6 +230,8 @@ static void smc91c111_do_tx(smc91c111_state *s)
         return;
     for (i = 0; i < s->tx_fifo_len; i++) {
         packetnum = s->tx_fifo[i];
+        if (packetnum > 4)
+            return;
         p = &s->data[packetnum][0];
         /* Set status word.  */
         *(p++) = 0x01;
@@ -237,6 +239,8 @@ static void smc91c111_do_tx(smc91c111_state *s)
         len = *(p++);
         len |= ((int)*(p++)) << 8;
         len -= 6;
+        if (len + 1 >= 2048)
+            return;
         control = p[len + 1];
         if (control & 0x20)
             len++;
@@ -448,6 +452,8 @@ static void smc91c111_writeb(void *opaque, hwaddr offset,
                     n = s->rx_fifo[0];
                 else
                     n = s->packet_num;
+                if (n > 4)
+                    return;
                 p = s->ptr & 0x07ff;
                 if (s->ptr & 0x4000) {
                     s->ptr = (s->ptr & 0xf800) | ((s->ptr + 1) & 0x7ff);
@@ -596,6 +602,8 @@ static uint32_t smc91c111_readb(void *opaque, hwaddr offset)
                     n = s->rx_fifo[0];
                 else
                     n = s->packet_num;
+                if (n > 4)
+                    return 0;
                 p = s->ptr & 0x07ff;
                 if (s->ptr & 0x4000) {
                     s->ptr = (s->ptr & 0xf800) | ((s->ptr + 1) & 0x07ff);
@@ -701,6 +709,8 @@ static ssize_t smc91c111_receive(NetClientState *nc, const uint8_t *buf, size_t 
         return -1;
     packetnum = smc91c111_allocate_packet(s);
     if (packetnum == 0x80)
+        return -1;
+    if (packetnum > 4)
         return -1;
     s->rx_fifo[s->rx_fifo_len++] = packetnum;
 
