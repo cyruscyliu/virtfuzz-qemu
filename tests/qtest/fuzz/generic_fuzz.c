@@ -1040,4 +1040,4 @@ static void register_generic_fuzz_targets(void)
     }
 }
 
-fuzz_target_init(register_generic_fuzz_targets);
+// fuzz_target_init(register_generic_fuzz_targets);

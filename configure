@@ -310,6 +310,7 @@ sanitizers="no"
 tsan="no"
 fortify_source="$default_feature"
 gcov="no"
+videzzo="no"
 EXESUF=""
 modules="no"
 module_upgrades="no"
@@ -810,6 +811,8 @@ for opt do
   --without-default-features) # processed above
   ;;
   --enable-gcov) gcov="yes"
+  ;;
+  --enable-videzzo) videzzo="yes"
   ;;
   --static)
     static="yes"
@@ -2632,6 +2635,11 @@ if test "$gcov" = "yes" ; then
 elif test "$fortify_source" = "yes" ; then
   QEMU_CFLAGS="-U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=2 $QEMU_CFLAGS"
   debug=no
+fi
+
+if test "$videzzo" = "yes" ; then
+  QEMU_CFLAGS="-videzzo-instrumentation=$source_path/videzzo_qemu_types.yaml -flegacy-pass-manager $QEMU_CFLAGS"
+  QEMU_LDFLAGS="-L$source_path/tests/qtest/fuzz -lvidezzo"
 fi
 
 case "$ARCH" in

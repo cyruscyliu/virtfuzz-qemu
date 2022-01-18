@@ -204,4 +204,4 @@ static void register_pci_fuzz_targets(void)
                 );
 }
 
-fuzz_target_init(register_pci_fuzz_targets);
+// fuzz_target_init(register_pci_fuzz_targets);

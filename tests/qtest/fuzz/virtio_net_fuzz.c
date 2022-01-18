@@ -198,4 +198,4 @@ static void register_virtio_net_fuzz_targets(void)
             );
 }
 
-fuzz_target_init(register_virtio_net_fuzz_targets);
+// fuzz_target_init(register_virtio_net_fuzz_targets);

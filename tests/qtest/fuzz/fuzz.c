@@ -133,7 +133,7 @@ size_t LLVMFuzzerCustomCrossOver(const uint8_t *data1, size_t size1,
 }
 
 /* Executed for each fuzzing-input */
-int LLVMFuzzerTestOneInput(const unsigned char *Data, size_t Size)
+int __LLVMFuzzerTestOneInput(unsigned char *Data, size_t Size)
 {
     /*
      * Do the pre-fuzz-initialization before the first fuzzing iteration,

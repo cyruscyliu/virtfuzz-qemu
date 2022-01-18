@@ -265,8 +265,10 @@ if get_option('fuzzing') and get_option('fuzzing_engine') == '' and \
     not cc.links('''
           #include <stdint.h>
           #include <sys/types.h>
-          int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size);
-          int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) { return 0; }
+          void enable_group_miss_mutator(void) {}
+          void disable_group_miss_mutator(void) {}
+          int __LLVMFuzzerTestOneInput(uint8_t *Data, size_t Size);
+          int __LLVMFuzzerTestOneInput(uint8_t *Data, size_t Size) { return 0; }
         ''',
         args: ['-Werror', '-fsanitize=fuzzer'])
   error('Your compiler does not support -fsanitize=fuzzer')

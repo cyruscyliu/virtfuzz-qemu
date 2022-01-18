@@ -3,7 +3,7 @@ if not get_option('fuzzing')
 endif
 
 specific_fuzz_ss.add(files('fuzz.c', 'fork_fuzz.c', 'qos_fuzz.c',
-                           'qtest_wrappers.c'), qos)
+                           'qtest_wrappers.c', 'less_crashes_wrappers.c'), qos)
 
 # Targets
 specific_fuzz_ss.add(when: 'CONFIG_I440FX', if_true: files('i440fx_fuzz.c'))
@@ -11,6 +11,9 @@ specific_fuzz_ss.add(when: 'CONFIG_VIRTIO_NET', if_true: files('virtio_net_fuzz.
 specific_fuzz_ss.add(when: 'CONFIG_VIRTIO_SCSI', if_true: files('virtio_scsi_fuzz.c'))
 specific_fuzz_ss.add(when: 'CONFIG_VIRTIO_BLK', if_true: files('virtio_blk_fuzz.c'))
 specific_fuzz_ss.add(files('generic_fuzz.c'))
+specific_fuzz_ss.add(files('videzzo_qemu.c'))
+vnc_client = declare_dependency(link_args: fuzz_exe_ldflags + ['-lvncclient'])
+specific_fuzz_ss.add(vnc_client)
 
 fork_fuzz = declare_dependency(
   link_args: fuzz_exe_ldflags +
@@ -32,7 +35,8 @@ fork_fuzz = declare_dependency(
               '-Wl,-wrap,qtest_bufread',
               '-Wl,-wrap,qtest_memwrite',
               '-Wl,-wrap,qtest_bufwrite',
-              '-Wl,-wrap,qtest_memset']
+              '-Wl,-wrap,qtest_memset',
+              '-Wl,-wrap,abort']
 )
 
 specific_fuzz_ss.add(fork_fuzz)
