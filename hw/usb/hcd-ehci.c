@@ -36,8 +36,6 @@
 #include "qemu/error-report.h"
 #include "qemu/main-loop.h"
 #include "sysemu/runstate.h"
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 
 #define FRAME_TIMER_FREQ 1000
 #define FRAME_TIMER_NS   (NANOSECONDS_PER_SECOND / FRAME_TIMER_FREQ)
@@ -1519,7 +1517,6 @@ static int ehci_state_waitlisthead(EHCIState *ehci,  int async)
     EHCIqh qh;
     int i = 0;
     int again = 0;
-    TraceStateCallback(2);
     uint32_t entry = ehci->asynclistaddr;
 
     /* set reclamation flag at start event (4.8.6) */
@@ -2204,7 +2201,6 @@ static void ehci_advance_periodic_state(EHCIState *ehci)
             break;
         }
 
-        TraceStateCallback(3);
         list = ehci->periodiclistbase & 0xfffff000;
         /* check that register has been set */
         if (list == 0) {

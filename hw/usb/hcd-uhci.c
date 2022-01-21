@@ -1002,12 +1002,6 @@ static void uhci_queue_fill(UHCIQueue *q, UHCI_TD *td)
     usb_device_flush_ep_queue(q->ep->dev, q->ep);
 }
 
-static int pci_dma_read_22(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
-{
-    GroupMutatorMiss(22, addr);
-    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
-}
-
 static void uhci_process_frame(UHCIState *s)
 {
     uint32_t frame_addr, link, old_td_ctrl, val, int_mask;
@@ -1019,7 +1013,7 @@ static void uhci_process_frame(UHCIState *s)
 
     frame_addr = s->fl_base_addr + ((s->frnum & 0x3ff) << 2);
 
-    pci_dma_read_22(&s->dev, frame_addr, &link, 4);
+    pci_dma_read(&s->dev, frame_addr, &link, 4);
     le32_to_cpus(&link);
 
     int_mask = 0;

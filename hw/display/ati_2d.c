@@ -183,10 +183,14 @@ void ati_2d_blt(ATIVGAState *s)
                 dst_x, dst_y,
                 s->regs.dst_width, s->regs.dst_height,
                 filler);
+   /*
+    * Due to a unclear reason, pixman_fill will throw a segment fault.
+    * I simply disable this function to finish 24-hour fuzzing for coverage.
         pixman_fill((uint32_t *)dst_bits, dst_stride, bpp,
                     dst_x, dst_y,
                     s->regs.dst_width, s->regs.dst_height,
                     filler);
+   */
         if (dst_bits >= s->vga.vram_ptr + s->vga.vbe_start_addr &&
             dst_bits < s->vga.vram_ptr + s->vga.vbe_start_addr +
             s->vga.vbe_regs[VBE_DISPI_INDEX_YRES] * s->vga.vbe_line_offset) {
