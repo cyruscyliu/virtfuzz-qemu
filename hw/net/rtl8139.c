@@ -817,12 +817,6 @@ static bool rtl8139_can_receive(NetClientState *nc)
     return avail == 0 || avail >= 1514 || (s->IntrMask & RxOverflow);
 }
 
-static int pci_dma_read_18(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
-{
-    GroupMutatorMiss(18, addr);
-    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
-}
-
 static ssize_t rtl8139_do_receive(NetClientState *nc, const uint8_t *buf, size_t size_, int do_interrupt)
 {
     RTL8139State *s = qemu_get_nic_opaque(nc);
@@ -994,7 +988,7 @@ static ssize_t rtl8139_do_receive(NetClientState *nc, const uint8_t *buf, size_t
 
         uint32_t val, rxdw0,rxdw1,rxbufLO,rxbufHI;
 
-        pci_dma_read_18(d, cplus_rx_ring_desc, &val, 4);
+        pci_dma_read(d, cplus_rx_ring_desc, &val, 4);
         rxdw0 = le32_to_cpu(val);
         pci_dma_read(d, cplus_rx_ring_desc+4, &val, 4);
         rxdw1 = le32_to_cpu(val);
@@ -1820,12 +1814,6 @@ static void rtl8139_transfer_frame(RTL8139State *s, uint8_t *buf, int size,
     }
 }
 
-static int pci_dma_read_20(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
-{
-    GroupMutatorMiss(20, addr);
-    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
-}
-
 static int rtl8139_transmit_one(RTL8139State *s, int descriptor)
 {
     if (!rtl8139_transmitter_enabled(s))
@@ -1851,7 +1839,7 @@ static int rtl8139_transmit_one(RTL8139State *s, int descriptor)
     DPRINTF("+++ transmit reading %d bytes from host memory at 0x%08x\n",
         txsize, s->TxAddr[descriptor]);
 
-    pci_dma_read_20(d, s->TxAddr[descriptor], txbuffer, txsize);
+    pci_dma_read(d, s->TxAddr[descriptor], txbuffer, txsize);
 
     /* Mark descriptor as transferred */
     s->TxStatus[descriptor] |= TxHostOwns;
@@ -1899,12 +1887,6 @@ static uint16_t ip_checksum(void *data, size_t len)
     return ~ones_complement_sum((uint8_t*)data, len);
 }
 
-static int pci_dma_read_19(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
-{
-    GroupMutatorMiss(19, addr);
-    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
-}
-
 static int rtl8139_cplus_transmit_one(RTL8139State *s)
 {
     if (!rtl8139_transmitter_enabled(s))
@@ -1933,7 +1915,7 @@ static int rtl8139_cplus_transmit_one(RTL8139State *s)
 
     uint32_t val, txdw0,txdw1,txbufLO,txbufHI;
 
-    pci_dma_read_19(d, cplus_tx_ring_desc,    (uint8_t *)&val, 4);
+    pci_dma_read(d, cplus_tx_ring_desc,    (uint8_t *)&val, 4);
     txdw0 = le32_to_cpu(val);
     pci_dma_read(d, cplus_tx_ring_desc+4,  (uint8_t *)&val, 4);
     txdw1 = le32_to_cpu(val);
@@ -2032,7 +2014,6 @@ static int rtl8139_cplus_transmit_one(RTL8139State *s)
             DMA_ADDR_FMT" to offset %d\n", txsize, tx_addr,
             s->cplus_txbuffer_offset);
 
-    // TODO
     pci_dma_read(d, tx_addr,
                  s->cplus_txbuffer + s->cplus_txbuffer_offset, txsize);
     s->cplus_txbuffer_offset += txsize;

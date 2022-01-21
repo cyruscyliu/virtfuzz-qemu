@@ -307,11 +307,6 @@ static int intel_hda_send_command(IntelHDAState *d, uint32_t verb)
     return 0;
 }
 
-static uint32_t ldl_le_pci_dma_4(PCIDevice *dev, dma_addr_t addr) {
-    GroupMutatorMiss(4, addr);
-    return ldl_le_pci_dma(dev, addr);
-}
-
 static void intel_hda_corb_run(IntelHDAState *d)
 {
     hwaddr addr;
@@ -339,7 +334,7 @@ static void intel_hda_corb_run(IntelHDAState *d)
 
         rp = (d->corb_rp + 1) & 0xff;
         addr = intel_hda_addr(d->corb_lbase, d->corb_ubase);
-        verb = ldl_le_pci_dma_4(&d->pci, addr + 4*rp);
+        verb = ldl_le_pci_dma(&d->pci, addr + 4*rp);
         d->corb_rp = rp;
 
         dprint(d, 2, "%s: [rp 0x%x] verb 0x%08x\n", __func__, rp, verb);
@@ -465,12 +460,6 @@ static bool intel_hda_xfer(HDACodecDevice *dev, uint32_t stnr, bool output,
     return true;
 }
 
-static int pci_dma_read_3(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
-{
-    GroupMutatorMiss(3, addr);
-    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
-}
-
 static void intel_hda_parse_bdl(IntelHDAState *d, IntelHDAStream *st)
 {
     hwaddr addr;
@@ -482,7 +471,7 @@ static void intel_hda_parse_bdl(IntelHDAState *d, IntelHDAStream *st)
     g_free(st->bpl);
     st->bpl = g_malloc(sizeof(bpl) * st->bentries);
     for (i = 0; i < st->bentries; i++, addr += 16) {
-        pci_dma_read_3(&d->pci, addr, buf, 16);
+        pci_dma_read(&d->pci, addr, buf, 16);
         st->bpl[i].addr  = le64_to_cpu(*(uint64_t *)buf);
         st->bpl[i].len   = le32_to_cpu(*(uint32_t *)(buf + 8));
         st->bpl[i].flags = le32_to_cpu(*(uint32_t *)(buf + 12));

@@ -717,13 +717,6 @@ static void xhci_ring_init(XHCIState *xhci, XHCIRing *ring,
     ring->ccs = 1;
 }
 
-
-static int pci_dma_read_31(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
-{
-    GroupMutatorMiss(31, addr);
-    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
-}
-
 static TRBType xhci_ring_fetch(XHCIState *xhci, XHCIRing *ring, XHCITRB *trb,
                                dma_addr_t *addr)
 {
@@ -732,7 +725,7 @@ static TRBType xhci_ring_fetch(XHCIState *xhci, XHCIRing *ring, XHCITRB *trb,
 
     while (1) {
         TRBType type;
-        pci_dma_read_31(pci_dev, ring->dequeue, trb, TRB_SIZE);
+        pci_dma_read(pci_dev, ring->dequeue, trb, TRB_SIZE);
         trb->addr = ring->dequeue;
         trb->ccs = ring->ccs;
         le64_to_cpus(&trb->parameter);
@@ -748,7 +741,7 @@ static TRBType xhci_ring_fetch(XHCIState *xhci, XHCIRing *ring, XHCITRB *trb,
 
         type = TRB_TYPE(*trb);
 
-        if (type != TR_LINK/*6*/) {
+        if (type != TR_LINK) {
             if (addr) {
                 *addr = ring->dequeue;
             }
@@ -780,7 +773,7 @@ static int xhci_ring_chain_length(XHCIState *xhci, const XHCIRing *ring)
 
     while (1) {
         TRBType type;
-        pci_dma_read_31(pci_dev, dequeue, &trb, TRB_SIZE);
+        pci_dma_read(pci_dev, dequeue, &trb, TRB_SIZE);
         le64_to_cpus(&trb.parameter);
         le32_to_cpus(&trb.status);
         le32_to_cpus(&trb.control);
@@ -817,12 +810,6 @@ static int xhci_ring_chain_length(XHCIState *xhci, const XHCIRing *ring)
     }
 }
 
-static int pci_dma_read_32(PCIDevice *dev, dma_addr_t addr, void *buf, dma_addr_t len)
-{
-    GroupMutatorMiss(32, addr);
-    return pci_dma_rw(dev, addr, buf, len, DMA_DIRECTION_TO_DEVICE);
-}
-
 static void xhci_er_reset(XHCIState *xhci, int v)
 {
     XHCIInterrupter *intr = &xhci->intr[v];
@@ -841,7 +828,7 @@ static void xhci_er_reset(XHCIState *xhci, int v)
         xhci_die(xhci);
         return;
     }
-    pci_dma_read_32(PCI_DEVICE(xhci), erstba, &seg, sizeof(seg));
+    pci_dma_read(PCI_DEVICE(xhci), erstba, &seg, sizeof(seg));
     le32_to_cpus(&seg.addr_low);
     le32_to_cpus(&seg.addr_high);
     le32_to_cpus(&seg.size);
@@ -1018,12 +1005,6 @@ static TRBCCode xhci_alloc_device_streams(XHCIState *xhci, unsigned int slotid,
     return CC_SUCCESS;
 }
 
-static inline void xhci_dma_read_u32s_34(XHCIState *xhci, dma_addr_t addr, uint32_t *buf, size_t len)
-{
-    GroupMutatorMiss(34, addr);
-    return xhci_dma_read_u32s(xhci, addr, buf, len);
-}
-
 static XHCIStreamContext *xhci_find_stream(XHCIEPContext *epctx,
                                            unsigned int streamid,
                                            uint32_t *cc_error)
@@ -1044,7 +1025,7 @@ static XHCIStreamContext *xhci_find_stream(XHCIEPContext *epctx,
     }
 
     if (sctx->sct == -1) {
-        xhci_dma_read_u32s_34(epctx->xhci, sctx->pctx, ctx, sizeof(ctx));
+        xhci_dma_read_u32s(epctx->xhci, sctx->pctx, ctx, sizeof(ctx));
         sct = (ctx[0] >> 1) & 0x07;
         if (epctx->lsa && sct != 1) {
             *cc_error = CC_INVALID_STREAM_TYPE_ERROR;
@@ -1057,12 +1038,6 @@ static XHCIStreamContext *xhci_find_stream(XHCIEPContext *epctx,
     return sctx;
 }
 
-static inline void xhci_dma_read_u32s_35(XHCIState *xhci, dma_addr_t addr, uint32_t *buf, size_t len)
-{
-    GroupMutatorMiss(35, addr);
-    return xhci_dma_read_u32s(xhci, addr, buf, len);
-}
-
 static void xhci_set_ep_state(XHCIState *xhci, XHCIEPContext *epctx,
                               XHCIStreamContext *sctx, uint32_t state)
 {
@@ -1070,7 +1045,7 @@ static void xhci_set_ep_state(XHCIState *xhci, XHCIEPContext *epctx,
     uint32_t ctx[5];
     uint32_t ctx2[2];
 
-    xhci_dma_read_u32s_35(xhci, epctx->pctx, ctx, sizeof(ctx));
+    xhci_dma_read_u32s(xhci, epctx->pctx, ctx, sizeof(ctx));
     ctx[0] &= ~EP_STATE_MASK;
     ctx[0] |= state;
 
@@ -2111,11 +2086,6 @@ static USBPort *xhci_lookup_uport(XHCIState *xhci, uint32_t *slot_ctx)
     return NULL;
 }
 
-static uint64_t ldq_le_pci_dma_33(PCIDevice *dev, uint64_t addr) {
-    GroupMutatorMiss(33, addr);
-    return ldq_le_pci_dma(dev, addr);
-}
-
 static TRBCCode xhci_address_slot(XHCIState *xhci, unsigned int slotid,
                                   uint64_t pictx, bool bsr)
 {
@@ -2133,7 +2103,7 @@ static TRBCCode xhci_address_slot(XHCIState *xhci, unsigned int slotid,
     assert(slotid >= 1 && slotid <= xhci->numslots);
 
     dcbaap = xhci_addr64(xhci->dcbaap_low, xhci->dcbaap_high);
-    poctx = ldq_le_pci_dma_33(PCI_DEVICE(xhci), dcbaap + 8 * slotid);
+    poctx = ldq_le_pci_dma(PCI_DEVICE(xhci), dcbaap + 8 * slotid);
     ictx = xhci_mask64(pictx);
     octx = xhci_mask64(poctx);
 
