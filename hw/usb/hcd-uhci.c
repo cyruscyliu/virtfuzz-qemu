@@ -39,8 +39,6 @@
 #include "trace.h"
 #include "qemu/main-loop.h"
 #include "qemu/module.h"
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 
 #define FRAME_TIMER_FREQ 1000
 
@@ -1008,7 +1006,6 @@ static void uhci_queue_fill(UHCIQueue *q, UHCI_TD *td)
 
 static void uhci_process_frame(UHCIState *s)
 {
-    TraceStateCallback(0);
     uint32_t frame_addr, link, old_td_ctrl, val, int_mask;
     uint32_t curr_qh, td_count = 0;
     int cnt, ret;
