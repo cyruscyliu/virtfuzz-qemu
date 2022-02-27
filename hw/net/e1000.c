@@ -407,14 +407,12 @@ e1000_flush_queue_timer(void *opaque)
 static void
 set_rx_control(E1000State *s, int index, uint32_t val)
 {
-    static int counter = 0;
     s->mac_reg[RCTL] = val;
     s->rxbuf_size = e1000x_rxbufsize(val);
     s->rxbuf_min_shift = ((val / E1000_RCTL_RDMTS_QUAT) & 3) + 1;
     DBGOUT(RX, "RCTL: %d, mac_reg[RCTL] = 0x%x\n", s->mac_reg[RDT],
            s->mac_reg[RCTL]);
-    if (counter++ % 100000 == 0)
-        timer_mod(s->flush_queue_timer, qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL) + 1000);
+    timer_mod(s->flush_queue_timer, qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL) + 1000);
 }
 
 static void
@@ -672,6 +670,9 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
         msh = tp->tso_props.hdr_len + tp->tso_props.mss;
         do {
             bytes = split_size;
+            if (tp->size >= msh) {
+                goto eop;
+            }
             if (tp->size + bytes > msh)
                 bytes = msh - tp->size;
 
@@ -697,6 +698,7 @@ process_tx_desc(E1000State *s, struct e1000_tx_desc *dp)
         tp->size += split_size;
     }
 
+eop:
     if (!(txd_lower & E1000_TXD_CMD_EOP))
         return;
     if (!(tp->cptse && tp->size < tp->tso_props.hdr_len)) {
@@ -749,6 +751,7 @@ start_xmit(E1000State *s)
     }
 
     TraceStateCallback(6);
+    s->mac_reg[TDT] = 1;
     while (s->mac_reg[TDH] != s->mac_reg[TDT]) {
         base = tx_desc_base(s) +
                sizeof(struct e1000_tx_desc) * s->mac_reg[TDH];

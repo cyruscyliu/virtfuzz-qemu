@@ -833,6 +833,9 @@ static ssize_t rtl8139_do_receive(NetClientState *nc, const uint8_t *buf, size_t
     static const uint8_t broadcast_macaddr[6] =
         { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
+    if (size_ < 6)
+        return -1;
+
     DPRINTF(">>> received len=%zu\n", size);
 
     /* test if board clock is stopped */
