@@ -1404,8 +1404,6 @@ static bool vmxnet3_validate_queues(VMXNET3State *s)
     return true;
 }
 
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 static void vmxnet3_activate_device(VMXNET3State *s)
 {
     int i;
@@ -1416,7 +1414,6 @@ static void vmxnet3_activate_device(VMXNET3State *s)
     uint32_t size;
 
     /* Verify configuration consistency */
-    TraceStateCallback(4);
     if (!vmxnet3_verify_driver_magic(d, s->drv_shmem)) {
         VMW_ERPRN("Device configuration received from driver is invalid");
         return;
@@ -1813,6 +1810,15 @@ vmxnet3_io_bar1_write(void *opaque,
         VMW_CBPRN("Write BAR1 [VMXNET3_REG_MACH] = %" PRIx64 ", size %d",
                   val, size);
         vmxnet3_set_variable_mac(s, val, s->temp_mac);
+        break;
+
+    /* Interrupt Cause Register */
+    case VMXNET3_REG_ICR:
+        VMW_CBPRN("Write BAR1 [VMXNET3_REG_ICR] = %" PRIx64 ", size %d",
+                  val, size);
+        qemu_log_mask(LOG_GUEST_ERROR,
+                      "%s: write to read-only register VMXNET3_REG_ICR\n",
+                      TYPE_VMXNET3);
         break;
 
     /* Event Cause Register */
