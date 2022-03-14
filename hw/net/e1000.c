@@ -751,8 +751,6 @@ static uint64_t tx_desc_base(E1000State *s)
     return (bah << 32) + bal;
 }
 
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 static void
 start_xmit(E1000State *s)
 {
@@ -770,8 +768,6 @@ start_xmit(E1000State *s)
         return;
     }
     s->tx.busy = true;
-    TraceStateCallback(6);
-    s->mac_reg[TDT] = 1;
 
     while (s->mac_reg[TDH] != s->mac_reg[TDT]) {
         base = tx_desc_base(s) +
@@ -980,7 +976,6 @@ e1000_receive_iov(NetClientState *nc, const struct iovec *iov, int iovcnt)
         if (desc_size > s->rxbuf_size) {
             desc_size = s->rxbuf_size;
         }
-        TraceStateCallback(7);
         base = rx_desc_base(s) + sizeof(desc) * s->mac_reg[RDH];
         pci_dma_read(d, base, &desc, sizeof(desc));
         desc.special = vlan_special;

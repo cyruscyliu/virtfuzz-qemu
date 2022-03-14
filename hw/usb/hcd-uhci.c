@@ -835,6 +835,7 @@ static int uhci_handle_td(UHCIState *s, UHCIQueue *q, uint32_t qh_addr,
     switch(pid) {
     case USB_TOKEN_OUT:
     case USB_TOKEN_SETUP:
+        // TODO
         pci_dma_read(&s->dev, td->buffer, async->buf, max_len);
         usb_handle_packet(q->ep->dev, &async->packet);
         if (async->packet.status == USB_RET_SUCCESS) {
@@ -951,11 +952,8 @@ static void uhci_queue_fill(UHCIQueue *q, UHCI_TD *td)
     usb_device_flush_ep_queue(q->ep->dev, q->ep);
 }
 
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 static void uhci_process_frame(UHCIState *s)
 {
-    TraceStateCallback(0);
     uint32_t frame_addr, link, old_td_ctrl, val, int_mask;
     uint32_t curr_qh, td_count = 0;
     int cnt, ret;

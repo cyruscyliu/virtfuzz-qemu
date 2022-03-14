@@ -1834,8 +1834,6 @@ static uint8_t lsi_reg_readb(LSIState *s, int offset)
     return ret;
 }
 
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
 {
 #define CASE_SET_REG24(name, addr) \
@@ -2083,7 +2081,6 @@ static void lsi_reg_writeb(LSIState *s, int offset, uint8_t val)
                           offset < ARRAY_SIZE(names) ? names[offset] : "???",
                           offset, val);
         }
-        TraceStateCallback(17);
     }
 #undef CASE_SET_REG24
 #undef CASE_SET_REG32

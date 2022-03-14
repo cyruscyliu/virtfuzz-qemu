@@ -265,8 +265,6 @@ static void map_page(AddressSpace *as, uint8_t **ptr, uint64_t addr,
  *
  * @return 0 on success, -1 on error.
  */
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 static int ahci_cond_start_engines(AHCIDevice *ad)
 {
     AHCIPortRegs *pr = &ad->port_regs;
@@ -517,7 +515,6 @@ static void ahci_mem_write(void *opaque, hwaddr addr,
         ahci_port_write(s, (addr - AHCI_PORT_REGS_START_ADDR) >> 7,
                         addr & AHCI_PORT_ADDR_OFFSET_MASK, val);
     } else {
-        TraceStateCallback(18);
         qemu_log_mask(LOG_UNIMP, "Attempted write to unimplemented register: "
                       "AHCI global register at offset 0x%"PRIx64": 0x%"PRIx64,
                       addr, val);

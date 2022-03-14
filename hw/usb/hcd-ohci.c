@@ -1161,15 +1161,12 @@ static void ohci_process_lists(OHCIState *ohci)
     }
 }
 
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 /* Do frame processing on frame boundary */
 static void ohci_frame_boundary(void *opaque)
 {
     OHCIState *ohci = opaque;
     struct ohci_hcca hcca;
 
-    TraceStateCallback(1);
     if (ohci_read_hcca(ohci, ohci->hcca, &hcca)) {
         trace_usb_ohci_hcca_read_error(ohci->hcca);
         ohci_die(ohci);
