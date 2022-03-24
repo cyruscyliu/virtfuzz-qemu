@@ -7908,6 +7908,7 @@ if test "$fuzzing" = "yes" ; then
   fi
 fi
 if test "$videzzo" = "yes" ; then
+    QEMU_CFLAGS="-videzzo-instrumentation=\$(SRC_PATH)/videzzo_qemu_types.yaml -flegacy-pass-manager $QEMU_CFLAGS"
     LIBS="-L\$(SRC_PATH)/tests/qtest/fuzz -lvidezzo $LIBS"
 fi
 if test "$plugins" = "yes" ; then
