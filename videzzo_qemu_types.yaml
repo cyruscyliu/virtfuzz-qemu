@@ -1,0 +1,273 @@
+- callstack: [fetch_bd, pci_dma_read, 0, 1]
+  filename: ac97.c
+  id: 0
+- callstack: [i8257_dma_read_memory, cpu_physical_memory_read, 0, 0]
+  filename: cs4231a.c
+  id: 1
+- callstack: [es1370_transfer_audio, pci_dma_read, 0, 1]
+  filename: es1370.c
+  id: 2
+- callstack: [intel_hda_parse_bdl, pci_dma_read, 0, 1]
+  filename: intel-hda.c
+  id: 3
+- callstack: [intel_hda_corb_run, ldl_le_pci_dma, 0, 1]
+  filename: intel-hda.c
+  id: 4
+- callstack: [i8257_dma_read_memory, cpu_physical_memory_read, 0, 0]
+  filename: i8257.c
+  id: 5
+- callstack: [read_cb, pci_dma_read, 0, 1]
+  filename: eepro100.c
+  id: 10
+- callstack: [set_multicast_list, pci_dma_read, 0, 1]
+  filename: eepro100.c
+  id: 11
+- callstack: [nic_receive, pci_read_dma, 0, 1]
+  filename: eepro100.c
+  id: 12
+- callstack: [e1000e_start_xmit, pci_dma_read, 0, 1]
+  filename: e1000e_core.c
+  id: 13
+- callstack: [e1000e_write_packet_to_guest, pci_dma_read, 0, 1]
+  filename: e1000e_core.c
+  id: 14
+- callstack: [start_xmit, pci_dma_read, 0, 1]
+  filename: e1000.c
+  id: 15
+- callstack: [e1000_receive_iov, pci_dma_read, 0, 1]
+  filename: e1000.c
+  id: 16
+- callstack: [pcnet_tmd_load, phys_mem_read, 0, 1]
+  filename: pcnet.c
+  id: 17
+- callstack: [pcnet_tmd_load, phys_mem_read, 1, 1]
+  filename: pcnet.c
+  id: 18
+- callstack: [pcnet_rmd_load, phys_mem_read, 0, 1]
+  filename: pcnet.c
+  id: 19
+- callstack: [pcnet_rmd_load, phys_mem_read, 1, 1]
+  filename: pcnet.c
+  id: 20
+- callstack: [pcnet_init, phys_mem_read, 0, 1]
+  filename: pcnet.c
+  id: 21
+- callstack: [pcnet_init, phys_mem_read, 1, 1]
+  filename: pcnet.c
+  id: 22
+- callstack: [pcnet_transmit, phys_mem_read, 0, 1]
+  filename: pcnet.c
+  id: 23
+- callstack: [rtl8139_do_receive, pci_dma_read, 0, 1]
+  filename: rtl8139.c
+  id: 24
+- callstack: [rtl8139_transmit_one, pci_dma_read, 0, 1]
+  filename: rtl8139.c
+  id: 25
+- callstack: [rtl8139_cplus_transmit_one, pci_dma_read, 0, 1]
+  filename: rtl8139.c
+  id: 26
+- callstack: [vmxnet3_activate_device, vmxnet3_verify_driver_magic, 0, 1]
+  filename: vmxnet3.c
+  id: 27
+- callstack: [i8257_dma_read_memory, cpu_physical_memory_read, 0, 0]
+  filename: i8257.c
+  id: 40
+- callstack: [handle_cmd, dma_memory_map, 0, 1]
+  filename: ahci.c
+  id: 42
+- callstack: [ahci_populate_sglist, dma_memory_map, 0, 1]
+  filename: ahci.c
+  id: 42
+- callstack: [ahci_map_fis_address, map_page, 0, 2]
+  filename: ahci
+  id: 44
+- callstack: [ahci_map_fis_address, map_page, 0, 2]
+  filename: ahci
+  id: 45
+- callstack: [sdhci_sdma_transfer_multi_blocks, dma_memory_read, 0, 1]
+  filename: sdhci.c
+  id: 46
+- callstack: [sdhci_sdma_transfer_single_block, dma_memory_read, 0, 1]
+  filename: sdhci.c
+  id: 47
+- callstack: [get_adma_description, dma_memory_read, 0, 1]
+  filename: sdhci.c
+  id: 48
+- callstack: [get_adma_description, dma_memory_read, 1, 1]
+  filename: sdhci.c
+  id: 49
+- callstack: [get_adma_description, dma_memory_read, 2, 1]
+  filename: sdhci.c
+  id: 50
+- callstack: [lsi_mem_read, address_space_read, 0, 1]
+  filename: lsi53c895a.c
+  id: 51
+- callstack: [lsi_mem_read, pci_dma_read, 0, 1]
+  filename: lsi53c895a.c
+  id: 51
+- callstack: [lsi_do_command, pci_dma_read, 0, 1]
+  filename: lsi53c895a.c
+  id: 52
+- callstack: [lsi_get_msgbyte, pci_dma_read, 0, 1]
+  filename: lsi53c895a.c
+  id: 53
+- callstack: [lsi_execute_script, pci_dma_read, 0, 1]
+  filename: lsi53c895a.c
+  id: 54
+- callstack: [lsi_execute_script, read_dword, 0, 1]
+  filename: lsi53c895a.c
+  id: 55
+- callstack: [lsi_execute_script, read_dword, 1, 1]
+  filename: lsi53c895a.c
+  id: 56
+- callstack: [lsi_execute_script, read_dword, 2, 1]
+  filename: lsi53c895a.c
+  id: 56
+- callstack: [lsi_execute_script, read_dword, 3, 1]
+  filename: lsi53c895a.c
+  id: 56
+- callstack: [lsi_execute_script, read_dword, 5, 1]
+  filename: lsi53c895a.c
+  id: 56
+- callstack: [lsi_execute_script, read_dword, 4, 1]
+  filename: lsi53c895a.c
+  id: 57
+- callstack: [lsi_execute_script, pci_dma_read, 1, 1]
+  filename: lsi53c895a.c
+  id: 58
+- callstack: [megasas_enqueue_frame, ldl_le_pci_dma, 0, 1]
+  filename: megasas.c
+  id: 59
+- callstack: [megasas_complete_frame, ldl_le_pci_dma, 0, 1]
+  filename: megasas.c
+  id: 59
+- callstack: [megasas_complete_frame, ldl_le_pci_dma, 1, 1]
+  filename: megasas.c
+  id: 59
+- callstack: [megasas_handle_frame, megasas_frame_get_context, 0, 1]
+  filename: megasas.c
+  id: 60
+- callstack: [xhci_ring_fetch, pci_dma_read, 0, 1]
+  filename: hcd-xhci.c
+  id: 70
+- callstack: [xhci_ring_chain_length, pci_dma_read, 0, 1]
+  filename: hcd-xhci.c
+  id: 70
+- callstack: [xhci_er_reset, pci_dma_read, 0, 1]
+  filename: hcd-xhci.c
+  id: 71
+- callstack: [xhci_address_slot, ldq_le_pci_dma, 0, 1]
+  filename: hcd-xhci.c
+  id: 72
+- callstack: [usb_xhci_post_load, ldq_le_pci_dma, 0, 1]
+  filename: hcd-xhci.c
+  id: 72
+- callstack: [xhci_find_stream, xhci_dma_read_u32s, 0, 1]
+  filename: hcd-xhci.c
+  id: 73
+- callstack: [xhci_set_ep_state, xhci_dma_read_u32s, 0, 1]
+  filename: hcd-xhci.c
+  id: 73
+- callstack: [xhci_set_ep_state, xhci_dma_read_u32s, 1, 1]
+  filename: hcd-xhci.c
+  id: 73
+- callstack: [xhci_evaluate_slot, xhci_dma_read_u32s, 0, 1]
+  filename: hcd-xhci.c
+  id: 93
+- callstack: [xhci_configure_slot, xhci_dma_read_u32s, 1, 1]
+  filename: hcd-xhci.c
+  id: 93
+- callstack: [xhci_address_slot, xhci_dma_read_u32s, 0, 1]
+  filename: hcd-xhci.c
+  id: 93
+- callstack: [xhci_address_slot, xhci_dma_read_u32s, 1, 1]
+  filename: hcd-xhci.c
+  id: 93
+- callstack: [usb_xhci_post_load, xhci_dma_read_u32s, 0, 1]
+  filename: hcd-xhci.c
+  id: 93
+- callstack: [xhci_address_slot, xhci_dma_read_u32s, 2, 1]
+  filename: hcd-xhci.c
+  id: 93
+- callstack: [usb_xhci_post_load, xhci_dma_read_u32s, 1, 1]
+  filename: hcd-xhci.c
+  id: 93
+- callstack: [xhci_evaluate_slot, xhci_dma_read_u32s, 1, 1]
+  filename: hcd-xhci.c
+  id: 94
+- callstack: [xhci_evaluate_slot, xhci_dma_read_u32s, 2, 1]
+  filename: hcd-xhci.c
+  id: 94
+- callstack: [xhci_reset_slot, xhci_dma_read_u32s, 0, 1]
+  filename: hcd-xhci.c
+  id: 94
+- callstack: [xhci_configure_slot, xhci_dma_read_u32s, 0, 1]
+  filename: hcd-xhci.c
+  id: 94
+- callstack: [xhci_configure_slot, xhci_dma_read_u32s, 2, 1]
+  filename: hcd-xhci.c
+  id: 94
+- callstack: [xhci_configure_slot, xhci_dma_read_u32s, 3, 1]
+  filename: hcd-xhci.c
+  id: 94
+- callstack: [xhci_evaluate_slot, xhci_dma_read_u32s, 3, 1]
+  filename: hcd-xhci.c
+  id: 95
+- callstack: [xhci_evaluate_slot, xhci_dma_read_u32s, 4, 1]
+  filename: hcd-xhci.c
+  id: 95
+- callstack: [xhci_configure_slot, xhci_dma_read_u32s, 4, 1]
+  filename: hcd-xhci.c
+  id: 95
+- callstack: [uhci_process_frame, pci_dma_read, 0, 1]
+  filename: hcd-uhci.c
+  id: 79
+- callstack: [uhci_process_frame, pci_dma_read, 1, 1]
+  filename: hcd-uhci.c
+  id: 83
+- callstack: [uhci_read_td, pci_dma_read, 0, 1]
+  filename: hcd-uhci.c
+  id: 84
+- callstack: [ohci_read_hcca, dma_memory_read, 0, 1]
+  filename: hcd-ohci.c
+  id: 80
+- callstack: [ohci_service_ed_list, ohci_read_ed, 0, 1]
+  filename: hcd-ohci.c
+  id: 81
+- callstack: [ehci_advance_periodic_state, get_dwords, 0, 1]
+  filename: hcd-ehci.c
+  id: 82
+- callstack: [ehci_writeback_async_complete_packet, get_dwords, 1, 1]
+  filename: hcd-ehci.c
+  id: 87
+- callstack: [ehci_fill_queue, get_dwords, 0, 1]
+  filename: hcd-ehci.c
+  id: 87
+- callstack: [ehci_state_fetchqtd, get_dwords, 0, 1]
+  filename: hcd-ehci.c
+  id: 89
+- callstack: [ehci_state_fetchqtd, get_dwords, 1, 1]
+  filename: hcd-ehci.c
+  id: 90
+- callstack: [ehci_state_fetchqtd, get_dwords, 2, 1]
+  filename: hcd-ehci.c
+  id: 91
+- callstack: [ehci_state_fetchqtd, get_dwords, 3, 1]
+  filename: hcd-ehci.c
+  id: 92
+- callstack: [ehci_writeback_async_complete_packet, get_dwords, 0, 1]
+  filename: hcd-ehci.c
+  id: 88
+- callstack: [ehci_state_waitlisthead, get_dwords, 0, 1]
+  filename: hcd-ehci.c
+  id: 88
+- callstack: [ehci_state_fetchqh, get_dwords, 0, 1]
+  filename: hci-ehci.c
+  id: 88
+- callstack: [ehci_state_fetchitd, get_dwords, 0, 1]
+  filename: hcd-ehci.c
+  id: 85
+- callstack: [ehci_state_fetchsitd, get_dwords, 0, 1]
+  filename: hcd-ehci.c
+  id: 86
