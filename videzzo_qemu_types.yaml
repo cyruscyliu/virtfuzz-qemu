@@ -28,12 +28,12 @@
 - callstack: [e1000e_start_xmit, pci_dma_read, 0, 1]
   filename: e1000e_core.c
   id: 13
+- callstack: [start_xmit, pci_dma_read, 0, 1]
+  filename: e1000.c
+  id: 13
 - callstack: [e1000e_write_packet_to_guest, pci_dma_read, 0, 1]
   filename: e1000e_core.c
   id: 14
-- callstack: [start_xmit, pci_dma_read, 0, 1]
-  filename: e1000.c
-  id: 15
 - callstack: [e1000_receive_iov, pci_dma_read, 0, 1]
   filename: e1000.c
   id: 16
@@ -61,12 +61,30 @@
 - callstack: [rtl8139_do_receive, pci_dma_read, 0, 1]
   filename: rtl8139.c
   id: 24
+- callstack: [rtl8139_do_receive, pci_dma_read, 1, 1]
+  filename: rtl8139.c
+  id: 100
+- callstack: [rtl8139_do_receive, pci_dma_read, 2, 1]
+  filename: rtl8139.c
+  id: 101
+- callstack: [rtl8139_do_receive, pci_dma_read, 3, 1]
+  filename: rtl8139.c
+  id: 102
 - callstack: [rtl8139_transmit_one, pci_dma_read, 0, 1]
   filename: rtl8139.c
   id: 25
 - callstack: [rtl8139_cplus_transmit_one, pci_dma_read, 0, 1]
   filename: rtl8139.c
   id: 26
+- callstack: [rtl8139_cplus_transmit_one, pci_dma_read, 1, 1]
+  filename: rtl8139.c
+  id: 103
+- callstack: [rtl8139_cplus_transmit_one, pci_dma_read, 2, 1]
+  filename: rtl8139.c
+  id: 104
+- callstack: [rtl8139_cplus_transmit_one, pci_dma_read, 3, 1]
+  filename: rtl8139.c
+  id: 105
 - callstack: [vmxnet3_activate_device, vmxnet3_verify_driver_magic, 0, 1]
   filename: vmxnet3.c
   id: 27
@@ -148,19 +166,19 @@
 - callstack: [megasas_handle_frame, megasas_frame_get_context, 0, 1]
   filename: megasas.c
   id: 60
-- callstack: [xhci_ring_fetch, pci_dma_read, 0, 1]
+- callstack: [xhci_ring_fetch, dma_memory_read, 0, 1]
   filename: hcd-xhci.c
   id: 70
-- callstack: [xhci_ring_chain_length, pci_dma_read, 0, 1]
+- callstack: [xhci_ring_chain_length, dma_memory_read, 0, 1]
   filename: hcd-xhci.c
   id: 70
-- callstack: [xhci_er_reset, pci_dma_read, 0, 1]
+- callstack: [xhci_er_reset, dma_memory_read, 0, 1]
   filename: hcd-xhci.c
   id: 71
-- callstack: [xhci_address_slot, ldq_le_pci_dma, 0, 1]
+- callstack: [xhci_address_slot, ldq_le_dma, 0, 1]
   filename: hcd-xhci.c
   id: 72
-- callstack: [usb_xhci_post_load, ldq_le_pci_dma, 0, 1]
+- callstack: [usb_xhci_post_load, ldq_le_dma, 0, 1]
   filename: hcd-xhci.c
   id: 72
 - callstack: [xhci_find_stream, xhci_dma_read_u32s, 0, 1]
@@ -175,24 +193,12 @@
 - callstack: [xhci_evaluate_slot, xhci_dma_read_u32s, 0, 1]
   filename: hcd-xhci.c
   id: 93
-- callstack: [xhci_configure_slot, xhci_dma_read_u32s, 1, 1]
-  filename: hcd-xhci.c
-  id: 93
 - callstack: [xhci_address_slot, xhci_dma_read_u32s, 0, 1]
   filename: hcd-xhci.c
   id: 93
-- callstack: [xhci_address_slot, xhci_dma_read_u32s, 1, 1]
+- callstack: [xhci_configure_slot, xhci_dma_read_u32s, 1, 1]
   filename: hcd-xhci.c
-  id: 93
-- callstack: [usb_xhci_post_load, xhci_dma_read_u32s, 0, 1]
-  filename: hcd-xhci.c
-  id: 93
-- callstack: [xhci_address_slot, xhci_dma_read_u32s, 2, 1]
-  filename: hcd-xhci.c
-  id: 93
-- callstack: [usb_xhci_post_load, xhci_dma_read_u32s, 1, 1]
-  filename: hcd-xhci.c
-  id: 93
+  id: 76
 - callstack: [xhci_evaluate_slot, xhci_dma_read_u32s, 1, 1]
   filename: hcd-xhci.c
   id: 94
@@ -211,6 +217,12 @@
 - callstack: [xhci_configure_slot, xhci_dma_read_u32s, 3, 1]
   filename: hcd-xhci.c
   id: 94
+- callstack: [xhci_address_slot, xhci_dma_read_u32s, 1, 1]
+  filename: hcd-xhci.c
+  id: 94
+- callstack: [usb_xhci_post_load, xhci_dma_read_u32s, 0, 1]
+  filename: hcd-xhci.c
+  id: 94
 - callstack: [xhci_evaluate_slot, xhci_dma_read_u32s, 3, 1]
   filename: hcd-xhci.c
   id: 95
@@ -218,6 +230,12 @@
   filename: hcd-xhci.c
   id: 95
 - callstack: [xhci_configure_slot, xhci_dma_read_u32s, 4, 1]
+  filename: hcd-xhci.c
+  id: 95
+- callstack: [xhci_address_slot, xhci_dma_read_u32s, 2, 1]
+  filename: hcd-xhci.c
+  id: 95
+- callstack: [usb_xhci_post_load, xhci_dma_read_u32s, 1, 1]
   filename: hcd-xhci.c
   id: 95
 - callstack: [uhci_process_frame, pci_dma_read, 0, 1]
