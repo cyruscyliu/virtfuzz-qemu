@@ -827,7 +827,6 @@ static void ehci_wakeup_endpoint(USBBus *bus, USBEndpoint *ep,
 
 static USBDevice *ehci_find_device(EHCIState *ehci, uint8_t addr)
 {
-    addr = 0; // enforce it to zero
     USBDevice *dev;
     USBPort *port;
     int i;
@@ -1127,6 +1126,7 @@ static void ehci_flush_qh(EHCIQueue *q)
     uint32_t *qh = (uint32_t *) &q->qh;
     uint32_t dwords = sizeof(EHCIqh) >> 2;
     uint32_t addr = NLPTR_GET(q->qhaddr);
+
     put_dwords(q->ehci, addr + 3 * sizeof(uint32_t), qh + 3, dwords - 3);
 }
 
@@ -2211,7 +2211,6 @@ static void ehci_advance_periodic_state(EHCIState *ehci)
         }
         list |= ((ehci->frindex & 0x1ff8) >> 1);
 
-        // TODO
         if (get_dwords(ehci, list, &entry, 1) < 0) {
             break;
         }

@@ -264,8 +264,7 @@ static int hex2nib(char ch)
     }
 }
 
-void qtest_get_time(qemu_timeval *tv);
-void qtest_get_time(qemu_timeval *tv)
+static void qtest_get_time(qemu_timeval *tv)
 {
     qemu_gettimeofday(tv);
     tv->tv_sec -= start_time.tv_sec;

@@ -86,7 +86,6 @@
 
 #define missing(text) fprintf(stderr, "eepro100: feature is missing in this emulation: " text "\n")
 
-
 #define MAX_ETH_FRAME_SIZE 1514
 
 /* This driver supports several different devices which are declared here. */

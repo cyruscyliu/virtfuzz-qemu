@@ -835,7 +835,6 @@ static int uhci_handle_td(UHCIState *s, UHCIQueue *q, uint32_t qh_addr,
     switch(pid) {
     case USB_TOKEN_OUT:
     case USB_TOKEN_SETUP:
-        // TODO
         pci_dma_read(&s->dev, td->buffer, async->buf, max_len);
         usb_handle_packet(q->ep->dev, &async->packet);
         if (async->packet.status == USB_RET_SUCCESS) {
@@ -847,10 +846,8 @@ static int uhci_handle_td(UHCIState *s, UHCIQueue *q, uint32_t qh_addr,
         usb_handle_packet(q->ep->dev, &async->packet);
         break;
 
-#ifndef CLANG_COV_DUMP
     default:
         abort(); /* Never to execute */
-#endif
     }
 
     if (async->packet.status == USB_RET_ASYNC) {
