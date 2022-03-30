@@ -253,15 +253,6 @@ extern "C" {
 #define TIME_MAX TYPE_MAXIMUM(time_t)
 #endif
 
-/* HOST_LONG_BITS is the size of a native pointer in bits. */
-#if UINTPTR_MAX == UINT32_MAX
-# define HOST_LONG_BITS 32
-#elif UINTPTR_MAX == UINT64_MAX
-# define HOST_LONG_BITS 64
-#else
-# error Unknown pointer size
-#endif
-
 /* Mac OSX has a <stdint.h> bug that incorrectly defines SIZE_MAX with
  * the wrong type. Our replacement isn't usable in preprocessor
  * expressions, but it is sufficient for our needs. */
@@ -407,6 +398,14 @@ void qemu_anon_ram_free(void *ptr, size_t size);
 
 #if defined(__HAIKU__)
 #define SIGIO SIGPOLL
+#endif
+
+#ifdef HAVE_MADVISE_WITHOUT_PROTOTYPE
+/*
+ * See MySQL bug #7156 (http://bugs.mysql.com/bug.php?id=7156) for discussion
+ * about Solaris missing the madvise() prototype.
+ */
+extern int madvise(char *, size_t, int);
 #endif
 
 #if defined(CONFIG_LINUX)
@@ -633,19 +632,15 @@ size_t qemu_get_host_physmem(void);
  * for the current thread.
  */
 #if defined(MAC_OS_VERSION_11_0) && \
-    MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_VERSION_11_0
+    MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_VERSION_11_0
 static inline void qemu_thread_jit_execute(void)
 {
-    if (__builtin_available(macOS 11.0, *)) {
-        pthread_jit_write_protect_np(true);
-    }
+    pthread_jit_write_protect_np(true);
 }
 
 static inline void qemu_thread_jit_write(void)
 {
-    if (__builtin_available(macOS 11.0, *)) {
-        pthread_jit_write_protect_np(false);
-    }
+    pthread_jit_write_protect_np(false);
 }
 #else
 static inline void qemu_thread_jit_write(void) {}
