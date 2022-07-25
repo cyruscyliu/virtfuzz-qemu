@@ -1,0 +1,6 @@
+QEMU_PROG_FUZZ=qemu-videzzo-$(TARGET_NAME)$(EXESUF)
+
+videzzo-obj-y   += tests/qtest/fuzz/less_crashes_wrappers.o
+videzzo-obj-y   += tests/qtest/fuzz/videzzo_qemu.o
+
+FUZZ_LDFLAGS += -lvncclient -L$(SRC_PATH)/tests/qtest/videzzo -lvidezzo -Wl,-wrap,abort

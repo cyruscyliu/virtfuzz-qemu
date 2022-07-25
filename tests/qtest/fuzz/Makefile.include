@@ -8,7 +8,6 @@ fuzz-obj-y += tests/qtest/fuzz/qos_fuzz.o
 fuzz-obj-y += tests/qtest/fuzz/qtest_wrappers.o
 fuzz-obj-y += tests/qtest/fuzz/less_crashes_wrappers.o
 fuzz-obj-y += tests/qtest/fuzz/generic_fuzz.o
-fuzz-obj-y += tests/qtest/fuzz/videzzo_qemu.o
 
 # Targets
 # fuzz-obj-$(CONFIG_PCI_I440FX) += tests/qtest/fuzz/i440fx_fuzz.o
@@ -16,8 +15,6 @@ fuzz-obj-y += tests/qtest/fuzz/videzzo_qemu.o
 # fuzz-obj-$(CONFIG_SCSI) += tests/qtest/fuzz/virtio_scsi_fuzz.o
 
 FUZZ_CFLAGS += -I$(SRC_PATH)/tests -I$(SRC_PATH)/tests/qtest
-
-FUZZ_LDFLAGS += -lvncclient
 
 # Linker Script to force coverage-counters into known regions which we can mark
 # shared

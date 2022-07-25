@@ -15,6 +15,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <sys/queue.h>
+#include <fcntl.h>
+#include <gmodule.h>
 
 //
 // Event
@@ -65,7 +68,6 @@ typedef struct Event {
     struct Event *next;                 /* event linker */
 } Event;
 
-// TODO make struct EventOps a field in struct Event
 typedef struct EventOps {
     void (*change_addr)(Event *event, uint64_t new_addr);
     uint32_t (*change_size)(Event *event, uint32_t new_size); // return real size
@@ -79,20 +81,6 @@ typedef struct EventOps {
     uint32_t (*serialize)(Event *event, uint8_t *Data, size_t Offset, size_t MaxSize);
     void (*deep_copy)(Event *orig, Event *copy);
 } EventOps;
-
-// Weak VM specific
-uint64_t dispatch_mmio_read(Event *event) __attribute__((weak));
-uint64_t dispatch_mmio_write(Event *event) __attribute__((weak));
-uint64_t dispatch_pio_read(Event *event) __attribute__((weak));
-uint64_t dispatch_pio_write(Event *event) __attribute__((weak));
-uint64_t dispatch_mem_read(Event *event) __attribute__((weak));
-uint64_t dispatch_mem_write(Event *event) __attribute__((weak));
-uint64_t dispatch_clock_step(Event *event) __attribute__((weak));
-uint64_t dispatch_socket_write(Event *event) __attribute__((weak));
-uint64_t dispatch_mem_alloc(Event *event) __attribute__((weak));
-uint64_t dispatch_mem_free(Event *event) __attribute__((weak));
-
-uint64_t AroundInvalidAddress(uint64_t physaddr) __attribute__((weak));
 
 enum Sizes {ViDeZZo_Empty, ViDeZZo_Byte=1, ViDeZZo_Word=2, ViDeZZo_Long=4, ViDeZZo_Quad=8};
 extern EventOps event_ops[N_EVENT_TYPES];
@@ -140,9 +128,9 @@ size_t reset_data(uint8_t *Data, size_t MaxSize);
 #define INTERFACE_SOCKET_WRITE  4
 #define INTERFACE_MEM_ALLOC     5
 #define INTERFACE_MEM_FREE      6
-// dynamic interfaces are shared with VM
+// dynamic interfaces are shared with VMM
 #define INTERFACE_DYNAMIC       7
-#define INTERFACE_END           256
+#define INTERFACE_END           512
 
 typedef struct {
     uint64_t addr;
@@ -158,12 +146,8 @@ typedef struct {
     bool dynamic;
 } InterfaceDescription;
 
-// extern InterfaceDescription Id_Description[INTERFACE_END];
-// extern uint32_t n_interfaces;
-void add_interface(EventType type, uint64_t addr, uint32_t size,
-        char *name, uint8_t min_access_size, uint8_t max_access_size, bool dynamic);
-int get_number_of_interfaces(void);
-void print_interfaces(void);
+extern InterfaceDescription Id_Description[INTERFACE_END];
+
 //
 // mutators
 //
@@ -173,8 +157,8 @@ extern size_t (*CustomMutators[N_MUTATORS])(Input *input);
 extern const char *CustomMutatorNames[N_MUTATORS];
 
 //
-// Feedback from VM
-// Given a generic feedback from VM, we want to leverage this feedback to
+// Feedback from VMM
+// Given a generic feedback from VMM, we want to leverage this feedback to
 // manipulate the current input; sometimes, the whole corpus, which is not
 // difficult, but not impossible.
 //
@@ -204,15 +188,7 @@ __flush gfctx_get_flush(void);
 // the index of the event just issued as parameters and udpate the current input
 typedef void (* FeedbackHandler)(uint64_t physaddr);
 
-void GroupMutatorMiss(uint8_t id, uint64_t physaddr);
 extern FeedbackHandler group_mutator_miss_handlers[0xff];
-
-//
-// Open APIs
-//
-void __videzzo_execute_one_input(Input *input);
-size_t videzzo_execute_one_input(uint8_t *Data, size_t Size, void *object, __flush flush);
-size_t ViDeZZoCustomMutator(uint8_t *Data, size_t Size, size_t MaxSize, unsigned int Seed);
 
 //
 // libFuzzer
@@ -224,7 +200,126 @@ size_t LLVMFuzzerCustomMutator(
 //
 // Reproduce
 //
-void videzzo_set_merge();
-void videzzo_clear_merge();
+void videzzo_set_merge(void);
+void videzzo_clear_merge(void);
+
+//
+// Fuzz Targets
+//
+typedef struct ViDeZZoFuzzTargetConfig {
+    // Group 1: basic information
+    const char *arch, *name, *args, *file;
+    // Group 2: virtual device specific
+    const char *mrnames;
+    bool byte_address;                      /* Support byte address or not */
+    // Group 3: multiple input controls
+    bool socket;                            /* Support socket or not */
+    bool display;                           /* Support display or not */
+} ViDeZZoFuzzTargetConfig;
+
+typedef struct ViDeZZoFuzzTarget {
+    const char *name;                       /* target identifier (passed to --fuzz-target=) */
+    const char *description;                /* help text */
+
+    // Returns the arguments that are passed to qemu/softmmu init().
+    // Freed by the caller.
+    GString *(*get_init_cmdline)(struct ViDeZZoFuzzTarget *);
+
+    // Will run once, prior to the fuzz-loop.
+    void (*pre_fuzz)(void);
+    // This is repeatedly executed during the fuzzing loop.
+    // Its should handle setup, input execution and cleanup.
+    // Cannot be NULL.
+    void (*fuzz)(unsigned char *, size_t);
+    void *opaque;                           /* ViDeZZoFuzzTargetConfig */
+} ViDeZZoFuzzTarget;
+
+// all fuzz targets go here
+typedef struct ViDeZZoFuzzTargetState {
+    ViDeZZoFuzzTarget *target;
+    LIST_ENTRY(ViDeZZoFuzzTargetState) target_list;
+} ViDeZZoFuzzTargetState;
+
+#define NAME_INVALID    0
+#define NAME_INBINARY   1
+#define NAME_INARGUMENT 2
+typedef LIST_HEAD(, ViDeZZoFuzzTargetState) ViDeZZoFuzzTargetList;
+
+//
+// Exported Functions: TODO: keep the least set of functions
+//
+
+#ifdef __cplusplus
+extern "C" {
+#endif  // __cplusplus
+
+//
+// Weak VMM specific
+//
+uint64_t dispatch_mmio_read(Event *event) __attribute__((weak));
+uint64_t dispatch_mmio_write(Event *event) __attribute__((weak));
+uint64_t dispatch_pio_read(Event *event) __attribute__((weak));
+uint64_t dispatch_pio_write(Event *event) __attribute__((weak));
+uint64_t dispatch_mem_read(Event *event) __attribute__((weak));
+uint64_t dispatch_mem_write(Event *event) __attribute__((weak));
+uint64_t dispatch_clock_step(Event *event) __attribute__((weak));
+uint64_t dispatch_socket_write(Event *event) __attribute__((weak));
+uint64_t dispatch_mem_alloc(Event *event) __attribute__((weak));
+uint64_t dispatch_mem_free(Event *event) __attribute__((weak));
+
+//
+// Interfaces
+//
+void add_interface(EventType type, uint64_t addr, uint32_t size,
+    const char *name, uint8_t min_access_size, uint8_t max_access_size, bool dynamic);
+bool interface_exists(EventType type, uint64_t addr, uint32_t size);
+int get_number_of_interfaces(void);
+void print_interfaces(void);
+
+//
+// call from videzzo-vmm to videzzo-core
+//
+size_t videzzo_execute_one_input(uint8_t *Data, size_t Size, void *object, __flush flush);
+
+//
+// Feecback From VMM
+//
+uint64_t AroundInvalidAddress(uint64_t physaddr);
+void GroupMutatorMiss(uint8_t id, uint64_t physaddr);
+//
+// help
+//
+void videzzo_usage(void);
+
+//
+// libFuzzer: TODO: remove them later
+//
+int LLVMFuzzerInitialize(int *argc, char ***argv, char ***envp);
+int LLVMFuzzerTestOneInput(unsigned char *Data, size_t Size);
+
+//
+// Fuzz Target
+//
+int parse_fuzz_target_name(int *argc, char ***argv, char **target_name);
+void videzzo_add_fuzz_target(ViDeZZoFuzzTarget *target);
+ViDeZZoFuzzTarget *videzzo_get_fuzz_target(char* name);
+ViDeZZoFuzzTarget *restore_fuzz_target(void);
+void save_fuzz_target(ViDeZZoFuzzTarget *new_fuzz_target);
+
+//
+// Sockets
+//
+void init_sockets(int sockfds[]);
+
+//
+// VNC
+//
+int init_vnc(void);
+int init_vnc_client(void *s, int vnc_port);
+int remove_offset_from_vnc_port(int vnc_port);
+
+#ifdef __cplusplus
+}  // extern "C"
+#endif  // __cplusplus
 
 #endif /* VIDEZZO_H */
