@@ -497,7 +497,7 @@ config-host.h-timestamp: config-host.mak
 qemu-options.def: $(SRC_PATH)/qemu-options.hx $(SRC_PATH)/scripts/hxtool
 	$(call quiet-command,sh $(SRC_PATH)/scripts/hxtool -h < $< > $@,"GEN","$@")
 
-TARGET_DIRS_RULES := $(foreach t, all fuzz clean install, $(addsuffix /$(t), $(TARGET_DIRS)))
+TARGET_DIRS_RULES := $(foreach t, all fuzz videzzo clean install, $(addsuffix /$(t), $(TARGET_DIRS)))
 
 SOFTMMU_ALL_RULES=$(filter %-softmmu/all, $(TARGET_DIRS_RULES))
 $(SOFTMMU_ALL_RULES): $(authz-obj-y)
@@ -519,6 +519,15 @@ $(SOFTMMU_FUZZ_RULES): $(crypto-obj-y)
 $(SOFTMMU_FUZZ_RULES): $(io-obj-y)
 $(SOFTMMU_FUZZ_RULES): config-all-devices.mak
 $(SOFTMMU_FUZZ_RULES): $(edk2-decompressed)
+
+SOFTMMU_VIDEZZO_RULES=$(filter %-softmmu/videzzo, $(TARGET_DIRS_RULES))
+$(SOFTMMU_VIDEZZO_RULES): $(authz-obj-y)
+$(SOFTMMU_VIDEZZO_RULES): $(block-obj-y)
+$(SOFTMMU_VIDEZZO_RULES): $(chardev-obj-y)
+$(SOFTMMU_VIDEZZO_RULES): $(crypto-obj-y)
+$(SOFTMMU_VIDEZZO_RULES): $(io-obj-y)
+$(SOFTMMU_VIDEZZO_RULES): config-all-devices.mak
+$(SOFTMMU_VIDEZZO_RULES): $(edk2-decompressed)
 
 .PHONY: $(TARGET_DIRS_RULES)
 # The $(TARGET_DIRS_RULES) are of the form SUBDIR/GOAL, so that
@@ -566,6 +575,9 @@ $(filter %/all, $(TARGET_DIRS_RULES)): libqemuutil.a $(common-obj-y) \
 	$(qom-obj-y)
 
 $(filter %/fuzz, $(TARGET_DIRS_RULES)): libqemuutil.a $(common-obj-y) \
+	$(qom-obj-y) $(crypto-user-obj-$(CONFIG_USER_ONLY))
+
+$(filter %/videzzo, $(TARGET_DIRS_RULES)): libqemuutil.a $(common-obj-y) \
 	$(qom-obj-y) $(crypto-user-obj-$(CONFIG_USER_ONLY))
 
 ROM_DIRS = $(addprefix pc-bios/, $(ROMS))
@@ -1252,7 +1264,7 @@ endif
 		$(call print-help-run,$(t)/all,Build for $(t)); \
 		$(if $(CONFIG_FUZZ), \
 			$(if $(findstring softmmu,$(t)), \
-				$(call print-help-run,$(t)/fuzz,Build fuzzer for $(t)); \
+				$(call print-help-run,$(t)/[fuzz|videzzo],Build fuzzer for $(t)); \
 		))) \
 		echo '')
 	@$(if $(HELPERS-y), \

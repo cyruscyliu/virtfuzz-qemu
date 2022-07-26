@@ -248,13 +248,17 @@ include $(SRC_PATH)/tests/qtest/Makefile.include
 fuzz: fuzz-vars
 fuzz-vars: QEMU_CFLAGS := $(FUZZ_CFLAGS) $(QEMU_CFLAGS)
 fuzz-vars: QEMU_LDFLAGS := $(FUZZ_LDFLAGS) $(QEMU_LDFLAGS)
-fuzz-vars: $(QEMU_PROG_FUZZ) $(QEMU_PROG_VIDEZZO)
+fuzz-vars: $(QEMU_PROG_FUZZ)
 dummy := $(call unnest-vars,, fuzz-obj-y)
-dummy := $(call unnest-vars,, videzzo-obj-y)
-
 
 $(QEMU_PROG_FUZZ): config-devices.mak $(all-obj-y) $(COMMON_LDADDS) $(fuzz-obj-y)
 	$(call LINK, $(filter-out %.mak, $^))
+
+videzzo: videzzo-vars
+videzzo-vars: QEMU_CFLAGS := $(FUZZ_CFLAGS) $(QEMU_CFLAGS)
+videzzo-vars: QEMU_LDFLAGS := $(VIDEZZO_LDFLAGS) $(QEMU_LDFLAGS)
+videzzo-vars: $(QEMU_PROG_VIDEZZO)
+dummy := $(call unnest-vars,, videzzo-obj-y)
 
 $(QEMU_PROG_VIDEZZO): config-devices.mak $(all-obj-y) $(COMMON_LDADDS) $(videzzo-obj-y)
 	$(call LINK, $(filter-out %.mak, $^))

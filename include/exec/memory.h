@@ -48,17 +48,18 @@
                          TYPE_IOMMU_MEMORY_REGION)
 
 
+#ifdef CONFIG_FUZZ
 void fuzz_dma_read_cb(size_t addr,
                       size_t len,
                       MemoryRegion *mr);
-// #else
-// static inline void fuzz_dma_read_cb(size_t addr,
-                                    // size_t len,
-                                    // MemoryRegion *mr)
-// {
-    // /* Do Nothing */
-// }
-// #endif
+#else
+static inline void fuzz_dma_read_cb(size_t addr,
+                                    size_t len,
+                                    MemoryRegion *mr)
+{
+    /* Do Nothing */
+}
+#endif
 
 extern bool global_dirty_log;
 
