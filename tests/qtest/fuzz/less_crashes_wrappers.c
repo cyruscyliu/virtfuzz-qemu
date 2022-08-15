@@ -1,5 +1,5 @@
 /*
- * Stateful Virtual-Device Fuzzing Less Crashes Wrapper
+ * Type-Aware Virtual-Device Fuzzing Less Crashes Wrapper
  *
  * Copyright Red Hat Inc., 2020
  *
@@ -18,7 +18,7 @@ WRAP(void     , abort())
 
 void __wrap_abort()
 {
-#ifdef VIRTFUZZ_LESS_CRASHES
+#ifdef VIDEZZO_LESS_CRASHES
     return;
 #else
     return __real_abort();

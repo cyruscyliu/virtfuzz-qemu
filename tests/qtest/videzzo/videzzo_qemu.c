@@ -1,5 +1,5 @@
 /*
- * Type-Aware Virtual-Device Fuzzing QEMU
+ * Dependency-Aware Virtual-Device Fuzzing QEMU
  *
  * Copyright Red Hat Inc., 2021
  *
@@ -35,6 +35,11 @@
 #include "videzzo.h"
 #ifdef CLANG_COV_DUMP
 #include "clangcovdump.h"
+#ifdef __cplusplus
+extern "C" int __llvm_profile_runtime;
+#else
+int __llvm_profile_runtime;
+#endif
 #endif
 
 //
@@ -97,7 +102,7 @@ static const ViDeZZoFuzzTargetConfig predefined_configs[] = {
         .arch = "i386",
         .name = "ohci",
         .args = "-machine q35 -nodefaults -device pci-ohci,num-ports=6 "
-        COMMON_USB_CMD,
+        COMMON_USB_CMD_STORAGE,
         .mrnames = "*ohci*",
         .file = "hw/usb/hcd-ohci.c",
         .socket = false,
@@ -351,57 +356,74 @@ static const ViDeZZoFuzzTargetConfig predefined_configs[] = {
         .mrnames = "*rocker-mmio*",
         .file = "hw/net/rocker/rocker.c",
         .socket = true,
-    }, /*{
-        .name = "virtio-net-pci-slirp",
+    },{
+        .arch = "i386",
+        .name = "virtio-net",
         .args = "-M q35 -nodefaults "
         "-device virtio-net,netdev=net0 -netdev user,id=net0",
+        .mrnames = "*virtio*",
+        .file = "hw/net/virtio-net.c",
         .socket = false,
     },{
+        .arch = "i386",
         .name = "virtio-blk",
         .args = "-machine q35 -device virtio-blk,drive=disk0 "
         "-drive file=null-co://,id=disk0,if=none,format=raw",
+        .mrnames = "*virtio*",
+        .file = "hw/block/virtio-blk.c",
         .socket = false,
     },{
+        .arch = "i386",
         .name = "virtio-scsi",
         .args = "-machine q35 -device virtio-scsi,num_queues=8 "
         "-device scsi-hd,drive=disk0 "
         "-drive file=null-co://,id=disk0,if=none,format=raw",
+        .mrnames = "*scsi*,*virtio*",
+        .file = "hw/scsi/virtio-scsi.c",
         .socket = false,
     },{
+        .arch = "i386",
         .name = "virtio-gpu",
         .args = "-machine q35 -nodefaults -device virtio-gpu",
+        .mrnames = "*virtio*",
+        .file = "hw/display/virtio-gpu.c",
         .socket = false,
     },{
+        .arch = "i386",
         .name = "virtio-vga",
         .args = "-machine q35 -nodefaults -device virtio-vga",
+        .mrnames = "*virtio*",
+        .file = "hw/display/virtio-vga.c",
         .socket = false,
     },{
+        .arch = "i386",
         .name = "virtio-rng",
         .args = "-machine q35 -nodefaults -device virtio-rng",
+        .mrnames = "*virtio*",
+        .file = "hw/virtio/virtio-rng.c",
         .socket = false,
     },{
+        .arch = "i386",
         .name = "virtio-balloon",
         .args = "-machine q35 -nodefaults -device virtio-balloon",
+        .mrnames = "*virtio*",
+        .file = "hw/virtio/virtio-balloon.c",
         .socket = false,
     },{
+        .arch = "i386",
         .name = "virtio-serial",
         .args = "-machine q35 -nodefaults -device virtio-serial",
+        .mrnames = "*virtio*",
+        .file = "hw/virtio/virtio-serial-pci.c",
         .socket = false,
     },{
+        .arch = "i386",
         .name = "virtio-mouse",
         .args = "-machine q35 -nodefaults -device virtio-mouse",
+        .mrnames = "*virtio*",
+        .file = "hw/virtio/virtio-input-pci.c",
         .socket = false,
     },{
-        .name = "virtio-9p",
-        .argfunc = generic_fuzzer_virtio_9p_args,
-        .socket = false,
-    },{
-        .name = "virtio-9p-synth",
-        .args = "-machine q35 -nodefaults "
-        "-device virtio-9p,fsdev=hshare,mount_tag=hshare "
-        "-fsdev synth,id=hshare",
-        .socket = false,
-    },*/{
         .arch = "i386",
         // the real thing we test is the fdc not the floopy
         .name = "fdc",
@@ -999,7 +1021,7 @@ static uint64_t qemu_readq(uint64_t addr) {
 }
 
 uint64_t dispatch_mmio_read(Event *event) {
-    switch (event->size) {
+    switch (__disimm_around_event_size(event->size, 8)) {
         case ViDeZZo_Byte: return qemu_readb(event->addr);
         case ViDeZZo_Word: return qemu_readw(event->addr);
         case ViDeZZo_Long: return qemu_readl(event->addr);
@@ -1021,7 +1043,7 @@ static uint32_t qemu_inl(uint16_t addr) {
 }
 
 uint64_t dispatch_pio_read(Event *event) {
-    switch (event->size) {
+    switch (__disimm_around_event_size(event->size, 4)) {
         case ViDeZZo_Byte: return qemu_inb(event->addr);
         case ViDeZZo_Word: return qemu_inw(event->addr);
         case ViDeZZo_Long: return qemu_inl(event->addr);
@@ -1137,7 +1159,7 @@ uint64_t dispatch_mmio_write(Event *event) {
                 break;
         }
     }
-    switch (event->size) {
+    switch (__disimm_around_event_size(event->size, 8)) {
         case ViDeZZo_Byte: qemu_writeb(event->addr, event->valu & 0xFF); break;
         case ViDeZZo_Word: qemu_writew(event->addr, event->valu & 0xFFFF); break;
         case ViDeZZo_Long: qemu_writel(event->addr, event->valu & 0xFFFFFFFF); break;
@@ -1162,7 +1184,7 @@ static void qemu_outl(uint16_t addr, uint32_t value) {
 uint64_t dispatch_pio_write(Event *event) {
     if (e1000e && event->addr == 0xc080)
         event->valu %= event->valu % 0xfffff;
-    switch (event->size) {
+    switch (__disimm_around_event_size(event->size, 4)) {
         case ViDeZZo_Byte: qemu_outb(event->addr, event->valu & 0xFF); break;
         case ViDeZZo_Word: qemu_outw(event->addr, event->valu & 0xFFFF); break;
         case ViDeZZo_Long: qemu_outl(event->addr, event->valu & 0xFFFFFFFF); break;
@@ -1409,13 +1431,13 @@ static void flush_events(QTestState *s) {
 //
 // call into videzzo from QEMU
 //
-static void videzzo_qemu(uint8_t *Data, size_t Size) {
+static int videzzo_qemu(uint8_t *Data, size_t Size) {
     QTestState *s = fuzz_qts;
     if (vnc_client_needed && !vnc_client_initialized) {
         init_vnc_client(s, vnc_port);
         vnc_client_initialized = true;
     }
-    videzzo_execute_one_input(Data, Size, s, &flush_events);
+    return videzzo_execute_one_input(Data, Size, s, &flush_events);
 }
 
 //
@@ -1435,12 +1457,19 @@ static QGuestAllocator *get_qemu_alloc(QTestState *qts) {
     QOSGraphNode *node;
     QOSGraphObject *obj;
 
-    // TARGET_NAME=i386 -> i386/pc
-    // TARGET_NAME=arm  -> arm/raspi2b
+    // TARGET_NAME=i386    -> i386/pc
+    // TARGET_NAME=arm     -> arm/raspi2b
+    // TARGET_NAME=aarch64 -> aarch64/xlnx-zcu102
+    // TODO: we may want to have customized allocator
+    // for each arm and aarch64 virtual devices
     if (strcmp(TARGET_NAME, "i386") == 0) {
         node = qos_graph_get_node("i386/pc");
     } else if (strcmp(TARGET_NAME, "arm") == 0) {
         node = qos_graph_get_node("arm/raspi2b");
+    } else if (strcmp(TARGET_NAME, "aarch64") == 0) {
+        node = qos_graph_get_node("aarch64/xlnx-zcu102");
+    } else if (strcmp(TARGET_NAME, "x86_64") == 0) {
+        node = qos_graph_get_node("x86_64/pc");
     } else {
         g_assert(1 == 0);
     }
@@ -1478,7 +1507,7 @@ static void videzzo_qemu_pre() {
         locate_fuzzable_objects(qdev_get_machine(), mrnames[i]);
     }
 
-    if (strcmp(TARGET_NAME, "i386") == 0) {
+    if (strcmp(TARGET_NAME, "i386") == 0 || strcmp(TARGET_NAME, "x86_64") == 0) {
         pcibus = qpci_new_pc(s, NULL);
         g_ptr_array_foreach(fuzzable_pci_devices, pci_enum, pcibus);
         qpci_free_pc(pcibus);
@@ -1585,8 +1614,13 @@ static void register_videzzo_qemu_targets(void) {
 
     for (int i = 0; i < sizeof(predefined_configs) / sizeof(ViDeZZoFuzzTargetConfig); i++) {
         config = predefined_configs + i;
-        if (strcmp(TARGET_NAME, config->arch) != 0)
-            continue;
+        // We haven't found a virtual device that is x86_64 only.
+        // The reason why we support x86_64 is to show scalability of ViDeZZo.
+        if (strcmp(TARGET_NAME, "x86_64") == 0) {
+            if (strcmp(config->arch, "i386")) continue;
+        } else {
+            if (strcmp(TARGET_NAME, config->arch)) continue;
+        }
         name = g_string_new("videzzo-fuzz");
         g_string_append_printf(name, "-%s", config->name);
         videzzo_add_fuzz_target(&(ViDeZZoFuzzTarget){

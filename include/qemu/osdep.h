@@ -164,7 +164,7 @@ extern int daemon(int, int);
 #error building with G_DISABLE_ASSERT is not supported
 #endif
 
-#ifdef VIRTFUZZ_LESS_CRASHES
+#ifdef VIDEZZO_LESS_CRASHES
 #undef assert
 #define assert(x)
 #undef g_assert
