@@ -33,8 +33,6 @@
 #include "qapi/error.h"
 
 #include "hcd-xhci.h"
-void TraceStateCallback(uint8_t id) __attribute__((weak));
-void TraceStateCallback(uint8_t id) {}
 
 //#define DEBUG_XHCI
 //#define DEBUG_DATA
@@ -2480,7 +2478,6 @@ static void xhci_process_commands(XHCIState *xhci)
 
     xhci->crcr_low |= CRCR_CRR;
 
-    TraceStateCallback(5);
     while ((type = xhci_ring_fetch(xhci, &xhci->cmd_ring, &trb, &addr))) {
         event.ptr = addr;
         switch (type) {
@@ -3089,8 +3086,6 @@ static void xhci_runtime_write(void *ptr, hwaddr reg,
         break;
     case 0x08: /* ERSTSZ */
         intr->erstsz = val & 0xffff;
-        if (intr->erstsz == 1)
-            TraceStateCallback(19);
         break;
     case 0x10: /* ERSTBA low */
         if (xhci->nec_quirks) {
