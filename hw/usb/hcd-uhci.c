@@ -900,7 +900,11 @@ static int uhci_handle_td(UHCIState *s, UHCIQueue *q, uint32_t qh_addr,
         break;
 
     default:
+#ifdef VIDEZZO_LESS_CRASHES
+        break;
+#else
         abort(); /* Never to execute */
+#endif
     }
 
     if (async->packet.status == USB_RET_ASYNC) {

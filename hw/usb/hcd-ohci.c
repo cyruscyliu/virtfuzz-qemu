@@ -1293,8 +1293,11 @@ static void ohci_frame_boundary(void *opaque)
     hcca.frame = cpu_to_le16(ohci->frame_number);
 
     if (ohci->done_count == 0 && !(ohci->intr_status & OHCI_INTR_WD)) {
+#ifdef VIDEZZO_LESS_CRASHES
+#else
         if (!ohci->done)
             abort();
+#endif
         if (ohci->intr & ohci->intr_status)
             ohci->done |= 1;
         hcca.done = cpu_to_le32(ohci->done);

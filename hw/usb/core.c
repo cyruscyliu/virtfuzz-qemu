@@ -599,7 +599,11 @@ void usb_packet_copy(USBPacket *p, void *ptr, size_t bytes)
         break;
     default:
         fprintf(stderr, "%s: invalid pid: %x\n", __func__, p->pid);
+#ifdef VIDEZZO_LESS_CRASHES
+        break;
+#else
         abort();
+#endif
     }
     p->actual_length += bytes;
 }

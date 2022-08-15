@@ -42,8 +42,13 @@
 #else
 #define DPRINTF(...) do {} while (0)
 #endif
+#ifdef VIDEZZO_LESS_CRASHES
+#define FIXME(_msg) do { fprintf(stderr, "FIXME %s:%d %s\n", \
+                                 __func__, __LINE__, _msg); } while (0)
+#else
 #define FIXME(_msg) do { fprintf(stderr, "FIXME %s:%d %s\n", \
                                  __func__, __LINE__, _msg); abort(); } while (0)
+#endif
 
 #define TRB_LINK_LIMIT  32
 #define COMMAND_LIMIT   256
