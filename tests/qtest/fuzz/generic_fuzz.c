@@ -33,6 +33,10 @@
 #include "clangcovdump.h"
 #endif
 
+void disable_group_mutator(void) { }
+
+void enable_group_mutator(void) { }
+
 /*
  * SEPARATOR is used to separate "operations" in the fuzz input
  */
