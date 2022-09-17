@@ -443,6 +443,7 @@ static void usb_msd_handle_data(USBDevice *dev, USBPacket *p)
             s->data_len = le32_to_cpu(cbw.data_len);
             if (s->data_len == 0) {
                 s->mode = USB_MSDM_CSW;
+                GroupMutatorOrder(0, 1);
             } else if (cbw.flags & 0x80) {
                 s->mode = USB_MSDM_DATAIN;
             } else {
@@ -516,6 +517,7 @@ static void usb_msd_handle_data(USBDevice *dev, USBPacket *p)
                 goto fail;
             }
 
+            GroupMutatorOrder(0, 2);
             if (s->req) {
                 /* still in flight */
                 DPRINTF("Deferring packet %p [wait status]\n", p);
