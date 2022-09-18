@@ -915,7 +915,7 @@ static int xhci_epmask_to_eps_with_streams(XHCIState *xhci,
 
     slot = &xhci->slots[slotid - 1];
 
-    for (i = 2, j = 0; i <= 31; i++) {
+    for (i = 2, j = 0; i <= MAXEPID; i++) {
         if (!(epmask & (1u << i))) {
             continue;
         }
@@ -969,11 +969,11 @@ static TRBCCode xhci_alloc_device_streams(XHCIState *xhci, unsigned int slotid,
          * together and make an usb_device_alloc_streams call per group.
          */
         if (epctxs[i]->nr_pstreams != req_nr_streams) {
-            FIXME("guest streams config not identical for all eps");
+            DPRINTF("xhci: FIXME: guest streams config not identical for all eps\n");
             return CC_RESOURCE_ERROR;
         }
         if (eps[i]->max_streams != dev_max_streams) {
-            FIXME("device streams config not identical for all eps");
+            DPRINTF("xhci: FIXME: device streams config not identical for all eps\n");
             return CC_RESOURCE_ERROR;
         }
     }
@@ -1021,7 +1021,9 @@ static XHCIStreamContext *xhci_find_stream(XHCIEPContext *epctx,
         }
         sctx = epctx->pstreams + streamid;
     } else {
-        FIXME("secondary streams not implemented yet");
+        DPRINTF("xhci: FIXME: secondary streams not implemented yet\n");
+        *cc_error = CC_INVALID_STREAM_TYPE_ERROR;
+        return NULL;
     }
 
     if (sctx->sct == -1) {
@@ -1134,7 +1136,7 @@ static TRBCCode xhci_enable_ep(XHCIState *xhci, unsigned int slotid,
 
     trace_usb_xhci_ep_enable(slotid, epid);
     assert(slotid >= 1 && slotid <= xhci->numslots);
-    assert(epid >= 1 && epid <= 31);
+    assert(epid >= 1 && epid <= MAXEPID);
 
     slot = &xhci->slots[slotid-1];
     if (slot->eps[epid-1]) {
@@ -1228,7 +1230,7 @@ static int xhci_ep_nuke_xfers(XHCIState *xhci, unsigned int slotid,
     int killed = 0;
     USBEndpoint *ep = NULL;
     assert(slotid >= 1 && slotid <= xhci->numslots);
-    assert(epid >= 1 && epid <= 31);
+    assert(epid >= 1 && epid <= MAXEPID);
 
     DPRINTF("xhci_ep_nuke_xfers(%d, %d)\n", slotid, epid);
 
@@ -1267,7 +1269,7 @@ static TRBCCode xhci_disable_ep(XHCIState *xhci, unsigned int slotid,
 
     trace_usb_xhci_ep_disable(slotid, epid);
     assert(slotid >= 1 && slotid <= xhci->numslots);
-    assert(epid >= 1 && epid <= 31);
+    assert(epid >= 1 && epid <= MAXEPID);
 
     slot = &xhci->slots[slotid-1];
 
@@ -1305,7 +1307,7 @@ static TRBCCode xhci_stop_ep(XHCIState *xhci, unsigned int slotid,
     trace_usb_xhci_ep_stop(slotid, epid);
     assert(slotid >= 1 && slotid <= xhci->numslots);
 
-    if (epid < 1 || epid > 31) {
+    if (epid < 1 || epid > MAXEPID) {
         DPRINTF("xhci: bad ep %d\n", epid);
         return CC_TRB_ERROR;
     }
@@ -1342,7 +1344,7 @@ static TRBCCode xhci_reset_ep(XHCIState *xhci, unsigned int slotid,
     trace_usb_xhci_ep_reset(slotid, epid);
     assert(slotid >= 1 && slotid <= xhci->numslots);
 
-    if (epid < 1 || epid > 31) {
+    if (epid < 1 || epid > MAXEPID) {
         DPRINTF("xhci: bad ep %d\n", epid);
         return CC_TRB_ERROR;
     }
@@ -1393,7 +1395,7 @@ static TRBCCode xhci_set_ep_dequeue(XHCIState *xhci, unsigned int slotid,
 
     assert(slotid >= 1 && slotid <= xhci->numslots);
 
-    if (epid < 1 || epid > 31) {
+    if (epid < 1 || epid > MAXEPID) {
         DPRINTF("xhci: bad ep %d\n", epid);
         return CC_TRB_ERROR;
     }
@@ -1842,7 +1844,7 @@ static void xhci_kick_ep(XHCIState *xhci, unsigned int slotid,
     XHCIEPContext *epctx;
 
     assert(slotid >= 1 && slotid <= xhci->numslots);
-    assert(epid >= 1 && epid <= 31);
+    assert(epid >= 1 && epid <= MAXEPID);
 
     if (!xhci->slots[slotid-1].enabled) {
         DPRINTF("xhci: xhci_kick_ep for disabled slot %d\n", slotid);
@@ -2032,7 +2034,7 @@ static TRBCCode xhci_enable_slot(XHCIState *xhci, unsigned int slotid)
     printf("[-] %d is enabled\n", slotid - 1);
     xhci->slots[slotid-1].enabled = 1;
     xhci->slots[slotid-1].uport = NULL;
-    memset(xhci->slots[slotid-1].eps, 0, sizeof(XHCIEPContext*)*31);
+    memset(xhci->slots[slotid-1].eps, 0, sizeof(XHCIEPContext*)*MAXEPID);
 
     return CC_SUCCESS;
 }
@@ -2045,7 +2047,7 @@ static TRBCCode xhci_disable_slot(XHCIState *xhci, unsigned int slotid)
     trace_usb_xhci_slot_disable(slotid);
     assert(slotid >= 1 && slotid <= xhci->numslots);
 
-    for (i = 1; i <= 31; i++) {
+    for (i = 1; i <= MAXEPID; i++) {
         if (xhci->slots[slotid-1].eps[i-1]) {
             xhci_disable_ep(xhci, slotid, i);
         }
@@ -2213,7 +2215,7 @@ static TRBCCode xhci_configure_slot(XHCIState *xhci, unsigned int slotid,
     DPRINTF("xhci: output context at "DMA_ADDR_FMT"\n", octx);
 
     if (dc) {
-        for (i = 2; i <= 31; i++) {
+        for (i = 2; i <= MAXEPID; i++) {
             if (xhci->slots[slotid-1].eps[i-1]) {
                 xhci_disable_ep(xhci, slotid, i);
             }
@@ -2247,7 +2249,7 @@ static TRBCCode xhci_configure_slot(XHCIState *xhci, unsigned int slotid,
 
     xhci_free_device_streams(xhci, slotid, ictl_ctx[0] | ictl_ctx[1]);
 
-    for (i = 2; i <= 31; i++) {
+    for (i = 2; i <= MAXEPID; i++) {
         if (ictl_ctx[0] & (1<<i)) {
             xhci_disable_ep(xhci, slotid, i);
         }
@@ -2270,7 +2272,7 @@ static TRBCCode xhci_configure_slot(XHCIState *xhci, unsigned int slotid,
 
     res = xhci_alloc_device_streams(xhci, slotid, ictl_ctx[1]);
     if (res != CC_SUCCESS) {
-        for (i = 2; i <= 31; i++) {
+        for (i = 2; i <= MAXEPID; i++) {
             if (ictl_ctx[1] & (1u << i)) {
                 xhci_disable_ep(xhci, slotid, i);
             }
@@ -2373,7 +2375,7 @@ static TRBCCode xhci_reset_slot(XHCIState *xhci, unsigned int slotid)
 
     DPRINTF("xhci: output context at "DMA_ADDR_FMT"\n", octx);
 
-    for (i = 2; i <= 31; i++) {
+    for (i = 2; i <= MAXEPID; i++) {
         if (xhci->slots[slotid-1].eps[i-1]) {
             xhci_disable_ep(xhci, slotid, i);
         }
@@ -2419,7 +2421,7 @@ static void xhci_detach_slot(XHCIState *xhci, USBPort *uport)
         return;
     }
 
-    for (ep = 0; ep < 31; ep++) {
+    for (ep = 0; ep < MAXEPID; ep++) {
         if (xhci->slots[slot].eps[ep]) {
             xhci_ep_nuke_xfers(xhci, slot + 1, ep + 1, 0);
         }
@@ -3157,7 +3159,10 @@ static void xhci_doorbell_write(void *ptr, hwaddr reg,
         streamid = (val >> 16) & 0xffff;
         if (reg > xhci->numslots) {
             DPRINTF("xhci: bad doorbell %d\n", (int)reg);
-        } else if (epid == 0 || epid > 31) {
+        } else if (epid == 0 || epid > MAXEPID) {
+            DPRINTF("xhci: bad doorbell %d write: 0x%x\n",
+                    (int)reg, (uint32_t)val);
+        } else if (streamid == 0) {
             DPRINTF("xhci: bad doorbell %d write: 0x%x\n",
                     (int)reg, (uint32_t)val);
         } else {
@@ -3544,7 +3549,7 @@ static int usb_xhci_post_load(void *opaque, int version_id)
         }
         assert(slot->uport && slot->uport->dev);
 
-        for (epid = 1; epid <= 31; epid++) {
+        for (epid = 1; epid <= MAXEPID; epid++) {
             pctx = slot->ctx + 32 * epid;
             xhci_dma_read_u32s(xhci, pctx, ep_ctx, sizeof(ep_ctx));
             state = ep_ctx[0] & EP_STATE_MASK;
