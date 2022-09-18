@@ -33,8 +33,9 @@
 #define MAXPORTS_3 15
 
 #define MAXPORTS (MAXPORTS_2 + MAXPORTS_3)
-#define MAXSLOTS 64
+#define MAXSLOTS  1
 #define MAXINTRS 16
+#define MAXEPID   4
 
 /* Very pessimistic, let's hope it's enough for all cases */
 #define EV_QUEUE (((3 * 24) + 16) * MAXSLOTS)
@@ -146,7 +147,7 @@ typedef struct XHCISlot {
     uint16_t intr;
     dma_addr_t ctx;
     USBPort *uport;
-    XHCIEPContext *eps[31];
+    XHCIEPContext *eps[MAXEPID];
 } XHCISlot;
 
 typedef struct XHCIEvent {
