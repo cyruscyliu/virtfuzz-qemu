@@ -319,6 +319,8 @@ static void xhci_event(XHCIState *xhci, XHCIEvent *event, int v);
 static void xhci_write_event(XHCIState *xhci, XHCIEvent *event, int v);
 static USBEndpoint *xhci_epid_to_usbep(XHCIEPContext *epctx);
 
+extern void GroupMutatorOrder(int id, int status);
+
 static const char *TRBType_names[] = {
     [TRB_RESERVED]                     = "TRB_RESERVED",
     [TR_NORMAL]                        = "TR_NORMAL",
@@ -684,6 +686,7 @@ static void xhci_event(XHCIState *xhci, XHCIEvent *event, int v)
     }
     intr = &xhci->intr[v];
 
+    GroupMutatorOrder(9, 2);
     erdp = xhci_addr64(intr->erdp_low, intr->erdp_high);
     if (erdp < intr->er_start ||
         erdp >= (intr->er_start + TRB_SIZE*intr->er_size)) {
@@ -839,6 +842,7 @@ static void xhci_er_reset(XHCIState *xhci, int v)
     }
     intr->er_start = xhci_addr64(seg.addr_low, seg.addr_high);
     intr->er_size = seg.size;
+    GroupMutatorOrder(10, 1);
 
     intr->er_ep_idx = 0;
     intr->er_pcs = 1;
@@ -1887,6 +1891,7 @@ static void xhci_kick_epctx(XHCIEPContext *epctx, unsigned int streamid)
 
     /* If the device has been detached, but the guest has not noticed this
        yet the 2 above checks will succeed, but we must NOT continue */
+    GroupMutatorOrder(12, 2);
     if (!xhci_slot_ok(xhci, epctx->slotid)) {
         return;
     }
@@ -2155,6 +2160,7 @@ static TRBCCode xhci_address_slot(XHCIState *xhci, unsigned int slotid,
 
     slot = &xhci->slots[slotid-1];
     slot->uport = uport;
+    GroupMutatorOrder(12, 1);
     slot->ctx = octx;
     slot->intr = get_field(slot_ctx[2], TRB_INTR);
 
@@ -2493,6 +2499,9 @@ static void xhci_process_commands(XHCIState *xhci)
                 DPRINTF("xhci: no device slots available\n");
                 event.ccode = CC_NO_SLOTS_ERROR;
             } else {
+                GroupMutatorOrder(2, 1);
+                GroupMutatorOrder(3, 1);
+                GroupMutatorOrder(4, 1);
                 slotid = i+1;
                 event.ccode = xhci_enable_slot(xhci, slotid);
             }
@@ -2504,13 +2513,16 @@ static void xhci_process_commands(XHCIState *xhci)
             }
             break;
         case CR_ADDRESS_DEVICE:
+            GroupMutatorOrder(2, 2);
             slotid = xhci_get_slot(xhci, &event, &trb);
             if (slotid) {
                 event.ccode = xhci_address_slot(xhci, slotid, trb.parameter,
                                                 trb.control & TRB_CR_BSR);
             }
+            GroupMutatorOrder(1, 1);
             break;
         case CR_CONFIGURE_ENDPOINT:
+            GroupMutatorOrder(3, 2);
             slotid = xhci_get_slot(xhci, &event, &trb);
             if (slotid) {
                 event.ccode = xhci_configure_slot(xhci, slotid, trb.parameter,
@@ -2518,10 +2530,12 @@ static void xhci_process_commands(XHCIState *xhci)
             }
             break;
         case CR_EVALUATE_CONTEXT:
+            GroupMutatorOrder(4, 2);
             slotid = xhci_get_slot(xhci, &event, &trb);
             if (slotid) {
                 event.ccode = xhci_evaluate_slot(xhci, slotid, trb.parameter);
             }
+            GroupMutatorOrder(1, 1);
             break;
         case CR_STOP_ENDPOINT:
             slotid = xhci_get_slot(xhci, &event, &trb);
@@ -3096,12 +3110,15 @@ static void xhci_runtime_write(void *ptr, hwaddr reg,
         } else {
             intr->erstba_low = val & 0xffffffc0;
         }
+        GroupMutatorOrder(11, 1);
         break;
     case 0x14: /* ERSTBA high */
+        GroupMutatorOrder(11, 2);
         intr->erstba_high = val;
         xhci_er_reset(xhci, v);
         break;
     case 0x18: /* ERDP low */
+        GroupMutatorOrder(10, 2);
         if (val & ERDP_EHB) {
             intr->erdp_low &= ~ERDP_EHB;
         }
@@ -3115,6 +3132,7 @@ static void xhci_runtime_write(void *ptr, hwaddr reg,
                 xhci_intr_raise(xhci, v);
             }
         }
+        GroupMutatorOrder(9, 1);
         break;
     case 0x1c: /* ERDP high */
         intr->erdp_high = val;
@@ -3166,6 +3184,7 @@ static void xhci_doorbell_write(void *ptr, hwaddr reg,
             DPRINTF("xhci: bad doorbell %d write: 0x%x\n",
                     (int)reg, (uint32_t)val);
         } else {
+            GroupMutatorOrder(1, 2);
             xhci_kick_ep(xhci, reg, epid, streamid);
         }
     }
