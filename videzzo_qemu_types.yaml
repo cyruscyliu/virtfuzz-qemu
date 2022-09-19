@@ -637,35 +637,35 @@
   id: 60
 - callstack:
   - xhci_ring_fetch
-  - dma_memory_read
+  - pci_dma_read 
   - 0
   - 1
   filename: hcd-xhci.c
   id: 70
 - callstack:
   - xhci_ring_chain_length
-  - dma_memory_read
+  - pci_dma_read
   - 0
   - 1
   filename: hcd-xhci.c
   id: 70
 - callstack:
   - xhci_er_reset
-  - dma_memory_read
+  - pci_dma_read
   - 0
   - 1
   filename: hcd-xhci.c
   id: 71
 - callstack:
   - xhci_address_slot
-  - ldq_le_dma
+  - ldq_le_pci_dma
   - 0
   - 1
   filename: hcd-xhci.c
   id: 72
 - callstack:
   - usb_xhci_post_load
-  - ldq_le_dma
+  - ldq_le_pci_dma
   - 0
   - 1
   filename: hcd-xhci.c
@@ -692,19 +692,19 @@
   filename: hcd-xhci.c
   id: 73
 - callstack:
-  - xhci_evaluate_slot
-  - xhci_dma_read_u32s
-  - 0
-  - 1
-  filename: hcd-xhci.c
-  id: 93
-- callstack:
   - xhci_address_slot
   - xhci_dma_read_u32s
   - 0
   - 1
   filename: hcd-xhci.c
   id: 93
+- callstack:
+  - xhci_evaluate_slot
+  - xhci_dma_read_u32s
+  - 0
+  - 1
+  filename: hcd-xhci.c
+  id: 77
 - callstack:
   - xhci_configure_slot
   - xhci_dma_read_u32s
@@ -943,3 +943,10 @@
   - 1
   filename: hcd-dwc2.c
   id: 74
+- callstack:
+  - virtio_queue_set_addr
+  - this_is_a_stub
+  - 0
+  - 2
+  filename: virtio.c
+  id: 75
