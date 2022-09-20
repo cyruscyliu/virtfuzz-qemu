@@ -116,6 +116,8 @@
 #include "sysemu/iothread.h"
 #include "qemu/guest-random.h"
 
+#include "statecovdump.h"
+
 #define MAX_VIRTIO_CONSOLES 1
 
 const char *bios_name = NULL;
