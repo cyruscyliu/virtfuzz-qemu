@@ -319,8 +319,6 @@ static void xhci_event(XHCIState *xhci, XHCIEvent *event, int v);
 static void xhci_write_event(XHCIState *xhci, XHCIEvent *event, int v);
 static USBEndpoint *xhci_epid_to_usbep(XHCIEPContext *epctx);
 
-extern void GroupMutatorOrder(int id, int status);
-
 static const char *TRBType_names[] = {
     [TRB_RESERVED]                     = "TRB_RESERVED",
     [TR_NORMAL]                        = "TR_NORMAL",
@@ -666,6 +664,7 @@ static void xhci_write_event(XHCIState *xhci, XHCIEvent *event, int v)
 
     addr = intr->er_start + TRB_SIZE*intr->er_ep_idx;
     pci_dma_write(pci_dev, addr, &ev_trb, TRB_SIZE);
+    __sanitizer_cov_trace_state(0, 23);
 
     intr->er_ep_idx++;
     if (intr->er_ep_idx >= intr->er_size) {
@@ -729,6 +728,7 @@ static TRBType xhci_ring_fetch(XHCIState *xhci, XHCIRing *ring, XHCITRB *trb,
     while (1) {
         TRBType type;
         pci_dma_read(pci_dev, ring->dequeue, trb, TRB_SIZE);
+        __sanitizer_cov_trace_state(0, 1);
         trb->addr = ring->dequeue;
         trb->ccs = ring->ccs;
         le64_to_cpus(&trb->parameter);
@@ -777,6 +777,7 @@ static int xhci_ring_chain_length(XHCIState *xhci, const XHCIRing *ring)
     while (1) {
         TRBType type;
         pci_dma_read(pci_dev, dequeue, &trb, TRB_SIZE);
+        __sanitizer_cov_trace_state(0, 2);
         le64_to_cpus(&trb.parameter);
         le32_to_cpus(&trb.status);
         le32_to_cpus(&trb.control);
@@ -832,6 +833,7 @@ static void xhci_er_reset(XHCIState *xhci, int v)
         return;
     }
     pci_dma_read(PCI_DEVICE(xhci), erstba, &seg, sizeof(seg));
+    __sanitizer_cov_trace_state(0, 3);
     le32_to_cpus(&seg.addr_low);
     le32_to_cpus(&seg.addr_high);
     le32_to_cpus(&seg.size);
@@ -1032,6 +1034,7 @@ static XHCIStreamContext *xhci_find_stream(XHCIEPContext *epctx,
 
     if (sctx->sct == -1) {
         xhci_dma_read_u32s(epctx->xhci, sctx->pctx, ctx, sizeof(ctx));
+        __sanitizer_cov_trace_state(0, 5);
         sct = (ctx[0] >> 1) & 0x07;
         if (epctx->lsa && sct != 1) {
             *cc_error = CC_INVALID_STREAM_TYPE_ERROR;
@@ -1052,6 +1055,7 @@ static void xhci_set_ep_state(XHCIState *xhci, XHCIEPContext *epctx,
     uint32_t ctx2[2];
 
     xhci_dma_read_u32s(xhci, epctx->pctx, ctx, sizeof(ctx));
+    __sanitizer_cov_trace_state(0, 6);
     ctx[0] &= ~EP_STATE_MASK;
     ctx[0] |= state;
 
@@ -1060,10 +1064,12 @@ static void xhci_set_ep_state(XHCIState *xhci, XHCIEPContext *epctx,
         if (sctx != NULL) {
             ring = &sctx->ring;
             xhci_dma_read_u32s(xhci, sctx->pctx, ctx2, sizeof(ctx2));
+            __sanitizer_cov_trace_state(0, 7);
             ctx2[0] &= 0xe;
             ctx2[0] |= sctx->ring.dequeue | sctx->ring.ccs;
             ctx2[1] = (sctx->ring.dequeue >> 16) >> 16;
             xhci_dma_write_u32s(xhci, sctx->pctx, ctx2, sizeof(ctx2));
+            __sanitizer_cov_trace_state(0, 24);
         }
     } else {
         ring = &epctx->ring;
@@ -1077,6 +1083,7 @@ static void xhci_set_ep_state(XHCIState *xhci, XHCIEPContext *epctx,
     }
 
     xhci_dma_write_u32s(xhci, epctx->pctx, ctx, sizeof(ctx));
+    __sanitizer_cov_trace_state(0, 25);
     if (epctx->state != state) {
         trace_usb_xhci_ep_state(epctx->slotid, epctx->epid,
                                 ep_state_name(epctx->state),
@@ -2111,6 +2118,7 @@ static TRBCCode xhci_address_slot(XHCIState *xhci, unsigned int slotid,
 
     dcbaap = xhci_addr64(xhci->dcbaap_low, xhci->dcbaap_high);
     poctx = ldq_le_pci_dma(PCI_DEVICE(xhci), dcbaap + 8 * slotid);
+    __sanitizer_cov_trace_state(0, 4);
     ictx = xhci_mask64(pictx);
     octx = xhci_mask64(poctx);
 
@@ -2118,6 +2126,7 @@ static TRBCCode xhci_address_slot(XHCIState *xhci, unsigned int slotid,
     DPRINTF("xhci: output context at "DMA_ADDR_FMT"\n", octx);
 
     xhci_dma_read_u32s(xhci, ictx, ictl_ctx, sizeof(ictl_ctx));
+    __sanitizer_cov_trace_state(0, 21);
 
     if (ictl_ctx[0] != 0x0 || ictl_ctx[1] != 0x3) {
         DPRINTF("xhci: invalid input context control %08x %08x\n",
@@ -2126,7 +2135,9 @@ static TRBCCode xhci_address_slot(XHCIState *xhci, unsigned int slotid,
     }
 
     xhci_dma_read_u32s(xhci, ictx+32, slot_ctx, sizeof(slot_ctx));
+    __sanitizer_cov_trace_state(0, 8);
     xhci_dma_read_u32s(xhci, ictx+64, ep0_ctx, sizeof(ep0_ctx));
+    __sanitizer_cov_trace_state(0, 9);
 
     DPRINTF("xhci: input slot context: %08x %08x %08x %08x\n",
             slot_ctx[0], slot_ctx[1], slot_ctx[2], slot_ctx[3]);
@@ -2193,7 +2204,9 @@ static TRBCCode xhci_address_slot(XHCIState *xhci, unsigned int slotid,
             ep0_ctx[0], ep0_ctx[1], ep0_ctx[2], ep0_ctx[3], ep0_ctx[4]);
 
     xhci_dma_write_u32s(xhci, octx, slot_ctx, sizeof(slot_ctx));
+    __sanitizer_cov_trace_state(0, 26);
     xhci_dma_write_u32s(xhci, octx+32, ep0_ctx, sizeof(ep0_ctx));
+    __sanitizer_cov_trace_state(0, 27);
 
     xhci->slots[slotid-1].addressed = 1;
     return res;
@@ -2228,16 +2241,19 @@ static TRBCCode xhci_configure_slot(XHCIState *xhci, unsigned int slotid,
         }
 
         xhci_dma_read_u32s(xhci, octx, slot_ctx, sizeof(slot_ctx));
+        __sanitizer_cov_trace_state(0, 15);
         slot_ctx[3] &= ~(SLOT_STATE_MASK << SLOT_STATE_SHIFT);
         slot_ctx[3] |= SLOT_ADDRESSED << SLOT_STATE_SHIFT;
         DPRINTF("xhci: output slot context: %08x %08x %08x %08x\n",
                 slot_ctx[0], slot_ctx[1], slot_ctx[2], slot_ctx[3]);
         xhci_dma_write_u32s(xhci, octx, slot_ctx, sizeof(slot_ctx));
+        __sanitizer_cov_trace_state(0, 28);
 
         return CC_SUCCESS;
     }
 
     xhci_dma_read_u32s(xhci, ictx, ictl_ctx, sizeof(ictl_ctx));
+    __sanitizer_cov_trace_state(0, 16);
 
     if ((ictl_ctx[0] & 0x3) != 0x0 || (ictl_ctx[1] & 0x3) != 0x1) {
         DPRINTF("xhci: invalid input context control %08x %08x\n",
@@ -2246,7 +2262,9 @@ static TRBCCode xhci_configure_slot(XHCIState *xhci, unsigned int slotid,
     }
 
     xhci_dma_read_u32s(xhci, ictx+32, islot_ctx, sizeof(islot_ctx));
+    __sanitizer_cov_trace_state(0, 17);
     xhci_dma_read_u32s(xhci, octx, slot_ctx, sizeof(slot_ctx));
+    __sanitizer_cov_trace_state(0, 18);
 
     if (SLOT_STATE(slot_ctx[3]) < SLOT_ADDRESSED) {
         DPRINTF("xhci: invalid slot state %08x\n", slot_ctx[3]);
@@ -2261,6 +2279,7 @@ static TRBCCode xhci_configure_slot(XHCIState *xhci, unsigned int slotid,
         }
         if (ictl_ctx[1] & (1<<i)) {
             xhci_dma_read_u32s(xhci, ictx+32+(32*i), ep_ctx, sizeof(ep_ctx));
+            __sanitizer_cov_trace_state(0, 19);
             DPRINTF("xhci: input ep%d.%d context: %08x %08x %08x %08x %08x\n",
                     i/2, i%2, ep_ctx[0], ep_ctx[1], ep_ctx[2],
                     ep_ctx[3], ep_ctx[4]);
@@ -2273,6 +2292,7 @@ static TRBCCode xhci_configure_slot(XHCIState *xhci, unsigned int slotid,
                     i/2, i%2, ep_ctx[0], ep_ctx[1], ep_ctx[2],
                     ep_ctx[3], ep_ctx[4]);
             xhci_dma_write_u32s(xhci, octx+(32*i), ep_ctx, sizeof(ep_ctx));
+            __sanitizer_cov_trace_state(0, 29);
         }
     }
 
@@ -2295,6 +2315,7 @@ static TRBCCode xhci_configure_slot(XHCIState *xhci, unsigned int slotid,
             slot_ctx[0], slot_ctx[1], slot_ctx[2], slot_ctx[3]);
 
     xhci_dma_write_u32s(xhci, octx, slot_ctx, sizeof(slot_ctx));
+    __sanitizer_cov_trace_state(0, 30);
 
     return CC_SUCCESS;
 }
@@ -2320,6 +2341,7 @@ static TRBCCode xhci_evaluate_slot(XHCIState *xhci, unsigned int slotid,
     DPRINTF("xhci: output context at "DMA_ADDR_FMT"\n", octx);
 
     xhci_dma_read_u32s(xhci, ictx, ictl_ctx, sizeof(ictl_ctx));
+    __sanitizer_cov_trace_state(0, 10);
 
     if (ictl_ctx[0] != 0x0 || ictl_ctx[1] & ~0x3) {
         DPRINTF("xhci: invalid input context control %08x %08x\n",
@@ -2329,11 +2351,13 @@ static TRBCCode xhci_evaluate_slot(XHCIState *xhci, unsigned int slotid,
 
     if (ictl_ctx[1] & 0x1) {
         xhci_dma_read_u32s(xhci, ictx+32, islot_ctx, sizeof(islot_ctx));
+        __sanitizer_cov_trace_state(0, 11);
 
         DPRINTF("xhci: input slot context: %08x %08x %08x %08x\n",
                 islot_ctx[0], islot_ctx[1], islot_ctx[2], islot_ctx[3]);
 
         xhci_dma_read_u32s(xhci, octx, slot_ctx, sizeof(slot_ctx));
+        __sanitizer_cov_trace_state(0, 12);
 
         slot_ctx[1] &= ~0xFFFF; /* max exit latency */
         slot_ctx[1] |= islot_ctx[1] & 0xFFFF;
@@ -2345,16 +2369,19 @@ static TRBCCode xhci_evaluate_slot(XHCIState *xhci, unsigned int slotid,
                 slot_ctx[0], slot_ctx[1], slot_ctx[2], slot_ctx[3]);
 
         xhci_dma_write_u32s(xhci, octx, slot_ctx, sizeof(slot_ctx));
+        __sanitizer_cov_trace_state(0, 31);
     }
 
     if (ictl_ctx[1] & 0x2) {
         xhci_dma_read_u32s(xhci, ictx+64, iep0_ctx, sizeof(iep0_ctx));
+        __sanitizer_cov_trace_state(0, 13);
 
         DPRINTF("xhci: input ep0 context: %08x %08x %08x %08x %08x\n",
                 iep0_ctx[0], iep0_ctx[1], iep0_ctx[2],
                 iep0_ctx[3], iep0_ctx[4]);
 
         xhci_dma_read_u32s(xhci, octx+32, ep0_ctx, sizeof(ep0_ctx));
+        __sanitizer_cov_trace_state(0, 14);
 
         ep0_ctx[1] &= ~0xFFFF0000; /* max packet size*/
         ep0_ctx[1] |= iep0_ctx[1] & 0xFFFF0000;
@@ -2363,6 +2390,7 @@ static TRBCCode xhci_evaluate_slot(XHCIState *xhci, unsigned int slotid,
                 ep0_ctx[0], ep0_ctx[1], ep0_ctx[2], ep0_ctx[3], ep0_ctx[4]);
 
         xhci_dma_write_u32s(xhci, octx+32, ep0_ctx, sizeof(ep0_ctx));
+        __sanitizer_cov_trace_state(0, 32);
     }
 
     return CC_SUCCESS;
@@ -2388,11 +2416,13 @@ static TRBCCode xhci_reset_slot(XHCIState *xhci, unsigned int slotid)
     }
 
     xhci_dma_read_u32s(xhci, octx, slot_ctx, sizeof(slot_ctx));
+    __sanitizer_cov_trace_state(0, 20);
     slot_ctx[3] &= ~(SLOT_STATE_MASK << SLOT_STATE_SHIFT);
     slot_ctx[3] |= SLOT_DEFAULT << SLOT_STATE_SHIFT;
     DPRINTF("xhci: output slot context: %08x %08x %08x %08x\n",
             slot_ctx[0], slot_ctx[1], slot_ctx[2], slot_ctx[3]);
     xhci_dma_write_u32s(xhci, octx, slot_ctx, sizeof(slot_ctx));
+    __sanitizer_cov_trace_state(0, 33);
 
     return CC_SUCCESS;
 }
@@ -2450,6 +2480,7 @@ static TRBCCode xhci_get_port_bandwidth(XHCIState *xhci, uint64_t pctx)
     bw_ctx[0] = 0;
     memset(&bw_ctx[1], 80, xhci->numports); /* 80% */
     pci_dma_write(PCI_DEVICE(xhci), ctx, bw_ctx, sizeof(bw_ctx));
+    __sanitizer_cov_trace_state(0, 22);
 
     return CC_SUCCESS;
 }

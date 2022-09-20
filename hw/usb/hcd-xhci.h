@@ -230,4 +230,6 @@ struct XHCIState {
     bool nec_quirks;
 };
 
+extern void GroupMutatorOrder(int id, int status);
+
 #endif
