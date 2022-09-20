@@ -230,4 +230,7 @@ struct XHCIState {
     bool nec_quirks;
 };
 
+extern void GroupMutatorOrder(int id, int status);
+static void __sanitizer_cov_trace_state(uint8_t StateMachineId, size_t Node) {}
+
 #endif
