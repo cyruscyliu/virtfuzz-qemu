@@ -2781,11 +2781,20 @@ static void create_default_memdev(MachineState *ms, const char *path)
 
 void __llvm_profile_initialize_file(void);
 int __llvm_profile_write_file(void);
+const char *__llvm_profile_get_filename();
+
+static int llvm_state_dump() {
+    const char *filename = __llvm_profile_get_filename();
+    char filename_state[256];
+    snprintf(filename_state, 256, "s%s", filename);
+    return DumpStateToFile(filename_state);
+}
 
 static void nyx_sig_handler(int signum) {
     printf("Bingo! We dump the coverage\n");
     __llvm_profile_initialize_file();
     __llvm_profile_write_file();
+    llvm_state_dump();
     exit(0);
 }
 
@@ -4482,4 +4491,7 @@ void qemu_cleanup(void)
     qemu_chr_cleanup();
     user_creatable_cleanup();
     /* TODO: unref root container, check all devices are ok */
+
+    /* for other cases, we will dump the state coverage here */
+    llvm_state_dump();
 }
