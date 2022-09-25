@@ -445,7 +445,7 @@ void usb_handle_packet(USBDevice *dev, USBPacket *p)
 
 void usb_packet_complete_one(USBDevice *dev, USBPacket *p)
 {
-    if (!p->queue.tqe_next) { fprintf(stderr, "It seems this packet is freed\n"); return; }
+    if (!p->queue.tqe_next) { /*fprintf(stderr, "It seems this packet is freed\n");*/ return; }
     USBEndpoint *ep = p->ep;
 
     assert(p->stream || QTAILQ_FIRST(&ep->queue) == p);
@@ -496,7 +496,7 @@ void usb_packet_complete(USBDevice *dev, USBPacket *p)
    completed.  */
 void usb_cancel_packet(USBPacket * p)
 {
-    if (!p->queue.tqe_next) { fprintf(stderr, "It seems this packet is freed\n"); return; }
+    if (!p->queue.tqe_next) { /*fprintf(stderr, "It seems this packet is freed\n");*/ return; }
     bool callback = (p->state == USB_PACKET_ASYNC);
     assert(usb_packet_is_inflight(p));
     usb_packet_set_state(p, USB_PACKET_CANCELED);
