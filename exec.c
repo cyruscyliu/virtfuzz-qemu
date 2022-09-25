@@ -3616,6 +3616,7 @@ void address_space_unmap(AddressSpace *as, void *buffer, hwaddr len,
         ram_addr_t addr1;
 
         mr = memory_region_from_host(buffer, &addr1);
+        if (mr == NULL) return;
         assert(mr != NULL);
         if (is_write) {
             invalidate_and_set_dirty(mr, addr1, access_len);
