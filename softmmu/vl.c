@@ -117,6 +117,7 @@
 #include "qemu/guest-random.h"
 
 #include "statecovdump.h"
+#include <libgen.h>
 
 #define MAX_VIRTIO_CONSOLES 1
 
@@ -2785,8 +2786,10 @@ const char *__llvm_profile_get_filename();
 
 static int llvm_state_dump() {
     const char *filename = __llvm_profile_get_filename();
+    char filename_copy[256];
+    strncpy(filename_copy, filename, strlen(filename));
     char filename_state[256];
-    snprintf(filename_state, 256, "s%s", filename);
+    snprintf(filename_state, 256, "%s/s%s", dirname(filename_copy), basename(filename));
     return DumpStateToFile(filename_state);
 }
 
