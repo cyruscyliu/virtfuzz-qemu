@@ -92,9 +92,9 @@ static const ViDeZZoFuzzTargetConfig predefined_configs[] = {
         "multifunction=on,masterbus=ich9-ehci-1.0,firstport=2 "
         "-device ich9-usb-uhci3,bus=pcie.0,addr=1d.2,"
         "multifunction=on,masterbus=ich9-ehci-1.0,firstport=4 "
-        "-drive if=none,id=usbcdrom,media=cdrom "
-        "-device usb-tablet,bus=ich9-ehci-1.0,port=1,usb_version=1 "
-        "-device usb-storage,bus=ich9-ehci-1.0,port=2,drive=usbcdrom",
+        "-drive file=null-co://,if=none,format=raw,id=disk0 "
+        "-device usb-storage,bus=ich9-ehci-1.0,port=1,drive=disk0 "
+        "-device usb-tablet,bus=ich9-ehci-1.0,port=2,usb_version=1",
         .mrnames = "*capabilities*,*operational*,*ports*",
         .file = "hw/usb/hcd-ehci.c",
         .socket = false,
