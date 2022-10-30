@@ -263,8 +263,8 @@ static void dwc2_handle_packet(DWC2State *s, uint32_t devadr, USBDevice *dev,
             trace_usb_dwc2_memory_read(hcdma, tlen);
             if (dma_memory_read(&s->dma_as, hcdma,
                                 s->usb_buf[chan], tlen) != MEMTX_OK) {
-                qemu_log_mask(LOG_GUEST_ERROR, "%s: dma_memory_read failed\n",
-                              __func__);
+                // qemu_log_mask(LOG_GUEST_ERROR, "%s: dma_memory_read failed\n",
+                              // __func__);
             }
         }
 
@@ -319,8 +319,8 @@ babble:
             trace_usb_dwc2_memory_write(hcdma, actual);
             if (dma_memory_write(&s->dma_as, hcdma, s->usb_buf[chan],
                                  actual) != MEMTX_OK) {
-                qemu_log_mask(LOG_GUEST_ERROR, "%s: dma_memory_write failed\n",
-                              __func__);
+                // qemu_log_mask(LOG_GUEST_ERROR, "%s: dma_memory_write failed\n",
+                  //             __func__);
             }
         }
 
@@ -715,27 +715,27 @@ static void dwc2_glbreg_write(void *ptr, hwaddr addr, int index, uint64_t val,
         val &= ~GRSTCTL_DMAREQ;
         if (!(old & GRSTCTL_TXFFLSH) && (val & GRSTCTL_TXFFLSH)) {
                 /* TODO - TX fifo flush */
-            qemu_log_mask(LOG_UNIMP, "Tx FIFO flush not implemented\n");
+            // qemu_log_mask(LOG_UNIMP, "Tx FIFO flush not implemented\n");
         }
         if (!(old & GRSTCTL_RXFFLSH) && (val & GRSTCTL_RXFFLSH)) {
                 /* TODO - RX fifo flush */
-            qemu_log_mask(LOG_UNIMP, "Rx FIFO flush not implemented\n");
+            // qemu_log_mask(LOG_UNIMP, "Rx FIFO flush not implemented\n");
         }
         if (!(old & GRSTCTL_IN_TKNQ_FLSH) && (val & GRSTCTL_IN_TKNQ_FLSH)) {
                 /* TODO - device IN token queue flush */
-            qemu_log_mask(LOG_UNIMP, "Token queue flush not implemented\n");
+            // qemu_log_mask(LOG_UNIMP, "Token queue flush not implemented\n");
         }
         if (!(old & GRSTCTL_FRMCNTRRST) && (val & GRSTCTL_FRMCNTRRST)) {
                 /* TODO - host frame counter reset */
-            qemu_log_mask(LOG_UNIMP, "Frame counter reset not implemented\n");
+            // qemu_log_mask(LOG_UNIMP, "Frame counter reset not implemented\n");
         }
         if (!(old & GRSTCTL_HSFTRST) && (val & GRSTCTL_HSFTRST)) {
                 /* TODO - host soft reset */
-            qemu_log_mask(LOG_UNIMP, "Host soft reset not implemented\n");
+            // qemu_log_mask(LOG_UNIMP, "Host soft reset not implemented\n");
         }
         if (!(old & GRSTCTL_CSFTRST) && (val & GRSTCTL_CSFTRST)) {
                 /* TODO - core soft reset */
-            qemu_log_mask(LOG_UNIMP, "Core soft reset not implemented\n");
+            // qemu_log_mask(LOG_UNIMP, "Core soft reset not implemented\n");
         }
         /* don't allow clearing of self-clearing bits */
         val |= old & (GRSTCTL_TXFFLSH | GRSTCTL_RXFFLSH |
@@ -847,8 +847,8 @@ static void dwc2_hreg0_write(void *ptr, hwaddr addr, int index, uint64_t val,
     case HFNUM:
     case HPTXSTS:
     case HAINT:
-        qemu_log_mask(LOG_GUEST_ERROR, "%s: write to read-only register\n",
-                      __func__);
+        // qemu_log_mask(LOG_GUEST_ERROR, "%s: write to read-only register\n",
+                      // __func__);
         return;
     case HAINTMSK:
         val &= 0xffff;
@@ -972,8 +972,8 @@ static void dwc2_hreg1_write(void *ptr, hwaddr addr, int index, uint64_t val,
         iflg = 1;
         break;
     case HCDMAB(0):
-        qemu_log_mask(LOG_GUEST_ERROR, "%s: write to read-only register\n",
-                      __func__);
+        // qemu_log_mask(LOG_GUEST_ERROR, "%s: write to read-only register\n",
+                      // __func__);
         return;
     default:
         break;
@@ -1108,7 +1108,7 @@ static uint64_t dwc2_hreg2_read(void *ptr, hwaddr addr, unsigned size)
 {
     /* TODO - implement FIFOs to support slave mode */
     trace_usb_dwc2_hreg2_read(addr, addr >> 12, 0);
-    qemu_log_mask(LOG_UNIMP, "FIFO read not implemented\n");
+    // qemu_log_mask(LOG_UNIMP, "FIFO read not implemented\n");
     return 0;
 }
 
@@ -1119,7 +1119,7 @@ static void dwc2_hreg2_write(void *ptr, hwaddr addr, uint64_t val,
 
     /* TODO - implement FIFOs to support slave mode */
     trace_usb_dwc2_hreg2_write(addr, addr >> 12, orig, 0, val);
-    qemu_log_mask(LOG_UNIMP, "FIFO write not implemented\n");
+    // qemu_log_mask(LOG_UNIMP, "FIFO write not implemented\n");
 }
 
 static const MemoryRegionOps dwc2_mmio_hreg2_ops = {

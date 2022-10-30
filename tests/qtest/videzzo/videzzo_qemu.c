@@ -692,9 +692,15 @@ static const ViDeZZoFuzzTargetConfig predefined_configs[] = {
         .file = "hw/net/allwinner-emac.c",
         .socket = false,
     },{
+        // https://patchwork.ozlabs.org/project/qemu-devel/patch/1596575505-163040-2-git-send-email-fnu.vikram@xilinx.com/
+        // apt-get install iproute2
+        // ip link add dev vcan0 type vcan
+        // ip link set up vcan0
         .arch = "aarch64",
         .name = "xlnx-zynqmp-can",
-        .args = "-machine xlnx-zcu102",
+        .args = "-machine xlnx-zcu102,canbus0=canbus0 "
+        "-object can-bus,id=canbus0",
+        // "-object can-host-socketcan,id=socketcan0,if=vcan0,canbus=canbus0",
         .mrnames = "*xlnx.zynqmp-can*",
         .file = "hw/net/can/xlnx-zynqmp-can.c",
         .socket = false,
@@ -747,6 +753,7 @@ static const ViDeZZoFuzzTargetConfig predefined_configs[] = {
         .mrnames = "*tc6393xb*",
         .file = "hw/display/tc6393xb.c",
         .socket = false,
+        .byte_address = true,
     },{
         .arch = "arm",
         .name = "pl041",

@@ -426,6 +426,9 @@ static void xlnx_dp_aux_clear_rx_fifo(XlnxDPState *s)
 
 static void xlnx_dp_aux_push_rx_fifo(XlnxDPState *s, uint8_t *buf, size_t len)
 {
+    if (fifo8_num_free(&s->rx_fifo) < len) {
+        return;
+    }
     DPRINTF("Push %u data in rx_fifo\n", (unsigned)len);
     fifo8_push_all(&s->rx_fifo, buf, len);
 }
@@ -457,6 +460,9 @@ static void xlnx_dp_aux_clear_tx_fifo(XlnxDPState *s)
 
 static void xlnx_dp_aux_push_tx_fifo(XlnxDPState *s, uint8_t *buf, size_t len)
 {
+    if (fifo8_num_free(&s->tx_fifo) < len) {
+        return;
+    }
     DPRINTF("Push %u data in tx_fifo\n", (unsigned)len);
     fifo8_push_all(&s->tx_fifo, buf, len);
 }
@@ -465,10 +471,6 @@ static uint8_t xlnx_dp_aux_pop_tx_fifo(XlnxDPState *s)
 {
     uint8_t ret;
 
-    if (fifo8_is_empty(&s->tx_fifo)) {
-        error_report("%s: TX_FIFO underflow", __func__);
-        return 0;
-    }
     ret = fifo8_pop(&s->tx_fifo);
     DPRINTF("pop 0x%2.2X from tx_fifo.\n", ret);
     return ret;
@@ -515,6 +517,10 @@ static void xlnx_dp_aux_set_command(XlnxDPState *s, uint32_t value)
     case WRITE_I2C:
     case WRITE_I2C_MOT:
         for (i = 0; i < nbytes; i++) {
+            if (fifo8_is_empty(&s->tx_fifo)) {
+                error_report("%s: TX_FIFO underflow", __func__);
+                return 0;
+            }
             buf[i] = xlnx_dp_aux_pop_tx_fifo(s);
         }
         s->core_registers[DP_AUX_REPLY_CODE] = aux_request(s->aux_bus, cmd,
@@ -568,6 +574,10 @@ static void xlnx_dp_recreate_surface(XlnxDPState *s)
     uint16_t width = s->core_registers[DP_MAIN_STREAM_HRES];
     uint16_t height = s->core_registers[DP_MAIN_STREAM_VRES];
     DisplaySurface *current_console_surface = qemu_console_surface(s->console);
+
+    // let's limit the width and height
+    width &= 0xff;
+    height &= 0xff;
 
     if ((width != 0) && (height != 0)) {
         /*
@@ -632,8 +642,8 @@ static int xlnx_dp_change_graphic_fmt(XlnxDPState *s)
         s->g_plane.format = PIXMAN_b8g8r8;
         break;
     default:
-        error_report("%s: unsupported graphic format %u", __func__,
-                     s->avbufm_registers[AV_BUF_FORMAT] & DP_GRAPHIC_MASK);
+        // error_report("%s: unsupported graphic format %u", __func__,
+                     // s->avbufm_registers[AV_BUF_FORMAT] & DP_GRAPHIC_MASK);
         return EDP_GRAPHIC;
     }
 
@@ -648,8 +658,8 @@ static int xlnx_dp_change_graphic_fmt(XlnxDPState *s)
         s->v_plane.format = PIXMAN_x8b8g8r8;
         break;
     default:
-        error_report("%s: unsupported video format %u", __func__,
-                     s->avbufm_registers[AV_BUF_FORMAT] & DP_NL_VID_FMT_MASK);
+        // error_report("%s: unsupported video format %u", __func__,
+                     // s->avbufm_registers[AV_BUF_FORMAT] & DP_NL_VID_FMT_MASK);
         return EDP_NL_VID_FMT;
     }
 

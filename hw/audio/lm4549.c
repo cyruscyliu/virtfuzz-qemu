@@ -182,6 +182,8 @@ void lm4549_write(lm4549_state *s,
         regfile[LM4549_PCM_Front_DAC_Rate] = value;
         DPRINTF("DAC rate change = %i\n", value);
 
+        value &= 0x2c;
+
         /* Re-open a voice with the new sample rate */
         struct audsettings as;
         as.freq = value;
