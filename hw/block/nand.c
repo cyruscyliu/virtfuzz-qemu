@@ -92,7 +92,7 @@ struct NANDFlashState {
 #define NAND(obj) \
     OBJECT_CHECK(NANDFlashState, (obj), TYPE_NAND)
 
-static void mem_and(uint8_t *dest, const uint8_t *src, size_t n)
+static void mem_and(uint8_t *dest, const uint8_t *src, int n)
 {
     /* Like memcpy() but we logical-AND the data into the destination */
     int i;
@@ -798,6 +798,10 @@ static void glue(nand_blk_load_, PAGE_SIZE)(NANDFlashState *s,
             s->ioaddr = s->io + (PAGE_START(addr) & 0x1ff) + offset;
         }
     } else {
+        int size = PAGE_SIZE + OOB_SIZE - offset;
+        if (size < 0) {
+            return;
+        }
         memcpy(s->io, s->storage + PAGE_START(s->addr) +
                         offset, PAGE_SIZE + OOB_SIZE - offset);
         s->ioaddr = s->io;

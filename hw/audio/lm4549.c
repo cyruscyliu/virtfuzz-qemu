@@ -182,6 +182,9 @@ void lm4549_write(lm4549_state *s,
         regfile[LM4549_PCM_Front_DAC_Rate] = value;
         DPRINTF("DAC rate change = %i\n", value);
 
+        if (value == 0) {
+            break;
+        }
         value &= 0x2c;
 
         /* Re-open a voice with the new sample rate */

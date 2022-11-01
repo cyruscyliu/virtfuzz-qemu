@@ -108,6 +108,7 @@ static bool legacy_config = true;
 #else
 int audio_bug (const char *funcname, int cond)
 {
+    /*
     if (cond) {
         static int shown;
 
@@ -133,7 +134,7 @@ int audio_bug (const char *funcname, int cond)
 #  endif
 #endif
     }
-
+    */
     return cond;
 }
 #endif
@@ -188,11 +189,13 @@ void AUD_vlog (const char *cap, const char *fmt, va_list ap)
 
 void AUD_log (const char *cap, const char *fmt, ...)
 {
+    /*
     va_list ap;
 
     va_start (ap, fmt);
     AUD_vlog (cap, fmt, ap);
     va_end (ap);
+    */
 }
 
 static void audio_print_settings (struct audsettings *as)

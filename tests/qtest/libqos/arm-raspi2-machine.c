@@ -85,8 +85,8 @@ static void *qos_create_machine_arm_raspi2(QTestState *qts)
 
 static void raspi2_register_nodes(void)
 {
-    qos_node_create_machine("arm/raspi2", qos_create_machine_arm_raspi2);
-    qos_node_contains("arm/raspi2", "generic-sdhci", NULL);
+    qos_node_create_machine("arm/raspi2b", qos_create_machine_arm_raspi2);
+    qos_node_contains("arm/raspi2b", "generic-sdhci", NULL);
 }
 
 libqos_init(raspi2_register_nodes);

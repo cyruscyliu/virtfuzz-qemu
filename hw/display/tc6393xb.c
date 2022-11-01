@@ -144,7 +144,7 @@ static void tc6393xb_gpio_set(void *opaque, int line, int level)
 //    TC6393xbState *s = opaque;
 
     if (line > TC6393XB_GPIOS) {
-        printf("%s: No GPIO pin %i\n", __func__, line);
+        // printf("%s: No GPIO pin %i\n", __func__, line);
         return;
     }
 
@@ -176,7 +176,7 @@ static void tc6393xb_l3v(void *opaque, int line, int level)
 {
     TC6393xbState *s = opaque;
     s->blank = !level;
-    fprintf(stderr, "L3V: %d\n", level);
+    // fprintf(stderr, "L3V: %d\n", level);
 }
 
 static void tc6393xb_sub_irq(void *opaque, int line, int level) {
@@ -440,8 +440,8 @@ static void tc6393xb_draw_graphic(TC6393xbState *s, int full_update)
             tc6393xb_draw_graphic32(s);
             break;
         default:
-            printf("tc6393xb: unknown depth %d\n",
-                   surface_bits_per_pixel(surface));
+            // printf("tc6393xb: unknown depth %d\n",
+                   // surface_bits_per_pixel(surface));
             return;
     }
 

@@ -429,7 +429,7 @@ static void xlnx_dp_aux_push_rx_fifo(XlnxDPState *s, uint8_t *buf, size_t len)
     if (fifo8_num_free(&s->rx_fifo) < len) {
         return;
     }
-    DPRINTF("Push %u data in rx_fifo\n", (unsigned)len);
+    // DPRINTF("Push %u data in rx_fifo\n", (unsigned)len);
     fifo8_push_all(&s->rx_fifo, buf, len);
 }
 
@@ -448,7 +448,7 @@ static uint8_t xlnx_dp_aux_pop_rx_fifo(XlnxDPState *s)
         ret = 0;
     } else {
         ret = fifo8_pop(&s->rx_fifo);
-        DPRINTF("pop 0x%" PRIX8 " from rx_fifo.\n", ret);
+        // DPRINTF("pop 0x%" PRIX8 " from rx_fifo.\n", ret);
     }
     return ret;
 }
@@ -463,7 +463,7 @@ static void xlnx_dp_aux_push_tx_fifo(XlnxDPState *s, uint8_t *buf, size_t len)
     if (fifo8_num_free(&s->tx_fifo) < len) {
         return;
     }
-    DPRINTF("Push %u data in tx_fifo\n", (unsigned)len);
+    // DPRINTF("Push %u data in tx_fifo\n", (unsigned)len);
     fifo8_push_all(&s->tx_fifo, buf, len);
 }
 
@@ -472,7 +472,7 @@ static uint8_t xlnx_dp_aux_pop_tx_fifo(XlnxDPState *s)
     uint8_t ret;
 
     ret = fifo8_pop(&s->tx_fifo);
-    DPRINTF("pop 0x%2.2X from tx_fifo.\n", ret);
+    // DPRINTF("pop 0x%2.2X from tx_fifo.\n", ret);
     return ret;
 }
 
@@ -518,8 +518,8 @@ static void xlnx_dp_aux_set_command(XlnxDPState *s, uint32_t value)
     case WRITE_I2C_MOT:
         for (i = 0; i < nbytes; i++) {
             if (fifo8_is_empty(&s->tx_fifo)) {
-                error_report("%s: TX_FIFO underflow", __func__);
-                return 0;
+                // error_report("%s: TX_FIFO underflow", __func__);
+                break;
             }
             buf[i] = xlnx_dp_aux_pop_tx_fifo(s);
         }
@@ -529,10 +529,10 @@ static void xlnx_dp_aux_set_command(XlnxDPState *s, uint32_t value)
         xlnx_dp_aux_clear_tx_fifo(s);
         break;
     case WRITE_I2C_STATUS:
-        qemu_log_mask(LOG_UNIMP, "xlnx_dp: Write i2c status not implemented\n");
+        // qemu_log_mask(LOG_UNIMP, "xlnx_dp: Write i2c status not implemented\n");
         break;
-    default:
-        error_report("%s: invalid command: %u", __func__, cmd);
+    // default:
+        // error_report("%s: invalid command: %u", __func__, cmd);
     }
 
     s->core_registers[DP_INTERRUPT_SIGNAL_STATE] |= 0x04;
@@ -672,7 +672,7 @@ static void xlnx_dp_update_irq(XlnxDPState *s)
     uint32_t flags;
 
     flags = s->core_registers[DP_INT_STATUS] & ~s->core_registers[DP_INT_MASK];
-    DPRINTF("update IRQ value = %" PRIx32 "\n", flags);
+    // DPRINTF("update IRQ value = %" PRIx32 "\n", flags);
     qemu_set_irq(s->irq, flags != 0);
 }
 
@@ -732,7 +732,7 @@ static uint64_t xlnx_dp_read(void *opaque, hwaddr offset, unsigned size)
         break;
     }
 
-    DPRINTF("core read @%" PRIx64 " = 0x%8.8" PRIX64 "\n", offset << 2, ret);
+    // DPRINTF("core read @%" PRIx64 " = 0x%8.8" PRIX64 "\n", offset << 2, ret);
     return ret;
 }
 
@@ -741,7 +741,7 @@ static void xlnx_dp_write(void *opaque, hwaddr offset, uint64_t value,
 {
     XlnxDPState *s = XLNX_DP(opaque);
 
-    DPRINTF("core write @%" PRIx64 " = 0x%8.8" PRIX64 "\n", offset, value);
+    // DPRINTF("core write @%" PRIx64 " = 0x%8.8" PRIX64 "\n", offset, value);
 
     offset = offset >> 2;
 
@@ -919,8 +919,8 @@ static void xlnx_dp_vblend_write(void *opaque, hwaddr offset,
     XlnxDPState *s = XLNX_DP(opaque);
     bool alpha_was_enabled;
 
-    DPRINTF("vblend: write @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
-                                                               (uint32_t)value);
+    // DPRINTF("vblend: write @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
+                                                               // (uint32_t)value);
     offset = offset >> 2;
     if (offset >= 119)
         return;
@@ -1008,8 +1008,8 @@ static uint64_t xlnx_dp_vblend_read(void *opaque, hwaddr offset,
 {
     XlnxDPState *s = XLNX_DP(opaque);
 
-    DPRINTF("vblend: read @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
-            s->vblend_registers[offset >> 2]);
+    // DPRINTF("vblend: read @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
+            // s->vblend_registers[offset >> 2]);
     if (offset >> 2 >= 119)
         return 0;
     return s->vblend_registers[offset >> 2];
@@ -1038,8 +1038,8 @@ static void xlnx_dp_avbufm_write(void *opaque, hwaddr offset, uint64_t value,
     XlnxDPState *s = XLNX_DP(opaque);
     uint32_t old_av_buf_format;
 
-    DPRINTF("avbufm: write @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
-                                                               (uint32_t)value);
+    // DPRINTF("avbufm: write @0x%" HWADDR_PRIX " = 0x%" PRIX32 "\n", offset,
+                                                               // (uint32_t)value);
     offset = offset >> 2;
 
     switch (offset) {
