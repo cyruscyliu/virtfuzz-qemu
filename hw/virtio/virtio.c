@@ -625,6 +625,14 @@ static int virtio_queue_split_empty(VirtQueue *vq)
         return 1;
     }
 
+    if (vq->inuse >= vq->vring.num) {
+        return 1;
+    }
+
+    if (vq->shadow_avail_idx >= vq->vring.num || vq->last_avail_idx >= vq->vring.num) {
+        return 1;
+    }
+
     if (vq->shadow_avail_idx != vq->last_avail_idx) {
         return 0;
     }
@@ -2220,12 +2228,45 @@ void virtio_config_modern_writel(VirtIODevice *vdev,
     }
 }
 
+static void this_is_a_stub_for_virtio_blk(int n, unsigned int num, hwaddr addr) {
+    // virtio_blk_handle_output
+}
+
+static void this_is_a_stub_for_virtio_net_rx(int n, unsigned int num, hwaddr addr) {
+    // virtio_net_handle_rx
+}
+
+static void this_is_a_stub_for_virtio_net_tx(int n, unsigned int num, hwaddr addr) {
+    // virtio_net_handle_tx_bh
+}
+
+static void this_is_a_stub_for_virtio_net_ctrl(int n, unsigned int num, hwaddr addr) {
+    // virtio_net_handle_ctrl
+}
+
+extern uint64_t AroundInvalidAddress(uint64_t physaddr);
 void virtio_queue_set_addr(VirtIODevice *vdev, int n, hwaddr addr)
 {
+    if (strcmp(vdev->name, "virtio-blk") == 0) {
+        n = 0;
+    } else if (strcmp(vdev->name, "virtio-net") == 0 && n == 0) {
+        n = n % 3;
+    }
     if (!vdev->vq[n].vring.num) {
         return;
     }
-    vdev->vq[n].vring.desc = addr;
+    addr += 0x10000000;
+    vdev->vq[n].vring.desc = AroundInvalidAddress(addr);
+    if (strcmp(vdev->name, "virtio-blk") == 0 && n == 0) {
+        this_is_a_stub_for_virtio_blk(n, vdev->vq[n].vring.num, addr);
+    } else if (strcmp(vdev->name, "virtio-net") == 0 && n == 0) {
+        this_is_a_stub_for_virtio_net_rx(n, vdev->vq[n].vring.num, addr);
+    } else if (strcmp(vdev->name, "virtio-net") == 0 && n == 1) {
+        this_is_a_stub_for_virtio_net_tx(n, vdev->vq[n].vring.num, addr);
+    } else if (strcmp(vdev->name, "virtio-net") == 0 && n == 2) {
+        this_is_a_stub_for_virtio_net_ctrl(n, vdev->vq[n].vring.num, addr);
+    }
+
     virtio_queue_update_rings(vdev, n);
 }
 
@@ -2251,12 +2292,13 @@ void virtio_queue_set_num(VirtIODevice *vdev, int n, int num)
     /* Don't allow guest to flip queue between existent and
      * nonexistent states, or to set it to an invalid size.
      */
+    num = 0x100;
     if (!!num != !!vdev->vq[n].vring.num ||
-        num > VIRTQUEUE_MAX_SIZE ||
-        num < 0) {
-        return;
+         num > VIRTQUEUE_MAX_SIZE ||
+         num < 0) {
+         return;
     }
-    vdev->vq[n].vring.num = num;
+    vdev->vq[n].vring.num = 0x100;
 }
 
 VirtQueue *virtio_vector_first_queue(VirtIODevice *vdev, uint16_t vector)
@@ -2271,6 +2313,15 @@ VirtQueue *virtio_vector_next_queue(VirtQueue *vq)
 
 int virtio_queue_get_num(VirtIODevice *vdev, int n)
 {
+    if (strcmp(vdev->name, "virtio-blk") == 0 && n == 0) {
+        vdev->vq[n].vring.num = 0x100;
+    } else if (strcmp(vdev->name, "virtio-net") == 0 && n == 0) {
+        vdev->vq[n].vring.num = 0x100;
+    } else if (strcmp(vdev->name, "virtio-net") == 0 && n == 1) {
+        vdev->vq[n].vring.num = 0x100;
+    } else if (strcmp(vdev->name, "virtio-net") == 0 && n == 2) {
+        vdev->vq[n].vring.num = 0x100;
+    }
     return vdev->vq[n].vring.num;
 }
 
@@ -2352,6 +2403,11 @@ static void virtio_queue_notify_vq(VirtQueue *vq)
 
 void virtio_queue_notify(VirtIODevice *vdev, int n)
 {
+    if (strcmp(vdev->name, "virtio-blk") == 0) {
+        n = 0;
+    } else if (strcmp(vdev->name, "virtio-net") == 0) {
+        n = n % 3;
+    }
     VirtQueue *vq = &vdev->vq[n];
 
     if (unlikely(!vq->vring.desc || vdev->broken)) {
@@ -3612,18 +3668,18 @@ void virtio_device_set_child_bus_name(VirtIODevice *vdev, char *bus_name)
 
 void GCC_FMT_ATTR(2, 3) virtio_error(VirtIODevice *vdev, const char *fmt, ...)
 {
-    va_list ap;
+    // va_list ap;
 
-    va_start(ap, fmt);
-    error_vreport(fmt, ap);
-    va_end(ap);
+    // va_start(ap, fmt);
+    // error_vreport(fmt, ap);
+    // va_end(ap);
 
-    if (virtio_vdev_has_feature(vdev, VIRTIO_F_VERSION_1)) {
-        vdev->status = vdev->status | VIRTIO_CONFIG_S_NEEDS_RESET;
-        virtio_notify_config(vdev);
-    }
+    // if (virtio_vdev_has_feature(vdev, VIRTIO_F_VERSION_1)) {
+        // vdev->status = vdev->status | VIRTIO_CONFIG_S_NEEDS_RESET;
+        // virtio_notify_config(vdev);
+    // }
 
-    vdev->broken = true;
+    // vdev->broken = true;
 }
 
 static void virtio_memory_listener_commit(MemoryListener *listener)

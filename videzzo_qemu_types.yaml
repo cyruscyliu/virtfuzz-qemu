@@ -195,6 +195,55 @@
   filename: pcnet.c
   id: 17
 - callstack:
+  - _ZL15pcnetTmdLoadAllP11PDMDEVINSR3P10PCNETSTATEP3TMDj
+  - _ZL13pcnetPhysReadP11PDMDEVINSR3P10PCNETSTATEmPvm
+  - 0
+  - 2
+  filename: DevPCNet.cpp
+  id: 17
+- callstack:
+  - _ZL15pcnetTmdTryLoadP11PDMDEVINSR3P10PCNETSTATEP3TMDj
+  - _ZL13pcnetPhysReadP11PDMDEVINSR3P10PCNETSTATEmPvm
+  - 0
+  - 2
+  filename: DevPCNet.cpp
+  id: 106
+- callstack:
+  - _ZL15pcnetTmdTryLoadP11PDMDEVINSR3P10PCNETSTATEP3TMDj
+  - _ZL13pcnetPhysReadP11PDMDEVINSR3P10PCNETSTATEmPvm
+  - 1
+  - 2
+  filename: DevPCNet.cpp
+  id: 107
+- callstack:
+  - _ZL15pcnetTmdTryLoadP11PDMDEVINSR3P10PCNETSTATEP3TMDj
+  - _ZL13pcnetPhysReadP11PDMDEVINSR3P10PCNETSTATEmPvm
+  - 2
+  - 2
+  filename: DevPCNet.cpp
+  id: 108
+- callstack:
+  - _ZL15pcnetTmdTryLoadP11PDMDEVINSR3P10PCNETSTATEP3TMDj
+  - _ZL13pcnetPhysReadP11PDMDEVINSR3P10PCNETSTATEmPvm
+  - 3
+  - 2
+  filename: DevPCNet.cpp
+  id: 109
+- callstack:
+  - _ZL15pcnetTmdTryLoadP11PDMDEVINSR3P10PCNETSTATEP3TMDj
+  - _ZL13pcnetPhysReadP11PDMDEVINSR3P10PCNETSTATEmPvm
+  - 4
+  - 2
+  filename: DevPCNet.cpp
+  id: 110
+- callstack:
+  - _ZL15pcnetTmdLoadAllP11PDMDEVINSR3P10PCNETSTATEP3TMDj
+  - _ZL13pcnetPhysReadP11PDMDEVINSR3P10PCNETSTATEmPvm
+  - 2
+  - 2
+  filename: DevPCNet.cpp
+  id: 111
+- callstack:
   - pcnet_tmd_load
   - phys_mem_read
   - 1
@@ -202,10 +251,10 @@
   filename: pcnet.c
   id: 18
 - callstack:
-  - _ZL13pcnetTdtePollP11PDMDEVINSR3P10PCNETSTATEP3TMD
-  - _ZL15pcnetTmdTryLoadP11PDMDEVINSR3P10PCNETSTATEP3TMDj
-  - 0
-  - 3
+  - _ZL15pcnetTmdLoadAllP11PDMDEVINSR3P10PCNETSTATEP3TMDj
+  - _ZL13pcnetPhysReadP11PDMDEVINSR3P10PCNETSTATEmPvm
+  - 1
+  - 2
   filename: DevPCNet.cpp
   id: 18
 - callstack:
@@ -867,6 +916,13 @@
   filename: DevOHCI.cpp
   id: 80
 - callstack:
+  - _ZL25ohciR3ServicePeriodicListP11PDMDEVINSR3P4OHCIP6OHCIR3
+  - _ZL15ohciR3GetDWordsP11PDMDEVINSR3jPji
+  - 0
+  - 1
+  filename: DevOHCI.cpp
+  id: 99
+- callstack:
   - ohci_service_ed_list
   - ohci_read_ed
   - 0
@@ -874,7 +930,70 @@
   filename: hcd-ohci.c
   id: 81
 - callstack:
+  - _ZL16ohciR3DumpEdListP11PDMDEVINSR3P6OHCIR3jPKcb
+  - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
+  - 0
+  - 1
+  filename: DevOHCI.cpp
+  id: 81
+- callstack:
+  - _ZL24ohciR3HasUrbBeenCanceledP11PDMDEVINSR3P4OHCIP7VUSBURBPK6OHCIED
+  - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
+  - 0
+  - 1
+  filename: DevOHCI.cpp
+  id: 81
+- callstack:
+  - _ZL22ohciR3RhXferCompletionP16VUSBIROOTHUBPORTP7VUSBURB
+  - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
+  - 0
+  - 1
+  filename: DevOHCI.cpp
+  id: 81
+- callstack:
+  - _ZL21ohciR3ServiceBulkListP11PDMDEVINSR3P4OHCIP6OHCIR3
+  - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
+  - 0
+  - 1
+  filename: DevOHCI.cpp
+  id: 81
+- callstack:
+  - _ZL21ohciR3ServiceBulkListP11PDMDEVINSR3P4OHCIP6OHCIR3
+  - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
+  - 1
+  - 1
+  filename: DevOHCI.cpp
+  id: 81
+- callstack:
+  - _ZL18ohciR3UndoBulkListP11PDMDEVINSR3P4OHCIP6OHCIR3
+  - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
+  - 0
+  - 1
+  filename: DevOHCI.cpp
+  id: 81
+- callstack:
+  - _ZL21ohciR3ServiceCtrlListP11PDMDEVINSR3P4OHCIP6OHCIR3
+  - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
+  - 0
+  - 1
+  filename: DevOHCI.cpp
+  id: 81
+- callstack:
+  - _ZL21ohciR3ServiceCtrlListP11PDMDEVINSR3P4OHCIP6OHCIR3
+  - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
+  - 1
+  - 1
+  filename: DevOHCI.cpp
+  id: 81
+- callstack:
   - _ZL25ohciR3ServicePeriodicListP11PDMDEVINSR3P4OHCIP6OHCIR3
+  - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
+  - 0
+  - 1
+  filename: DevOHCI.cpp
+  id: 81
+- callstack:
+  - _ZL24ohciR3CancelOrphanedURBsP11PDMDEVINSR3P4OHCIP6OHCIR3
   - _ZL12ohciR3ReadEdP11PDMDEVINSR3jP6OHCIED
   - 0
   - 1
@@ -973,8 +1092,29 @@
   id: 74
 - callstack:
   - virtio_queue_set_addr
-  - this_is_a_stub
+  - this_is_a_stub_for_virtio_blk
   - 0
   - 2
   filename: virtio.c
-  id: 75
+  id: 78
+- callstack:
+  - virtio_queue_set_addr
+  - this_is_a_stub_for_virtio_net_rx
+  - 0
+  - 2
+  filename: virtio.c
+  id: 113
+- callstack:
+  - virtio_queue_set_addr
+  - this_is_a_stub_for_virtio_net_tx
+  - 0
+  - 2
+  filename: virtio.c
+  id: 112
+- callstack:
+  - virtio_queue_set_addr
+  - this_is_a_stub_for_virtio_net_ctrl
+  - 0
+  - 2
+  filename: virtio.c
+  id: 15

@@ -360,7 +360,7 @@ static const ViDeZZoFuzzTargetConfig predefined_configs[] = {
         .arch = "i386",
         .name = "virtio-net",
         .args = "-M q35 -nodefaults "
-        "-device virtio-net,netdev=net0 -netdev user,id=net0",
+        "-device virtio-net,netdev=net0,mq=on,hash=on,rss=on -netdev user,id=net0",
         .mrnames = "*virtio*",
         .file = "hw/net/virtio-net.c",
         .socket = false,
@@ -1097,6 +1097,7 @@ static bool pcnet = false;
 static bool e1000e = false;
 static bool vmxnet3 = false;
 static bool dwc2 = false;
+static bool virtio = false;
 
 #define XHCI_CAP_BASE (0xe0004000)
 #define XHCI_OPE_BASE (XHCI_CAP_BASE + 0x0040)
@@ -1223,6 +1224,9 @@ uint64_t dispatch_mmio_write(Event *event) {
                 break;
         }
     }
+    if ((!DisableInputProcessing) && virtio && event->addr == 0xe0004018) {
+        event->valu = 0x100;
+    }
     switch (__disimm_around_event_size(event->size, 8)) {
         case ViDeZZo_Byte: qemu_writeb(event->addr, event->valu & 0xFF); break;
         case ViDeZZo_Word: qemu_writew(event->addr, event->valu & 0xFFFF); break;
@@ -1267,7 +1271,7 @@ uint64_t dispatch_mem_write(Event *event) {
 }
 
 uint64_t dispatch_clock_step(Event *event) {
-    QTestState *s = (QTestState *)gfctx_get_object();
+    QTestState *s = (QTestState *)gfctx_get_object(0);
     qtest_clock_step(s, event->valu);
     return 0;
 }
@@ -1568,6 +1572,8 @@ static void videzzo_qemu_pre() {
             vmxnet3 = true;
         if (strncmp("*dwc2-io*", mrnames[i], strlen(mrnames[i])) == 0)
             dwc2 = true;
+        if (strncmp("*virtio*", mrnames[i], strlen(mrnames[i])) == 0)
+            virtio = true;
         locate_fuzzable_objects(qdev_get_machine(), mrnames[i]);
     }
 
