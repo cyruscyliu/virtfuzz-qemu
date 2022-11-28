@@ -275,8 +275,8 @@ static int ahci_cond_start_engines(AHCIDevice *ad)
     if (cmd_start && !cmd_on) {
         if (!ahci_map_clb_address(ad)) {
             pr->cmd &= ~PORT_CMD_START;
-            error_report("AHCI: Failed to start DMA engine: "
-                         "bad command list buffer address");
+            // error_report("AHCI: Failed to start DMA engine: "
+                         // "bad command list buffer address");
             return -1;
         }
     } else if (!cmd_start && cmd_on) {
@@ -286,8 +286,8 @@ static int ahci_cond_start_engines(AHCIDevice *ad)
     if (fis_start && !fis_on) {
         if (!ahci_map_fis_address(ad)) {
             pr->cmd &= ~PORT_CMD_FIS_RX;
-            error_report("AHCI: Failed to start FIS receive engine: "
-                         "bad FIS receive buffer address");
+            // error_report("AHCI: Failed to start FIS receive engine: "
+                         // "bad FIS receive buffer address");
             return -1;
         }
     } else if (!fis_start && fis_on) {
@@ -1155,9 +1155,9 @@ static void process_ncq_command(AHCIState *s, int port, uint8_t *cmd_fis,
     ahci_populate_sglist(ad, &ncq_tfs->sglist, ncq_tfs->cmdh, size, 0);
 
     if (ncq_tfs->sglist.size < size) {
-        error_report("ahci: PRDT length for NCQ command (0x%zx) "
-                     "is smaller than the requested size (0x%zx)",
-                     ncq_tfs->sglist.size, size);
+        // error_report("ahci: PRDT length for NCQ command (0x%zx) "
+                     // "is smaller than the requested size (0x%zx)",
+                     // ncq_tfs->sglist.size, size);
         ncq_err(ncq_tfs);
         ahci_trigger_irq(ad->hba, ad, AHCI_PORT_IRQ_BIT_OFS);
         return;
@@ -1344,6 +1344,7 @@ static void ahci_pio_transfer(const IDEDMA *dma)
     IDEState *s = &ad->port.ifs[0];
     uint32_t size = (uint32_t)(s->data_end - s->data_ptr);
     /* write == ram -> device */
+    if (ad->cur_cmd == NULL) { return; }
     uint16_t opts = le16_to_cpu(ad->cur_cmd->opts);
     int is_write = opts & AHCI_CMD_WRITE;
     int is_atapi = opts & AHCI_CMD_ATAPI;
@@ -1437,6 +1438,7 @@ static int32_t ahci_dma_prepare_buf(const IDEDMA *dma, int32_t limit)
     AHCIDevice *ad = DO_UPCAST(AHCIDevice, dma, dma);
     IDEState *s = &ad->port.ifs[0];
 
+    if (ad->cur_cmd == NULL) { return -1; }
     if (ahci_populate_sglist(ad, &s->sg, ad->cur_cmd,
                              limit, s->io_buffer_offset) == -1) {
         trace_ahci_dma_prepare_buf_fail(ad->hba, ad->port_no);
@@ -1457,6 +1459,7 @@ static void ahci_commit_buf(const IDEDMA *dma, uint32_t tx_bytes)
 {
     AHCIDevice *ad = DO_UPCAST(AHCIDevice, dma, dma);
 
+    if (ad->cur_cmd == NULL) { return; }
     tx_bytes += le32_to_cpu(ad->cur_cmd->status);
     ad->cur_cmd->status = cpu_to_le32(tx_bytes);
 }
@@ -1468,6 +1471,7 @@ static int ahci_dma_rw_buf(const IDEDMA *dma, bool is_write)
     uint8_t *p = s->io_buffer + s->io_buffer_index;
     int l = s->io_buffer_size - s->io_buffer_index;
 
+    if (ad->cur_cmd == NULL) { return 0; }
     if (ahci_populate_sglist(ad, &s->sg, ad->cur_cmd, l, s->io_buffer_offset)) {
         return 0;
     }
@@ -1663,13 +1667,13 @@ static int ahci_state_post_load(void *opaque, int version_id)
         pr = &ad->port_regs;
 
         if (!(pr->cmd & PORT_CMD_START) && (pr->cmd & PORT_CMD_LIST_ON)) {
-            error_report("AHCI: DMA engine should be off, but status bit "
-                         "indicates it is still running.");
+            // error_report("AHCI: DMA engine should be off, but status bit "
+                         // "indicates it is still running.");
             return -1;
         }
         if (!(pr->cmd & PORT_CMD_FIS_RX) && (pr->cmd & PORT_CMD_FIS_ON)) {
-            error_report("AHCI: FIS RX engine should be off, but status bit "
-                         "indicates it is still running.");
+            // error_report("AHCI: FIS RX engine should be off, but status bit "
+                         // "indicates it is still running.");
             return -1;
         }
 
