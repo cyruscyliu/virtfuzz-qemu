@@ -625,6 +625,14 @@ static int virtio_queue_split_empty(VirtQueue *vq)
         return 1;
     }
 
+    if (vq->inuse >= vq->vring.num) {
+        return 1;
+    }
+
+    if (vq->shadow_avail_idx >= vq->vring.num || vq->last_avail_idx >= vq->vring.num) {
+        return 1;
+    }
+
     if (vq->shadow_avail_idx != vq->last_avail_idx) {
         return 0;
     }
@@ -3612,18 +3620,18 @@ void virtio_device_set_child_bus_name(VirtIODevice *vdev, char *bus_name)
 
 void GCC_FMT_ATTR(2, 3) virtio_error(VirtIODevice *vdev, const char *fmt, ...)
 {
-    va_list ap;
+    // va_list ap;
 
-    va_start(ap, fmt);
-    error_vreport(fmt, ap);
-    va_end(ap);
+    // va_start(ap, fmt);
+    // error_vreport(fmt, ap);
+    // va_end(ap);
 
-    if (virtio_vdev_has_feature(vdev, VIRTIO_F_VERSION_1)) {
-        vdev->status = vdev->status | VIRTIO_CONFIG_S_NEEDS_RESET;
-        virtio_notify_config(vdev);
-    }
+    // if (virtio_vdev_has_feature(vdev, VIRTIO_F_VERSION_1)) {
+        // vdev->status = vdev->status | VIRTIO_CONFIG_S_NEEDS_RESET;
+        // virtio_notify_config(vdev);
+    // }
 
-    vdev->broken = true;
+    // vdev->broken = true;
 }
 
 static void virtio_memory_listener_commit(MemoryListener *listener)
