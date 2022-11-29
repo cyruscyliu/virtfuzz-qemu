@@ -574,5 +574,12 @@ const USBDesc *usb_device_get_usb_desc(USBDevice *dev);
 int usb_get_quirks(uint16_t vendor_id, uint16_t product_id,
                    uint8_t interface_class, uint8_t interface_subclass,
                    uint8_t interface_protocol);
+#ifdef CONFIG_FUZZ
+extern void GroupMutatorOrder(int id, int status);
+extern void __sanitizer_cov_trace_state(uint8_t StateMachineId, size_t Node);
+#else
+static void GroupMutatorOrder(int id, int status) {};
+static void __sanitizer_cov_trace_state(uint8_t StateMachineId, size_t Node) {};
+#endif
 
 #endif
