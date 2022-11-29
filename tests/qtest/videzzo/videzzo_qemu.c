@@ -1098,6 +1098,7 @@ static bool e1000e = false;
 static bool vmxnet3 = false;
 static bool dwc2 = false;
 static bool virtio = false;
+static bool sdhci = false;
 
 #define XHCI_CAP_BASE (0xe0004000)
 #define XHCI_OPE_BASE (XHCI_CAP_BASE + 0x0040)
@@ -1226,6 +1227,9 @@ uint64_t dispatch_mmio_write(Event *event) {
     }
     if ((!DisableInputProcessing) && virtio && event->addr == 0xe0004018) {
         event->valu = 0x100;
+    }
+    if ((!DisableInputProcessing) && sdhci && event->addr == 0xe0000004) {
+        event->valu = event->valu % 0x1000;
     }
     switch (__disimm_around_event_size(event->size, 8)) {
         case ViDeZZo_Byte: qemu_writeb(event->addr, event->valu & 0xFF); break;
@@ -1574,6 +1578,8 @@ static void videzzo_qemu_pre() {
             dwc2 = true;
         if (strncmp("*virtio*", mrnames[i], strlen(mrnames[i])) == 0)
             virtio = true;
+        if (strncmp("*sdhci*", mrnames[i], strlen(mrnames[i])) == 0)
+            sdhci = true;
         locate_fuzzable_objects(qdev_get_machine(), mrnames[i]);
     }
 

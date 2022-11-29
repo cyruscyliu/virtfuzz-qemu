@@ -595,10 +595,14 @@ static void sdhci_sdma_transfer_multi_blocks(SDHCIState *s)
         page_aligned = true;
     }
 
+    int counter;
     if (s->trnmod & SDHC_TRNS_READ) {
         s->prnsts |= SDHC_DOING_READ | SDHC_DATA_INHIBIT |
                 SDHC_DAT_LINE_ACTIVE;
+        counter = 0;
         while (s->blkcnt) {
+            counter++;
+            if (counter > 100) break;
             if (s->data_count == 0) {
                 for (n = 0; n < block_size; n++) {
                     s->fifo_buffer[n] = sdbus_read_data(&s->sdbus);
@@ -628,7 +632,10 @@ static void sdhci_sdma_transfer_multi_blocks(SDHCIState *s)
     } else {
         s->prnsts |= SDHC_DOING_WRITE | SDHC_DATA_INHIBIT |
                 SDHC_DAT_LINE_ACTIVE;
+        counter = 0;
         while (s->blkcnt) {
+            counter++;
+            if (counter > 100) break;
             begin = s->data_count;
             if (((boundary_count + begin) < block_size) && page_aligned) {
                 s->data_count = boundary_count + begin;
@@ -743,6 +750,7 @@ static void sdhci_do_adma(SDHCIState *s)
     const uint16_t block_size = s->blksize & BLOCK_SIZE_MASK;
     ADMADescr dscr = {};
     int i;
+    int counter;
 
     for (i = 0; i < SDHC_ADMA_DESCS_PER_DELAY; ++i) {
         s->admaerr &= ~SDHC_ADMAERR_LENGTH_MISMATCH;
