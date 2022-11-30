@@ -2244,11 +2244,7 @@ static void this_is_a_stub_for_virtio_net_ctrl(int n, unsigned int num, hwaddr a
     // virtio_net_handle_ctrl
 }
 
-#ifdef CONFIG_FUZZ
 extern uint64_t AroundInvalidAddress(uint64_t physaddr);
-#else
-uint64_t AroundInvalidAddress(uint64_t physaddr) { return physaddr; }
-#endif
 void virtio_queue_set_addr(VirtIODevice *vdev, int n, hwaddr addr)
 {
     if (strcmp(vdev->name, "virtio-blk") == 0) {
